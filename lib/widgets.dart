@@ -9,3 +9,4 @@ export 'src/widgets/contrast_matrix_widget.dart';
 export 'src/widgets/colorblind_matrix_widget.dart';
 export 'src/widgets/palette_editor_widget.dart';
 export 'src/widgets/color_picker_widget.dart';
+export 'src/widgets/palette_demo_widget.dart';

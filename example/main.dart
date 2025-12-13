@@ -21,136 +21,46 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  late IColorPalette palette;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    // Create a basic palette
-    palette = AppColorPalette.basic(
-      name: 'Demo Palette',
-      description: 'A demonstration of the color palette system',
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Create a comprehensive demo palette
+    final demoPalette = AppColorPalette.enumerated(
+      colors: [
+        const Color(0xFF1976D2), // Blue - primary
+        const Color(0xFF388E3C), // Green - success
+        const Color(0xFFF57C00), // Orange - warning
+        const Color(0xFFD32F2F), // Red - error
+        const Color(0xFF7B1FA2), // Purple - insights
+        const Color(0xFF00796B), // Teal - wellness
+      ],
+      neutrals: [
+        const Color(0xFF212121), // Dark text
+        const Color(0xFF424242), // Medium dark
+        const Color(0xFF757575), // Medium
+        const Color(0xFFBDBDBD), // Light medium
+        const Color(0xFFF5F5F5), // Light background
+        const Color(0xFFFFFFFF), // Pure white
+      ],
+      name: 'Flutter Color Palette Demo',
+      description: 'Interactive demonstration of pure color enumeration, mathematical symmetry, and scientific accessibility testing',
+      tags: ['demo', 'interactive', 'accessibility', 'colorblind'],
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(title),
+        backgroundColor: demoPalette.getColor('color1'),
+        foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Palette info
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      palette.name ?? 'Unnamed Palette',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    if (palette.description != null) ...[
-                      const SizedBox(height: 8),
-                      Text(palette.description!),
-                    ],
-                    const SizedBox(height: 16),
-                    
-                    // Color swatches
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: palette.colorIdentifiers.map((id) {
-                        final color = palette.getColor(id)!;
-                        return Column(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  id,
-                                  style: TextStyle(
-                                    color: color.computeLuminance() > 0.5 
-                                        ? Colors.black 
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              id,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Interactive Contrast Matrix with Colorblind Modes
-            Text(
-              'Interactive Contrast Matrix',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Test your palette across different vision types and themes',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ContrastMatrixWidget(
-              lightPalette: palette,
-              cellSize: 50,
-              showColorblindModes: true,
-              showAccessibilityGrades: true,
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Colorblind Simulation
-            Text(
-              'Colorblind Simulation',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            ColorblindMatrixWidget(
-              palette: palette,
-              cellSize: 40,
-            ),
-          ],
-        ),
+      body: PaletteDemoWidget(
+        initialPalette: demoPalette,
+        title: 'Flutter Color Palette System',
+        description: 'A comprehensive demonstration of pure color enumeration, automatic dark mode generation, and scientific colorblind simulation. Edit any color to see real-time updates throughout the entire system.',
       ),
     );
   }
