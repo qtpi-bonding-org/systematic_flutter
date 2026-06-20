@@ -11,4 +11,5 @@ export 'src/storybook/contrast.dart';
 
 export 'src/storybook/widgets/states_grid.dart';
 
+export 'src/storybook/widgets/device_frame.dart';
 export 'src/storybook/widgets/palette_editor.dart';
