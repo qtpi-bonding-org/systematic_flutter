@@ -8,12 +8,12 @@ class DsGroup extends StatelessWidget {
   final EdgeInsets? padding;
   final bool showChevron;
   final Color? chevronColor;
-  final String testId;
+  final String? testId;
 
   const DsGroup({
     super.key,
     required this.child,
-    required this.testId,
+    this.testId,
     this.onTap,
     this.padding,
     this.showChevron = false,
@@ -28,6 +28,7 @@ class DsGroup extends StatelessWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
+        identifier: testId,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
