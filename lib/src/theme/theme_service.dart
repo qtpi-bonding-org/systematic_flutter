@@ -41,6 +41,7 @@ class ThemeService extends ChangeNotifier {
   }
 
   void clearOverrides() {
+    if (_overrides.isEmpty) return;
     _overrides.clear();
     notifyListeners();
   }

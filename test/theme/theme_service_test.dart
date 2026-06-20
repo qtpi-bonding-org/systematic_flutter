@@ -74,5 +74,13 @@ void main() {
       svc.setOverride('accent', Colors.blue);
       expect(svc.overrides['accent'], Colors.blue);
     });
+
+    test('clearOverrides on empty map does not notify', () {
+      final svc = ThemeService(lightPalette: _palette('p', Colors.white));
+      var count = 0;
+      svc.addListener(() => count++);
+      svc.clearOverrides(); // no overrides set — should be no-op
+      expect(count, 0);
+    });
   });
 }
