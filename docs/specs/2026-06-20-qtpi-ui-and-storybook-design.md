@@ -115,10 +115,54 @@ This single override-map hook is what makes Project 2's live palette editing fre
 3. Migrate **quanitya**: same steps. Verify it still builds/runs in its paused state.
 4. Commit each repo independently.
 
-### 3.7 Risks
+### 3.7 Dependencies & version reconciliation (own-libs)
+
+Both apps depend on several libs the author owns (`github.com/qtpi-bonding-org/`). The
+extraction only intersects **one** of them, but it forces a reconciliation.
+
+**`qtpi_ui` runtime dependencies are deliberately minimal: `flutter` + `flutter_color_palette` only.**
+Nothing else from the apps moves with the bones.
+
+- **`flutter_color_palette` (required).** The `ThemeService` / `AppColorPalette` bone is built on
+  it, so `qtpi_ui` must depend on it. The apps currently disagree:
+  - episutra: `git@github.com:…/flutter_color_palette.git`, **no ref** (floats HEAD), SSH.
+  - quanitya: `https://github.com/…/flutter_color_palette.git`, ref `e8755f5…`, HTTPS.
+
+  Once `qtpi_ui` is in both trees, each app resolves *two* references to this package (its own +
+  `qtpi_ui`'s). pub treats differing **URL or ref** as conflicting git sources, so all three must
+  agree. **Good news (verified 2026-06-20):** both apps already resolve to the *same* commit
+  `e8755f5993cb66c6dfd4696df87bf6ef64229756`, which is also the repo's current HEAD — they differ
+  only in transport (episutra SSH, quanitya HTTPS) and the fact that episutra doesn't pin it.
+  **Plan step:** pin `qtpi_ui` to HTTPS + `e8755f5`; episutra switches SSH→HTTPS and adds the
+  explicit `ref`; quanitya is already canonical (no change). No version bump, no API risk.
+
+**`qtpi_ui` must NOT depend on (would import version skew):**
+
+- **`injectable` / `get_it`** — episutra is on injectable **v3**, quanitya on **v2** (major
+  conflict). So `qtpi_ui` stays annotation-free: `ThemeService` drops `@singleton`; each app
+  registers it manually (`getIt.registerSingleton(ThemeService(palette))`, per §3.5). The token
+  classes are static — no DI involved.
+- **`cubit_ui_flow`** — different refs *and* transports between apps. Its only `design_system/`
+  dependent is `UiFlowListener`, which **stays per-app** (it is app/framework glue, not a visual
+  bone). The bones don't need it.
+
+**Not bones (stay per-app, no action):** `l10n_key_resolver` (codegen), `flutter_colorable`.
+
+**`flutter_adaptable_group` — author-owned, decision pending.** A clean flutter-only package
+(`/Users/aicoder/Documents/my-libs/flutter_adaptable_group`, no external deps) providing declarative
+adaptive **row/col/grid** groups + a responsive-spacing module. It conceptually overlaps the
+structure-primitive bone (`DsColumn`/`DsRow`/`DsGroup`) and the spacing tokens. quanitya depends on
+it; episutra does not. Because it is flutter-only there is **no skew risk** if `qtpi_ui` adopts it —
+but its API differs from episutra's `EpisutraColumn`/`Row`, so routing episutra through it is an
+**API migration, not a typedef alias**, and would break the zero-churn property. **Decision (this
+pass): keep separate** — `qtpi_ui` owns the simple `DsColumn`/`DsRow`/`DsGroup` extracted from the
+apps' identical code; `flutter_adaptable_group` stays quanitya's orthogonal dependency. Flagged as a
+**candidate canonical layout home** for a later, deliberate convergence pass (see §5).
+
+### 3.8 Risks
 
 - **Two-repo + new-repo blast radius.** Plan touches three repos; quanitya has its own git history. Named explicitly so it's not a surprise.
-- **`flutter_color_palette` version skew** between the two apps. Pin one version in `qtpi_ui`; bump the lagging app if needed.
+- **`flutter_color_palette` reconciliation** (see §3.7) — the main coupling risk. Mitigated by anchoring on quanitya's tested ref and verifying episutra builds on it before locking.
 - **Const constructors / default params** that reference moved tokens — verify const-ness survives the move (typedef preserves it; spot-check `AppPadding` defaults).
 
 ---
