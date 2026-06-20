@@ -2,6 +2,7 @@ library qtpi_ui;
 
 // Primitives
 export 'src/primitives/ui_scaler.dart';
+export 'src/primitives/screen_metrics.dart';
 export 'src/primitives/app_sizes.dart';
 export 'src/primitives/app_spacings.dart';
 
