@@ -47,9 +47,8 @@ class _TokenRow extends StatefulWidget {
     return value == null ? null : Color(value);
   }
 
-  // ignore: deprecated_member_use
   static String _toHex(Color c) {
-    return c.value.toRadixString(16).toUpperCase().padLeft(8, "0");
+    return c.toARGB32().toRadixString(16).toUpperCase().padLeft(8, '0');
   }
 
   @override

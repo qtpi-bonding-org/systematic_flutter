@@ -48,11 +48,13 @@ class _StorybookAppState extends State<StorybookApp> {
                   onSelect: (s) => setState(() => _selected = s),
                 ),
                 Expanded(
-                  child: Container(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    child: DeviceFrame(
-                      preset: widget.controller.devicePreset,
-                      child: Builder(builder: _selected.builder),
+                  child: Builder(
+                    builder: (stageCtx) => Container(
+                      color: Theme.of(stageCtx).scaffoldBackgroundColor,
+                      child: DeviceFrame(
+                        preset: widget.controller.devicePreset,
+                        child: Builder(builder: _selected.builder),
+                      ),
                     ),
                   ),
                 ),

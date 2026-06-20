@@ -19,8 +19,7 @@ String paletteToDart(Map<String, Color> colors, {required String name}) {
     ..writeln('AppColorPalette(')
     ..writeln('  colors: {');
   colors.forEach((key, color) {
-    // ignore: deprecated_member_use — .value is the stable ARGB int on the SDK floor
-    final hex = color.value.toRadixString(16).toUpperCase().padLeft(8, '0');
+    final hex = color.toARGB32().toRadixString(16).toUpperCase().padLeft(8, '0');
     buf.writeln("    '$key': const Color(0x$hex),");
   });
   buf
