@@ -7,6 +7,7 @@ class AppSizes {
 
   // --- Base Spacing Unit (8dp grid) ---
   static double get space => UiScaler.instance.px(8.0);
+  static double get spaceHalf => UiScaler.instance.px(4.0);
 
   // --- Font Sizes (Semantic) ---
   static double get fontMini => UiScaler.instance.sp(12.0);
