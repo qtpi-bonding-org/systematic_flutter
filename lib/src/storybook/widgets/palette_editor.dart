@@ -1,6 +1,6 @@
 // lib/src/storybook/widgets/palette_editor.dart
 import 'package:flutter/material.dart';
-import '../theme_controller.dart';
+import 'theme_controller_import.dart';
 
 /// One editable row per palette token: a swatch + a hex field. Plain Flutter.
 /// Entering a valid 6- (RRGGBB) or 8-digit (AARRGGBB) hex applies a live
@@ -32,7 +32,7 @@ class PaletteEditor extends StatelessWidget {
   }
 }
 
-class _TokenRow extends StatelessWidget {
+class _TokenRow extends StatefulWidget {
   const _TokenRow({required this.name, required this.color, required this.onHex});
 
   final String name;
@@ -47,10 +47,40 @@ class _TokenRow extends StatelessWidget {
     return value == null ? null : Color(value);
   }
 
+  // ignore: deprecated_member_use
+  static String _toHex(Color c) {
+    return c.value.toRadixString(16).toUpperCase().padLeft(8, "0");
+  }
+
+  @override
+  State<_TokenRow> createState() => _TokenRowState();
+}
+
+class _TokenRowState extends State<_TokenRow> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: _TokenRow._toHex(widget.color));
+  }
+
+  @override
+  void didUpdateWidget(covariant _TokenRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.color != oldWidget.color) {
+      _ctrl.text = _TokenRow._toHex(widget.color);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
-    final initial = color.value.toRadixString(16).toUpperCase().padLeft(8, '0');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Row(
@@ -59,22 +89,22 @@ class _TokenRow extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: color,
+              color: widget.color,
               border: Border.all(color: Colors.black26),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(name)),
+          Expanded(child: Text(widget.name)),
           SizedBox(
             width: 110,
             child: TextField(
-              key: ValueKey('hex_$name'),
-              controller: TextEditingController(text: initial),
+              key: ValueKey('hex_${widget.name}'),
+              controller: _ctrl,
               decoration: const InputDecoration(prefixText: '0x', isDense: true),
               onSubmitted: (raw) {
-                final parsed = _parseHex(raw);
-                if (parsed != null) onHex(parsed);
+                final parsed = _TokenRow._parseHex(raw);
+                if (parsed != null) widget.onHex(parsed);
               },
             ),
           ),
