@@ -101,7 +101,7 @@ class _TokenRowState extends State<_TokenRow> {
                 decoration: BoxDecoration(
                   color: widget.color,
                   border: Border.all(color: Colors.black26),
-                  borderRadius: BorderRadius.circular(4),
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
