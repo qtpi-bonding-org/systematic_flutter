@@ -244,9 +244,10 @@ class _GrayscaleSlider extends StatelessWidget {
         final thumbX = value * (trackWidth - thumbSize);
         final grey = (value * 255).round();
 
-        return GestureDetector(
-          onTapDown: (d) => _update(d.localPosition.dx, trackWidth),
-          onHorizontalDragUpdate: (d) => _update(d.localPosition.dx, trackWidth),
+        return Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (e) => _update(e.localPosition.dx, trackWidth),
+          onPointerMove: (e) => _update(e.localPosition.dx, trackWidth),
           child: SizedBox(
             height: 24,
             child: Stack(
