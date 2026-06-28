@@ -1,7 +1,7 @@
 # qtpi_ui — Shared Design System + Native Storybook
 
 **Date:** 2026-06-20
-**Status:** design (awaiting review)
+**Status:** Project 1 shipped; Project 2 design aligned 2026-06-20 (ready to plan)
 **Repos touched:** `qtpi_ui` (new), `episutra`, `quanitya`
 
 ---
@@ -93,20 +93,32 @@ Net per-app churn: move files out → add barrel import → add one aliases file
 The package provides the *mechanism*; each app supplies its *values* at bootstrap:
 
 ```dart
-// qtpi_ui: ThemeService holds a base palette + an override map (override map
-// is empty in normal app runs; the Storybook populates it for live editing).
+// qtpi_ui: ThemeService holds a light + dark base palette and a color override
+// map (override map is empty in normal app runs; the Storybook populates it for
+// live editing). Dark mode is already a first-class concept here.
 class ThemeService extends ChangeNotifier {
-  ThemeService(this._basePalette);
-  final IColorPalette _basePalette;
-  final Map<String, Color> _overrides = {};       // empty in production
-  IColorPalette get currentPalette => /* base + overrides */;
-  // setOverride(key, color) / clearOverrides() drive live editing
+  ThemeService({required IColorPalette lightPalette, IColorPalette? darkPalette});
+  final Map<String, Color> _overrides = {};        // empty in production
+  bool _isDarkMode = false;                         // dark/light lives here, not in ThemeData
+  IColorPalette get currentPalette => /* (dark?dark:light).colors + overrides */;
+  void setOverride(String key, Color value);        // live palette editing
+  void clearOverrides();
+  void setDarkMode(bool isDark); void toggleDarkMode();
 }
 
-// episutra bootstrap: getIt.registerSingleton(ThemeService(EpisutraPalette.primary));
+// Each app is a thin @singleton subclass supplying its own values:
+//   class ThemeService extends qtpi.ThemeService {
+//     ThemeService() : super(lightPalette: EpisutraPalette.primary,
+//                            darkPalette: EpisutraPalette.dark);
+//   }
+//   getIt.registerSingleton<ThemeService>(ThemeService());
 ```
 
-This single override-map hook is what makes Project 2's live palette editing free.
+This override-map + dark-mode hook is what makes Project 2's live palette editing
+free — **both are already built and shipped in Project 1.** (Note: episutra is
+currently *dark-only* — its light and dark palettes are the same object — so the
+dark toggle is inert there today; quanitya has a real dark palette via
+`symmetricPalette`.)
 
 ### 3.6 Migration order (both apps, while quanitya is paused)
 
@@ -169,63 +181,154 @@ apps' identical code; `flutter_adaptable_group` stays quanitya's orthogonal depe
 
 ## 4. Project 2 — Storybook Engine
 
-Built **after** Project 1, on the clean package. Lives in `qtpi_ui` (engine is app-agnostic); each app contributes its own story set.
+Built **after** Project 1, on the clean package. The **engine** is app-agnostic and
+lives in `qtpi_ui`; each app contributes its own story set. v1 is a **visual catalog**:
+see every widget, every token, every state; edit colors live; preview at different
+device sizes.
+
+### 4.0 Delivery model — standalone web apps, no mounted route
+
+The engine ships as a library in `qtpi_ui`. It is **hosted** as a standalone Flutter
+**web** app (resizable browser canvas — the natural home for a design tool; macOS
+desktop is the fallback for the few platform-coupled widgets). Two hosts, because of
+the dependency direction — **`qtpi_ui` must never import an app** (the apps depend on
+`qtpi_ui`; importing back is a pub-rejected cycle):
+
+| Story set | Hosted by | Sees |
+|---|---|---|
+| Tokens + `DsColumn/Row/Group` structures | `qtpi_ui`'s own `example/` app | engine + `qtpi_ui` only |
+| episutra signature widgets | a **thin storybook entrypoint in the episutra repo** | engine (imported) + episutra's widgets |
+
+The episutra entrypoint is a small dev app that imports the shared engine plus
+episutra's story list, and registers whatever those widgets need (a `ThemeService`
++ light mocks for any DI-backed widget). The *tool* is shared and lives here; an
+app's *widget stories* are hosted from that app.
+
+**The mounted `/storybook` dev route is cut from v1.** The standalone catalog covers
+the stated goal (see widgets / colors / states). A mounted route only earns its keep
+for on-device platform rendering or deeply DI-entangled widgets — neither is a v1
+need. Left as a one-line "possible later" (see §5).
 
 ### 4.1 Interface-driven core (never imports an app)
 
 ```dart
 class Story { final String category, name; final WidgetBuilder builder; }
-abstract interface class ThemeController {        // backed by qtpi_ui ThemeService
-  Map<String, Color> get tokens;
-  void setToken(String key, Color value);
-  void reset();
-  bool get isDark; set isDark(bool v);
-  double get scale; set scale(double v);
+
+// Thin adapter the engine owns. Color + dark are backed 1:1 by the EXISTING
+// qtpi_ui ThemeService (built in Project 1); only `scale` needs new plumbing
+// in UiScaler (see §4.4).
+abstract interface class ThemeController {
+  Map<String, Color> get tokens;                 // -> ThemeService.currentPalette.colors
+  void setToken(String key, Color value);        // -> ThemeService.setOverride
+  void reset();                                  // -> ThemeService.clearOverrides
+  bool get isDark; set isDark(bool v);           // -> ThemeService isDarkMode / setDarkMode
+  String? get devicePreset; set devicePreset(String? v);  // drives UiScaler via ScreenMetrics
 }
 ```
 
-The Engine renders a `List<Story>` against a `ThemeController`. It knows nothing about `GlowTap` or `EpisutraPalette`.
+The Engine renders a `List<Story>` against a `ThemeController`. It knows nothing about
+`GlowTap` or `EpisutraPalette`.
 
 ### 4.2 Layout
 
 - **Left sidebar** — categories → stories (Tokens / Widgets / Structures).
-- **Center stage** — selected story rendered live on the real background, through real `UiScaler`. Widgets shown in a **states grid** (default · focused · disabled · error · loading where relevant).
+- **Center stage** — selected story rendered live inside a **device frame** (see §4.4),
+  on the real background, through the real `UiScaler`. Widgets shown in a **states grid**
+  (default · focused · disabled · error · loading where relevant).
 - **Right tools panel** — global controls (below).
+
+**The chrome (sidebar / tools / device frame) is built in plain Flutter — it does NOT
+use `UiScaler`.** This is what lets a device preset rescale *only the stage*, not the
+tool itself, while keeping every app call site (`UiScaler.instance.px(...)`) unchanged.
 
 ### 4.3 Token galleries (the "Tokens" category)
 
 - **Colors** — every semantic token as a labeled swatch.
-- **Typography** — each named text style (`displayLarge`…`labelSmall`) as a **specimen** with one shared sample sentence, to compare weight/size. (Browse-only; sizes are edited in code + hot-reload, not via sliders.)
+- **Typography** — each named text style (`displayLarge`…`labelSmall`) as a **specimen**
+  with one shared sample sentence, to compare weight/size. **Browse-only:** fonts and
+  sizes are changed in code (e.g. ask the agent to edit the palette/fonts file) and
+  hot-reloaded — the specimens (and every widget) redraw instantly. No live font
+  controls; colors are the only live-edited tokens (see §4.4). Rationale: colors are
+  tweaked constantly and benefit from drag-to-re-theme; fonts are set once and rarely
+  revisited, so a code-edit + hot-reload loop is tight enough and needs zero new
+  mechanism.
 - **Spacing / radii / icon sizes** — visual rulers/blocks.
 
 ### 4.4 Global tools (right panel)
 
-1. **Full palette editor** — one picker per palette token, bound to `ThemeService` override map. Edit any token → whole stage re-themes live.
+1. **Full palette editor** — one picker per palette token, bound to the `ThemeService`
+   override map. Edit any token → whole stage re-themes live. Already-built hook.
 2. **Contrast calculator** — pick two tokens → WCAG ratio + AA/AAA pass-fail badge.
-3. **Copy palette as Dart** — serialize the current (edited) palette back into the `colors:{}` literal to paste into the app's palette file. Closes the human-tweaks → code loop (the AI-agent-friendly path).
-4. **Dark toggle** + **scale slider** (drives `UiScaler`) — sanity-check theme/responsive behavior.
+3. **Copy palette as Dart** — serialize the current (edited) palette back into source.
+   It iterates `currentPalette.colors`, so it is app-agnostic across both apps' key
+   sets — but it must emit the full **`AppColorPalette(colors:{ 'k': const Color(0x…) },
+   name: '…')` wrapper**, not a bare map (both episutra and quanitya palette files use
+   this identical shape — verified 2026-06-20). *Caveat:* the source files carry
+   hand-written `// comments` per color; the serializer cannot reproduce those, so
+   round-trip output is comment-less. Closes the human/agent tweak → code loop.
+4. **Dark toggle** — flips `ThemeService` dark mode (meaningful for quanitya; inert for
+   the currently dark-only episutra).
+5. **Device-preview presets** (replaces the old "scale slider") — a selector of target
+   widths (`iPhone SE 375 · iPhone 16 393 · Pro Max 430 · iPad 820 · Desktop 1200`) that
+   frames the stage at that width *and* drives `UiScaler` to the matching factor, so you
+   see a widget as it renders on a phone vs. an iPad. Mechanism below.
 
-### 4.5 Delivery
+#### 4.4.1 The `ScreenMetrics` seam (how device presets work)
 
-- Runnable **standalone** (the package's `example/` app) *and* mountable as a **`/storybook` dev route** inside any app (debug-only entry).
-- Each app provides its story set; the Engine is shared.
+`UiScaler` derives its factor (`(width/393).clamp(0.85, 1.15)`) from the screen width it
+reads **once** at `init()` — today straight from `MediaQuery`. Mocking `MediaQuery` alone
+is insufficient: `UiScaler` caches the factor, so token-sized widgets wouldn't follow the
+mock. The fix is a small seam:
+
+```dart
+abstract interface class ScreenMetrics { double get width; }
+// production:  UiScaler reads MediaQueryMetrics(context)   — behavior unchanged
+// storybook:   UiScaler reads StorybookMetrics(width: 820) — driven by the preset selector
+```
+
+Picking a preset sets the mock's width and re-derives the factor; the stage (and only the
+stage — the chrome is plain Flutter, §4.2) redraws at that device size.
+
+**Honest boundary:** `UiScaler.instance` is a single process-global. In the standalone
+host (the storybook *is* the whole app) that's harmless — the only `UiScaler` reader is
+the stage. This global nature is exactly why the mounted `/storybook` route was cut
+(§4.0): there it would flip the live host app's scaling. Fully isolating per-subtree
+scalers would force `context`-based scaling at every call site — the churn Project 1
+deliberately avoided — so it stays out of scope.
+
+### 4.5 What's reused vs. new
+
+- **Reused, already shipped (Project 1):** the color override map, `setOverride` /
+  `clearOverrides`, dark mode on `ThemeService`, `UiScaler`, the `Ds*` structures.
+- **New in Project 2:** the engine (Story registry, sidebar/stage/tools, states grid),
+  the `ScreenMetrics` seam + a `setSimulatedWidth`-style hook on `UiScaler`, the contrast
+  calculator, the "Copy as Dart" serializer, `qtpi_ui`'s own story set + `example/` web
+  host, and (in the episutra repo) episutra's story set + a thin storybook entrypoint.
 
 ---
 
 ## 5. Explicitly out of scope (YAGNI)
 
-Deferred to a possible later "canvas" phase; the Story registry leaves room but we build none of it now:
+Deferred; the Story registry / seams leave room but we build none of it now:
 
+- **Mounted `/storybook` dev route inside a live app** — possible later for on-device
+  platform rendering or DI-entangled widgets; the standalone web catalog covers v1.
+- **Live font / size editing** — fonts and sizes change in code + hot-reload (§4.3); no
+  runtime typography controls.
+- **Per-subtree isolated scalers** — would require `context`-based scaling at every call
+  site; the single global `UiScaler` + standalone host is sufficient.
 - Drag-and-drop canvas / screen composition (the full Figma/Claude-Design replacement).
-- Runtime editing of sizes/spacing (rarely changes → edit code + hot-reload).
 - Theme persistence / export beyond "copy as Dart".
-- Migrating quanitya's *signature* widgets or rebranding either app.
+- quanitya's story set, and migrating either app's *signature* widgets / rebranding.
 
 ---
 
 ## 6. Build order
 
-1. **Project 1 — `qtpi_ui` extraction** (now, quanitya paused). Stops drift; both apps on one package.
-2. **Project 2 — Storybook Engine** (next, on the clean package). Serves both apps' story sets.
+1. **Project 1 — `qtpi_ui` extraction** ✅ *shipped.* Both apps on one package; tokens,
+   theme (incl. override map + dark mode), and `Ds*` structures extracted with tests.
+2. **Project 2 — Storybook Engine** (next, on the clean package). Scope this pass:
+   engine + `qtpi_ui` story set + `example/` web host (here), and episutra's story set +
+   thin storybook entrypoint (in the episutra repo). quanitya's stories deferred.
 
 Each project gets its own implementation plan and its own build cycle.
