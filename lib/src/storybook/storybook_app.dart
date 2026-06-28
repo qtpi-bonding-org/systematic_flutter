@@ -1,6 +1,7 @@
 // lib/src/storybook/storybook_app.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'device_preset.dart';
 import 'palette_dart_serializer.dart';
 import 'story.dart';
@@ -30,11 +31,38 @@ class StorybookApp extends StatefulWidget {
 class _StorybookAppState extends State<StorybookApp> {
   late Story _selected = widget.stories.first;
 
+  // Storybook stage background — independent of the app palette so you can
+  // check components on a neutral surface without touching design tokens.
+  final _storybookColor = ValueNotifier<Color>(const Color(0xFF111318));
+
+  @override
+  void dispose() {
+    _storybookColor.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(StorybookApp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // On hot reload the stories list is replaced. Re-match by name so the
+    // currently-viewed story picks up any code changes; fall back to first.
+    if (!identical(widget.stories, oldWidget.stories)) {
+      final name = _selected.name;
+      final cat = _selected.category;
+      _selected = widget.stories.firstWhere(
+        (s) => s.name == name && s.category == cat,
+        orElse: () => widget.stories.first,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = groupStories(widget.stories);
     return AnimatedBuilder(
-      animation: widget.controller,
+      // Merge the palette controller + shell-color notifier so any change
+      // to either immediately re-runs the stage builder.
+      animation: Listenable.merge([widget.controller, _storybookColor]),
       builder: (context, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -48,17 +76,19 @@ class _StorybookAppState extends State<StorybookApp> {
                   onSelect: (s) => setState(() => _selected = s),
                 ),
                 Expanded(
-                  child: Builder(
-                    builder: (stageCtx) => Container(
-                      color: Theme.of(stageCtx).scaffoldBackgroundColor,
-                      child: DeviceFrame(
-                        preset: widget.controller.devicePreset,
-                        child: Builder(builder: _selected.builder),
-                      ),
+                  child: ColoredBox(
+                    color: _storybookColor.value,
+                    child: DeviceFrame(
+                      preset: widget.controller.devicePreset,
+                      child: Builder(builder: _selected.builder),
                     ),
                   ),
                 ),
-                _ToolsPanel(controller: widget.controller),
+                _ToolsPanel(
+                  controller: widget.controller,
+                  storybookColor: _storybookColor.value,
+                  onStorybookColorChanged: (c) => _storybookColor.value = c,
+                ),
               ],
             ),
           ),
@@ -109,9 +139,120 @@ class _Sidebar extends StatelessWidget {
 }
 
 class _ToolsPanel extends StatelessWidget {
-  const _ToolsPanel({required this.controller});
+  const _ToolsPanel({
+    required this.controller,
+    required this.storybookColor,
+    required this.onStorybookColorChanged,
+  });
 
   final ThemeController controller;
+  final Color storybookColor;
+  final ValueChanged<Color> onStorybookColorChanged;
+
+  static const _shellPresets = [
+    Color(0xFF000000),
+    Color(0xFF111318),
+    Color(0xFF1C1F26),
+    Color(0xFF2C2C2C),
+    Color(0xFF555555),
+    Color(0xFFAAAAAA),
+    Color(0xFFEEEEEE),
+    Color(0xFFFFFFFF),
+  ];
+
+  Future<void> _openShellPicker(BuildContext context) async {
+    double h = HSLColor.fromColor(storybookColor).hue;
+    double s = HSLColor.fromColor(storybookColor).saturation;
+    double l = HSLColor.fromColor(storybookColor).lightness;
+    Color current = storybookColor;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setSt) => AlertDialog(
+          title: const Text('Storybook background'),
+          contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HueRingPicker(
+                  pickerColor: current,
+                  onColorChanged: (c) {
+                    final hsl = HSLColor.fromColor(c);
+                    setSt(() {
+                      if (hsl.saturation > 0.001 &&
+                          hsl.lightness > 0.001 &&
+                          hsl.lightness < 0.999) {
+                        h = hsl.hue;
+                      }
+                      s = hsl.saturation;
+                      l = hsl.lightness;
+                      current = HSLColor.fromAHSL(1, h, s, l).toColor();
+                    });
+                  },
+                  enableAlpha: false,
+                  displayThumbColor: true,
+                ),
+                const SizedBox(height: 8),
+                _buildSlider(ctx, setSt, 'L', l * 100, 0, 100, (v) {
+                  l = v / 100;
+                  current = HSLColor.fromAHSL(1, h, s, l).toColor();
+                }),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                onStorybookColorChanged(current);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlider(
+    BuildContext ctx,
+    StateSetter setSt,
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 16,
+          child: Text(label,
+              style:
+                  const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+        ),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            onChanged: (v) => setSt(() => onChanged(v)),
+          ),
+        ),
+        SizedBox(
+          width: 36,
+          child: Text(value.toStringAsFixed(0),
+              style: const TextStyle(fontSize: 11), textAlign: TextAlign.right),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +281,49 @@ class _ToolsPanel extends StatelessWidget {
               title: const Text('Dark mode'),
               value: controller.isDark,
               onChanged: (v) => controller.isDark = v,
+            ),
+            const Divider(),
+            const Text('Storybook background'),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                for (final c in _shellPresets)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: GestureDetector(
+                      onTap: () => onStorybookColorChanged(c),
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: c,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: storybookColor == c
+                                ? Colors.white
+                                : Colors.white24,
+                            width: storybookColor == c ? 2 : 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => _openShellPicker(context),
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: storybookColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white54, width: 1.5),
+                    ),
+                    child: const Icon(Icons.colorize,
+                        size: 12, color: Colors.white70),
+                  ),
+                ),
+              ],
             ),
             const Divider(),
             const Text('Palette'),

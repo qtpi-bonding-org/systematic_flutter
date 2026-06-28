@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qtpi_ui/qtpi_ui.dart';
 import '../story.dart';
+import '../widgets/contrast_grid.dart';
 
 /// qtpi_ui's own catalog: tokens + the Ds* structure primitives. App-agnostic;
 /// [tokens] is the live palette map so the colors gallery re-renders on edits.
@@ -30,6 +31,14 @@ List<Story> qtpiStories(Map<String, Color> tokens) => [
                 ],
               ),
           ],
+        ),
+      ),
+      Story(
+        category: 'qtpi_ui / Tokens',
+        name: 'Color Contrast',
+        builder: (context) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: ContrastGrid(tokens: tokens),
         ),
       ),
       Story(

@@ -1,5 +1,6 @@
 // lib/src/storybook/widgets/palette_editor.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'theme_controller_import.dart';
 
 /// One editable row per palette token: a tappable swatch (opens an HSL
@@ -139,82 +140,53 @@ class _ColorPickerDialog extends StatefulWidget {
 }
 
 class _ColorPickerDialogState extends State<_ColorPickerDialog> {
-  late HSLColor _hsl;
-  late final TextEditingController _hexCtrl;
+  late double _h; // 0–360
+  late double _s; // 0–1
+  late double _l; // 0–1
 
   @override
   void initState() {
     super.initState();
-    _hsl = HSLColor.fromColor(widget.initial);
-    _hexCtrl = TextEditingController(text: _toHex(_hsl.toColor()));
+    final hsl = HSLColor.fromColor(widget.initial);
+    _h = hsl.hue;
+    _s = hsl.saturation;
+    _l = hsl.lightness;
   }
 
-  @override
-  void dispose() {
-    _hexCtrl.dispose();
-    super.dispose();
-  }
+  Color get _color => HSLColor.fromAHSL(1, _h, _s, _l).toColor();
 
-  static String _toHex(Color c) {
-    final rgb = c.toARGB32() & 0x00FFFFFF;
-    return rgb.toRadixString(16).toUpperCase().padLeft(6, '0');
-  }
-
-  void _updateHsl(HSLColor hsl) {
+  // Guard: only take hue from the wheel when the color isn't achromatic —
+  // grey/black/white have no meaningful hue and would reset it to 0 (red).
+  void _onWheelChange(Color c) {
+    final hsl = HSLColor.fromColor(c);
     setState(() {
-      _hsl = hsl;
-      _hexCtrl.text = _toHex(hsl.toColor());
+      if (hsl.saturation > 0.001 && hsl.lightness > 0.001 && hsl.lightness < 0.999) {
+        _h = hsl.hue;
+      }
+      _s = hsl.saturation;
+      _l = hsl.lightness;
     });
-  }
-
-  void _applyHex(String raw) {
-    final cleaned = raw.trim().replaceAll('#', '');
-    if (cleaned.length == 6) {
-      final v = int.tryParse('FF$cleaned', radix: 16);
-      if (v != null) _updateHsl(HSLColor.fromColor(Color(v)));
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = _hsl.toColor();
-    final h = _hsl.hue;
-    final s = _hsl.saturation;
-    final l = _hsl.lightness;
-
     return AlertDialog(
       title: Text(widget.name),
-      content: SizedBox(
-        width: 300,
+      contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Live preview
-            Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.black12),
-              ),
+            HueRingPicker(
+              pickerColor: _color,
+              onColorChanged: _onWheelChange,
+              enableAlpha: false,
+              displayThumbColor: true,
             ),
-            const SizedBox(height: 20),
-            _buildSlider('H', h, 0, 360, (v) => _updateHsl(_hsl.withHue(v))),
-            _buildSlider('S', s * 100, 0, 100, (v) => _updateHsl(_hsl.withSaturation(v / 100))),
-            _buildSlider('L', l * 100, 0, 100, (v) => _updateHsl(_hsl.withLightness(v / 100))),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _hexCtrl,
-              decoration: const InputDecoration(
-                prefixText: '#',
-                isDense: true,
-                border: OutlineInputBorder(),
-                labelText: 'Hex',
-              ),
-              onSubmitted: _applyHex,
-              onEditingComplete: () => _applyHex(_hexCtrl.text),
-            ),
+            const SizedBox(height: 8),
+            _buildSlider('H', _h, 0, 360, (v) => setState(() => _h = v)),
+            _buildSlider('S', _s * 100, 0, 100, (v) => setState(() => _s = v / 100)),
+            _buildSlider('L', _l * 100, 0, 100, (v) => setState(() => _l = v / 100)),
           ],
         ),
       ),
@@ -224,20 +196,14 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, _hsl.toColor()),
+          onPressed: () => Navigator.pop(context, _color),
           child: const Text('Apply'),
         ),
       ],
     );
   }
 
-  Widget _buildSlider(
-    String label,
-    double value,
-    double min,
-    double max,
-    ValueChanged<double> onChanged,
-  ) {
+  Widget _buildSlider(String label, double value, double min, double max, ValueChanged<double> onChanged) {
     return Row(
       children: [
         SizedBox(
@@ -249,11 +215,7 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
         ),
         SizedBox(
           width: 36,
-          child: Text(
-            value.toStringAsFixed(0),
-            style: const TextStyle(fontSize: 11),
-            textAlign: TextAlign.right,
-          ),
+          child: Text(value.toStringAsFixed(0), style: const TextStyle(fontSize: 11), textAlign: TextAlign.right),
         ),
       ],
     );
