@@ -5,7 +5,6 @@ import 'device_preset.dart';
 import 'palette_dart_serializer.dart';
 import 'story.dart';
 import 'theme_controller.dart';
-import 'widgets/contrast_calculator.dart';
 import 'widgets/device_frame.dart';
 import 'widgets/palette_editor.dart';
 
@@ -212,9 +211,6 @@ class _ToolsPanel extends StatelessWidget {
               onPressed: controller.reset,
               child: const Text('Reset overrides'),
             ),
-            const Divider(),
-            const Text('Contrast'),
-            ContrastCalculator(tokens: controller.tokens),
           ],
         ),
       ),
