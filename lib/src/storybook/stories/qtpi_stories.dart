@@ -6,7 +6,7 @@ import '../story.dart';
 /// [tokens] is the live palette map so the colors gallery re-renders on edits.
 List<Story> qtpiStories(Map<String, Color> tokens) => [
       Story(
-        category: 'Tokens',
+        category: 'qtpi_ui / Tokens',
         name: 'Colors',
         builder: (context) => Wrap(
           spacing: 12,
@@ -33,7 +33,7 @@ List<Story> qtpiStories(Map<String, Color> tokens) => [
         ),
       ),
       Story(
-        category: 'Tokens',
+        category: 'qtpi_ui / Tokens',
         name: 'Spacing',
         builder: (context) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +62,7 @@ List<Story> qtpiStories(Map<String, Color> tokens) => [
         ),
       ),
       Story(
-        category: 'Tokens',
+        category: 'qtpi_ui / Tokens',
         name: 'Typography',
         builder: (context) {
           final theme = Theme.of(context);
@@ -106,14 +106,14 @@ List<Story> qtpiStories(Map<String, Color> tokens) => [
         },
       ),
       Story(
-        category: 'Structures',
+        category: 'qtpi_ui / Structures',
         name: 'DsColumn',
         builder: (_) => const DsColumn(
           children: [Text('one'), Text('two'), Text('three')],
         ),
       ),
       Story(
-        category: 'Structures',
+        category: 'qtpi_ui / Structures',
         name: 'DsRow',
         builder: (_) => const DsRow(
           start: Text('left'),
@@ -122,7 +122,7 @@ List<Story> qtpiStories(Map<String, Color> tokens) => [
         ),
       ),
       Story(
-        category: 'Structures',
+        category: 'qtpi_ui / Structures',
         name: 'DsGroup',
         builder: (_) => DsGroup(
           showChevron: true,
