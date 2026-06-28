@@ -30,16 +30,12 @@ class _StorybookAppState extends State<StorybookApp> {
   late Story _selected = widget.stories.first;
 
   // Storybook stage background — independent of the app palette.
-  final _storybookColor = ValueNotifier<Color>(const Color(0xFF111318));
+  // Plain Color field updated via setState so Flutter's standard dirty-mark
+  // pipeline guarantees the ColoredBox repaints on the same frame.
+  Color _storybookColor = const Color(0xFF111318);
 
   // Fixed neutral chrome theme — never changes with the app palette.
   static final _chromeTheme = ThemeData.dark(useMaterial3: true);
-
-  @override
-  void dispose() {
-    _storybookColor.dispose();
-    super.dispose();
-  }
 
   @override
   void didUpdateWidget(StorybookApp oldWidget) {
@@ -59,10 +55,10 @@ class _StorybookAppState extends State<StorybookApp> {
   @override
   Widget build(BuildContext context) {
     final categories = groupStories(widget.stories);
+    // AnimatedBuilder handles palette changes; storybook-color changes go
+    // through setState() on this State directly.
     return AnimatedBuilder(
-      // Merge the palette controller + storybook-color notifier so any change
-      // to either immediately re-runs the stage builder.
-      animation: Listenable.merge([widget.controller, _storybookColor]),
+      animation: widget.controller,
       builder: (context, _) {
         final appTheme = widget.themeBuilder(widget.controller);
         return MaterialApp(
@@ -80,7 +76,7 @@ class _StorybookAppState extends State<StorybookApp> {
                 ),
                 Expanded(
                   child: ColoredBox(
-                    color: _storybookColor.value,
+                    color: _storybookColor,
                     child: DeviceFrame(
                       preset: widget.controller.devicePreset,
                       // Only the story content gets the live app theme.
@@ -93,8 +89,9 @@ class _StorybookAppState extends State<StorybookApp> {
                 ),
                 _ToolsPanel(
                   controller: widget.controller,
-                  storybookColor: _storybookColor.value,
-                  onStorybookColorChanged: (c) => _storybookColor.value = c,
+                  storybookColor: _storybookColor,
+                  onStorybookColorChanged: (c) =>
+                      setState(() => _storybookColor = c),
                 ),
               ],
             ),
@@ -198,7 +195,7 @@ class _ToolsPanel extends StatelessWidget {
             const SizedBox(height: 4),
             const Divider(),
             const Text('Palette'),
-            SizedBox(height: 300, child: PaletteEditor(controller: controller)),
+            SizedBox(height: 550, child: PaletteEditor(controller: controller)),
             TextButton(
               onPressed: () {
                 final dart = paletteToDart(controller.tokens,
