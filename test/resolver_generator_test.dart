@@ -64,6 +64,66 @@ void main() {
       expect(code, contains("args?['count'] as int? ?? 0"));
     });
 
+    test('calls a message method for a value placeholder without metadata', () {
+      final entries = ArbParser().parse({
+        'initializationReady': 'Ready at {ipAddress}',
+      });
+
+      final code = generator.generate(entries);
+
+      expect(
+        code,
+        contains(
+          "'initialization.ready' => _l10n.initializationReady(args?['ipAddress'] as String? ?? ''),",
+        ),
+      );
+      expect(
+        code,
+        isNot(contains("'initialization.ready' => _l10n.initializationReady,")),
+      );
+    });
+
+    test('uses metadata type when generating a detected message method', () {
+      final entries = ArbParser().parse({
+        'initializationSyncAttempt': 'Sync attempt {attempt}',
+        '@initializationSyncAttempt': {
+          'placeholders': {
+            'attempt': {'type': 'int'},
+          },
+        },
+      });
+
+      final code = generator.generate(entries);
+
+      expect(
+        code,
+        contains(
+          "'initialization.sync.attempt' => _l10n.initializationSyncAttempt(args?['attempt'] as int? ?? 0),",
+        ),
+      );
+    });
+
+    test('keeps a message without placeholders as a getter reference', () {
+      final entries = ArbParser().parse({
+        'initializationComplete': 'Initialization complete',
+      });
+
+      final code = generator.generate(entries);
+
+      expect(
+        code,
+        contains("'initialization.complete' => _l10n.initializationComplete,"),
+      );
+      expect(
+        code,
+        isNot(
+          contains(
+            "'initialization.complete' => _l10n.initializationComplete(",
+          ),
+        ),
+      );
+    });
+
     test('generates knownKeys set', () {
       final entries = [
         const ArbEntry(
@@ -171,10 +231,7 @@ void main() {
       final code = generator.generate(entries);
 
       expect(code, contains('abstract class L10nKeys {'));
-      expect(
-        code,
-        contains("static const errorTimeout = 'error.timeout';"),
-      );
+      expect(code, contains("static const errorTimeout = 'error.timeout';"));
       expect(
         code,
         contains("static const successGeneric = 'success.generic';"),
@@ -216,9 +273,11 @@ void main() {
       // Should NOT generate a simple const for parameterized keys
       expect(
         code,
-        isNot(contains(
-          "static const templateFieldsCount = 'template.fields.count';",
-        )),
+        isNot(
+          contains(
+            "static const templateFieldsCount = 'template.fields.count';",
+          ),
+        ),
       );
 
       // Should generate a typed static method returning a record
@@ -264,12 +323,12 @@ void main() {
 
       final code = generator.generate(entries);
 
+      expect(code, contains("static const errorTimeout = 'error.timeout';"));
+      // Should NOT contain a method signature for simple entries
       expect(
         code,
-        contains("static const errorTimeout = 'error.timeout';"),
+        isNot(contains('static (String, Map<String, dynamic>) errorTimeout')),
       );
-      // Should NOT contain a method signature for simple entries
-      expect(code, isNot(contains('static (String, Map<String, dynamic>) errorTimeout')));
     });
 
     test('L10nKeys mixes consts and typed methods correctly', () {
@@ -300,11 +359,7 @@ void main() {
 
     test('generates valid Dart code structure', () {
       final entries = [
-        const ArbEntry(
-          arbKey: 'simple',
-          dotKey: 'simple',
-          value: 'Simple',
-        ),
+        const ArbEntry(arbKey: 'simple', dotKey: 'simple', value: 'Simple'),
         const ArbEntry(
           arbKey: 'withParam',
           dotKey: 'with.param',

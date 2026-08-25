@@ -73,19 +73,23 @@ class ArbParser {
       final metadataKey = '@$key';
       final metadata = arbData[metadataKey] as Map<String, dynamic>?;
 
-      // Parse placeholders from metadata
-      final placeholders = _parsePlaceholders(metadata);
+      // The message is the source of truth for whether it takes arguments.
+      // Metadata is optional in ARB files, and is used only to add details
+      // (such as argument types) for arguments present in the message.
+      final placeholders = _parsePlaceholders(value, metadata);
 
       // Convert camelCase ARB key to dot-notation
       final dotKey = KeyConverter.camelCaseToDot(key);
 
-      entries.add(ArbEntry(
-        arbKey: key,
-        dotKey: dotKey,
-        value: value,
-        placeholders: placeholders,
-        description: metadata?['description'] as String?,
-      ));
+      entries.add(
+        ArbEntry(
+          arbKey: key,
+          dotKey: dotKey,
+          value: value,
+          placeholders: placeholders,
+          description: metadata?['description'] as String?,
+        ),
+      );
     }
 
     // Sort by dot key for consistent output
@@ -94,26 +98,37 @@ class ArbParser {
     return entries;
   }
 
-  /// Parses placeholder definitions from ARB metadata.
-  List<ArbPlaceholder> _parsePlaceholders(Map<String, dynamic>? metadata) {
-    if (metadata == null) return [];
-
-    final placeholdersData = metadata['placeholders'] as Map<String, dynamic>?;
-    if (placeholdersData == null) return [];
-
+  /// Parses placeholders from a message and supplements them with metadata.
+  ///
+  /// This recognizes the argument identifier at the start of both simple ICU
+  /// arguments (`{name}`) and complex ICU arguments (`{count, plural, ...}`).
+  /// Repeated arguments are de-duplicated while preserving message order.
+  List<ArbPlaceholder> _parsePlaceholders(
+    String value,
+    Map<String, dynamic>? metadata,
+  ) {
+    final placeholdersData = metadata?['placeholders'] as Map?;
     final placeholders = <ArbPlaceholder>[];
+    final names = <String>{};
 
-    for (final entry in placeholdersData.entries) {
-      final name = entry.key;
-      final data = entry.value as Map<String, dynamic>?;
+    for (final match in _placeholderPattern.allMatches(value)) {
+      final name = match.group(1)!;
+      if (!names.add(name)) continue;
 
-      placeholders.add(ArbPlaceholder(
-        name: name,
-        type: data?['type'] as String? ?? 'String',
-        description: data?['description'] as String?,
-      ));
+      final data = placeholdersData?[name] as Map?;
+      placeholders.add(
+        ArbPlaceholder(
+          name: name,
+          type: data?['type'] as String? ?? 'String',
+          description: data?['description'] as String?,
+        ),
+      );
     }
 
     return placeholders;
   }
+
+  static final RegExp _placeholderPattern = RegExp(
+    r'\{([A-Za-z_][A-Za-z0-9_]*)\s*(?:,|\})',
+  );
 }

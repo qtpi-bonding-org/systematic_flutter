@@ -57,6 +57,34 @@ void main() {
       expect(entries[0].placeholders[0].dartType, 'int');
     });
 
+    test('detects placeholders from a message without metadata', () {
+      final arb = {'initializationReady': 'Ready at {ipAddress}'};
+
+      final entries = parser.parse(arb);
+
+      expect(entries, hasLength(1));
+      expect(entries.single.hasParameters, isTrue);
+      expect(entries.single.placeholders, hasLength(1));
+      expect(entries.single.placeholders.single.name, 'ipAddress');
+      expect(entries.single.placeholders.single.dartType, 'String');
+    });
+
+    test('uses metadata type for a placeholder found in the message', () {
+      final arb = {
+        'retryAttempt': 'Attempt {attempt}',
+        '@retryAttempt': {
+          'placeholders': {
+            'attempt': {'type': 'int'},
+          },
+        },
+      };
+
+      final entries = parser.parse(arb);
+
+      expect(entries.single.placeholders.single.name, 'attempt');
+      expect(entries.single.placeholders.single.dartType, 'int');
+    });
+
     test('parses multiple placeholders', () {
       final arb = {
         'performanceWarning': 'Took {timeMs}ms. {suggestion}',
@@ -103,9 +131,7 @@ void main() {
     });
 
     test('handles entries without metadata', () {
-      final arb = {
-        'simpleKey': 'Simple value',
-      };
+      final arb = {'simpleKey': 'Simple value'};
 
       final entries = parser.parse(arb);
 
@@ -117,22 +143,10 @@ void main() {
 
   group('ArbPlaceholder', () {
     test('maps type to dartType correctly', () {
-      expect(
-        const ArbPlaceholder(name: 'n', type: 'int').dartType,
-        'int',
-      );
-      expect(
-        const ArbPlaceholder(name: 'n', type: 'integer').dartType,
-        'int',
-      );
-      expect(
-        const ArbPlaceholder(name: 'n', type: 'double').dartType,
-        'num',
-      );
-      expect(
-        const ArbPlaceholder(name: 'n', type: 'num').dartType,
-        'num',
-      );
+      expect(const ArbPlaceholder(name: 'n', type: 'int').dartType, 'int');
+      expect(const ArbPlaceholder(name: 'n', type: 'integer').dartType, 'int');
+      expect(const ArbPlaceholder(name: 'n', type: 'double').dartType, 'num');
+      expect(const ArbPlaceholder(name: 'n', type: 'num').dartType, 'num');
       expect(
         const ArbPlaceholder(name: 'n', type: 'DateTime').dartType,
         'DateTime',
