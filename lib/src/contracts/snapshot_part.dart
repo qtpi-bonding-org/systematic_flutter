@@ -107,11 +107,21 @@ class SnapshotPart<T> {
       _refreshObserved(observedRead);
       return;
     }
+    _reset(notify: true);
+  }
+
+  /// Drops the cached answer and cancels any load in flight.
+  ///
+  /// [notify] is false when the caller is about to read the fresh state
+  /// anyway. A cacheKey-triggered reset happens *inside* [read], which is
+  /// itself usually inside a policy evaluation, and notifying there would
+  /// wake the binding mid-evaluation for a change it is already observing.
+  void _reset({required bool notify}) {
     _epoch++;
     _inFlight = null;
     _settled = false;
     _state = PartLoading<T>();
-    _notify();
+    if (notify) _notify();
   }
 
   /// Registers [listener], called whenever the state changes.
@@ -122,6 +132,10 @@ class SnapshotPart<T> {
 
   /// Drops all listeners and cancels any stream subscription.
   void dispose() {
+    // Bumping the epoch is what stops a retry chain: _scheduleNext's timer
+    // has already been armed, and only the epoch check makes it a no-op.
+    _epoch++;
+    _inFlight = null;
     _listeners.clear();
     final subscription = _subscription;
     _subscription = null;
@@ -132,7 +146,7 @@ class SnapshotPart<T> {
     final keyFn = _cacheKey;
     if (keyFn == null) return;
     final key = keyFn();
-    if (_settled && key != _lastCacheKey) invalidate();
+    if (_settled && key != _lastCacheKey) _reset(notify: false);
     _lastCacheKey = key;
   }
 
@@ -190,8 +204,16 @@ class SnapshotPart<T> {
       _scheduleNext(attempt, epoch);
       return;
     }
+    // Exhausted means a retry budget existed and is now spent -- not that
+    // there was never one to spend. maxAttempts: 1, or retryOnError: false,
+    // is a plain failure on the first try.
+    final hadBudget = _retry.retryOnError && _retry.maxAttempts > 1;
     _finish(
-      PartFailed<T>(error: error, attempts: attempt, exhausted: true),
+      PartFailed<T>(
+        error: error,
+        attempts: attempt,
+        exhausted: hadBudget && attempt >= _retry.maxAttempts,
+      ),
       epoch,
     );
   }

@@ -154,6 +154,45 @@ void main() {
         reason: 'the sleeping chain must not resume after invalidate');
   });
 
+  test('dispose during a backoff wait cancels the chain', () async {
+    var calls = 0;
+    final part = SnapshotPart<int>(
+      name: 'p',
+      load: () async {
+        calls++;
+        throw StateError('boom');
+      },
+      retry: const RetryConfig<int>(
+        maxAttempts: 3,
+        delay: Duration(milliseconds: 40),
+      ),
+    );
+
+    part.read();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(calls, 1);
+
+    part.dispose();
+    await Future<void>.delayed(const Duration(milliseconds: 130));
+
+    expect(calls, 1,
+        reason: 'the armed timer must become a no-op after dispose');
+  });
+
+  test('a first-try failure with no retry budget is not exhausted', () async {
+    final part = SnapshotPart<int>(
+      name: 'p',
+      load: () async => throw StateError('boom'),
+      retry: const RetryConfig<int>(maxAttempts: 3, retryOnError: false),
+    );
+
+    part.read();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(part.peek().attempts, 1);
+    expect(part.peek().exhausted, isFalse);
+  });
+
   test('invalidate resets the attempt counter', () async {
     var calls = 0;
     final part = SnapshotPart<int>(

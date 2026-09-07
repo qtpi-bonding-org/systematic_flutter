@@ -152,7 +152,8 @@ void main() {
     final state = part.read();
     expect(state, isA<PartFailed<int>>());
     expect(state.attempts, 1);
-    expect(state.exhausted, isTrue);
+    expect(state.exhausted, isFalse,
+        reason: 'with maxAttempts: 1 there was never a retry budget to spend');
   });
 
   test('listeners fire when the part settles and on invalidate', () async {
@@ -179,6 +180,61 @@ void main() {
     });
 
     expect(context.reads, contains(part));
+  });
+
+  test('a cacheKey reset does not notify mid-read', () {
+    var key = 'a';
+    var notifications = 0;
+    final part = SnapshotPart<int>(
+      name: 'p',
+      load: () => 1,
+      cacheKey: () => key,
+    );
+
+    part.read();
+    part.addListener(() => notifications++);
+
+    key = 'b';
+    part.read();
+
+    expect(notifications, 1,
+        reason: 'only the re-settle should notify, not the reset that '
+            'precedes it -- the reader is about to see the fresh state anyway');
+  });
+
+  test('dispose cancels an in-flight load', () async {
+    var settled = false;
+    final part = SnapshotPart<int>(name: 'p', load: () async => 1);
+    part.addListener(() => settled = true);
+
+    part.read();
+    part.dispose();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    expect(settled, isFalse);
+    expect(part.peek(), isA<PartLoading<int>>());
+  });
+
+  test('a void part is usable for an async effect', () async {
+    var ran = 0;
+    final part = SnapshotPart<void>(
+      name: 'restore',
+      load: () async {
+        ran++;
+      },
+    );
+
+    expect(part.read(), isA<PartLoading<void>>());
+    await Future<void>.delayed(Duration.zero);
+
+    expect(part.read(), isA<PartReady<void>>(),
+        reason: 'gating on completion is the point; the value is irrelevant');
+    expect(ran, 1);
+
+    part.invalidate();
+    part.read();
+    await Future<void>.delayed(Duration.zero);
+    expect(ran, 2);
   });
 
   test('a throwing listener is not misreported as a load failure', () {

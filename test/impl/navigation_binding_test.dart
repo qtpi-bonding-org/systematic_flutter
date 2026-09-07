@@ -298,6 +298,65 @@ void main() {
     expect(errors.first, isA<StateError>());
   });
 
+  test('a part that stops being read is unsubscribed', () async {
+    // One binding, one policy, gate flipped between evaluations. The first
+    // pass reads `detail`; after the flip decide() returns before reaching
+    // it, and that subscription must be dropped rather than carried over.
+    var signedIn = true;
+    final authChanges = StreamController<void>.broadcast();
+    addTearDown(authChanges.close);
+
+    final auth = SnapshotPart<bool>.observed(
+      name: 'auth',
+      read: () => signedIn,
+      changes: authChanges.stream,
+    );
+    final detail = SnapshotPart<bool>.ready('detail', true);
+    final policy = GatePolicy(signedIn: auth, detail: detail);
+    NavigationBinding<TestRoute>(policy: policy, target: RecordingTarget())
+        .start();
+
+    // Confirm detail really is a dependency while the gate is open.
+    final openCalls = policy.decideCalls;
+    detail.invalidate();
+    expect(policy.decideCalls, greaterThan(openCalls),
+        reason: 'precondition: detail is subscribed while the gate is open');
+
+    // Close the gate; decide() now returns before reading detail.
+    signedIn = false;
+    authChanges.add(null);
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    final closedCalls = policy.decideCalls;
+    detail.invalidate();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    expect(policy.decideCalls, closedCalls,
+        reason: 'the dependency set must be recomputed, not accumulated');
+  });
+
+  test('reads after an await inside decide are not tracked', () async {
+    // Documents why decide() must be synchronous: ambient tracking is
+    // restored when the synchronous body returns, so a deferred read
+    // registers no dependency and the binding never re-evaluates for it.
+    final deferred = SnapshotPart<bool>.ready('deferred', true);
+    final policy = _DeferredReadPolicy(deferred);
+    final binding = NavigationBinding<TestRoute>(
+      policy: policy,
+      target: RecordingTarget(),
+    )..start();
+
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    final before = policy.decideCalls;
+
+    deferred.invalidate();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    expect(policy.decideCalls, before,
+        reason: 'the deferred read never became a dependency');
+    expect(binding.lastDecision, isA<RouteGo<TestRoute>>());
+  });
+
   test('dispose stops re-evaluation', () async {
     final target = RecordingTarget();
     final binding = NavigationBinding<TestRoute>(
@@ -313,4 +372,23 @@ void main() {
 
     expect(target.navigations, isEmpty);
   });
+}
+
+/// Reads a part from inside a `.then()`, i.e. after the synchronous body of
+/// decide() has already returned.
+class _DeferredReadPolicy extends NavigationPolicy<TestRoute> {
+  _DeferredReadPolicy(this.part);
+
+  final SnapshotPart<bool> part;
+  int decideCalls = 0;
+
+  @override
+  List<SnapshotPart<Object?>> get parts => [part];
+
+  @override
+  RouteDecision<TestRoute> decide() {
+    decideCalls++;
+    Future<void>.delayed(Duration.zero).then((_) => part.read());
+    return const RouteGo<TestRoute>(TestRoute.home);
+  }
 }
