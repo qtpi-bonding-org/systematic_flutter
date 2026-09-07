@@ -4,6 +4,7 @@ import 'src/rule_config.dart';
 import 'src/rules/no_hardcoded_colors.dart';
 import 'src/rules/no_hardcoded_font_family.dart';
 import 'src/rules/no_hardcoded_font_size.dart';
+import 'src/rules/no_hardcoded_padding.dart';
 import 'src/rules/no_raw_sizedbox_spacing.dart';
 
 PluginBase createPlugin() => _FlutterUiLintsPlugin();
@@ -36,5 +37,6 @@ class _FlutterUiLintsPlugin extends PluginBase {
             const ['VSpace', 'HSpace'],
           ),
         ),
+        const NoHardcodedPadding(),
       ];
 }
