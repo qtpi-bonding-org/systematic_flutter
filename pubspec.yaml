@@ -1,0 +1,14 @@
+name: flutter_ui_lints
+description: Custom lint rules enforcing design-system discipline (no hardcoded colors, font sizes, font families, spacing, padding, or inline widget composition in pages).
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  analyzer: '>=8.0.0 <10.0.0'
+  custom_lint_builder: ^0.8.1
+  meta: ^1.9.0
+
+dev_dependencies:
+  test: ^1.25.0
