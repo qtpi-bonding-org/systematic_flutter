@@ -1,5 +1,10 @@
 # Paper exercise: PocketCoder's `decide()` against the proposed API
 
+**Note (2026-09-07):** the hook this document calls `onNavigated` shipped as
+`onDecisionApplied(TRoute, {required bool navigated})`. Finding F7 below was
+right that the hook was needed and understated the problem: the hook must
+also fire when no navigation occurred. Everything else here still stands.
+
 **Purpose:** write the hardest consumer's policy before building the library, to
 find API defects while they are still free. Nothing here is committed to a
 package. The output is the friction list at the end.

@@ -1,5 +1,32 @@
 # nav_snapshot Step 1 (library + tests) Implementation Plan — revision 2
 
+**Superseded (2026-09-07): the library is built. Read the code, not this.**
+
+This plan was executed; `lib/` and `test/` are the result and have since
+diverged from it. Do not follow these tasks as instructions — several would
+reintroduce fixed bugs. Specifically, the plan still describes:
+
+- `NavigationPolicy.onNavigated(TRoute)` — replaced by
+  `onDecisionApplied(TRoute, {required bool navigated})`, because only one of
+  PocketCoder's three cross-evaluation memories is written on actual
+  navigation (`boot_routing_decider.dart:330`); the other two are written
+  unconditionally at lines 291 and 311.
+- `NavigationBinding._lastCommanded` — removed. It could not be cleared
+  correctly and permanently suppressed re-navigation once the user moved to a
+  route outside `TRoute`.
+- Microtask-coalesced reruns with no bound — this livelocked. Reruns are now
+  capped at `maxChainedReruns` and throw.
+- `SnapshotPart._attempt` guarding the settle and notification along with the
+  loader — this swallowed listener exceptions as load failures.
+- Task 9's re-entrancy test — it was vacuous (`decideCalls == 1`).
+
+It is kept for the reasoning behind each task and the revision-2 change
+table. The current design is `2026-09-07-nav-snapshot-library-design.md`
+(revision 3); the current usage docs are `README.md` and
+`INTEGRATION_GUIDE.md` at the repo root.
+
+---
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the `nav_snapshot` package — parts that are always readable, refresh themselves, retry on policy, and notify on change — plus the binding that re-derives a route decision when an input changes. No consumer apps migrated.
