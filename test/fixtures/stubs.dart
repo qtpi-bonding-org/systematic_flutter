@@ -70,6 +70,11 @@ class AppSizes {
   static const double space = 8;
 }
 
+class MessageKey {
+  MessageKey._();
+  static const greeting = 'greeting';
+}
+
 class VSpace {
   VSpace._();
   static SizedBox get x1 => SizedBox(height: 8);
