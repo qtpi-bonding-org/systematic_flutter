@@ -4,6 +4,7 @@ import 'src/rule_config.dart';
 import 'src/rules/no_hardcoded_colors.dart';
 import 'src/rules/no_hardcoded_font_family.dart';
 import 'src/rules/no_hardcoded_font_size.dart';
+import 'src/rules/no_raw_sizedbox_spacing.dart';
 
 PluginBase createPlugin() => _FlutterUiLintsPlugin();
 
@@ -25,6 +26,14 @@ class _FlutterUiLintsPlugin extends PluginBase {
             'no_hardcoded_font_family',
             'allowed_types',
             const ['AppFonts'],
+          ),
+        ),
+        NoRawSizedBoxSpacing(
+          allowedEnclosingClasses: stringListOption(
+            configs,
+            'no_raw_sizedbox_spacing',
+            'allowed_enclosing_classes',
+            const ['VSpace', 'HSpace'],
           ),
         ),
       ];
