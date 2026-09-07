@@ -24,6 +24,16 @@ class NavigationBinding<TRoute> {
   bool _disposed = false;
   bool _evaluating = false;
   bool _rerunScheduled = false;
+  int _chainedReruns = 0;
+
+  /// How many reruns may chain before the binding declares the policy
+  /// unsettleable.
+  ///
+  /// A rerun is scheduled on a microtask, and Dart drains microtasks before
+  /// timers — so an endless chain starves timers and frames, and neither a
+  /// test timeout nor the UI would ever recover. Failing loudly beats
+  /// wedging the isolate, which for a boot router is a frozen splash screen.
+  static const int maxChainedReruns = 20;
 
   /// The most recent decision, or null before the first evaluation.
   RouteDecision<TRoute>? get lastDecision => _lastDecision;
@@ -63,10 +73,25 @@ class NavigationBinding<TRoute> {
 
   void _scheduleRerun() {
     if (_rerunScheduled) return;
+
+    _chainedReruns++;
+    if (_chainedReruns > maxChainedReruns) {
+      final names = _subscribed.map((part) => part.name).join(', ');
+      _chainedReruns = 0;
+      throw StateError(
+        'NavigationBinding re-evaluated $maxChainedReruns times without '
+        'settling. A policy that invalidates a part it also reads cannot '
+        'converge. Subscribed parts: $names',
+      );
+    }
+
     _rerunScheduled = true;
     scheduleMicrotask(() {
       _rerunScheduled = false;
-      if (!_disposed) evaluate();
+      if (_disposed) return;
+      evaluate();
+      // Nothing asked for another pass, so the chain settled.
+      if (!_rerunScheduled) _chainedReruns = 0;
     });
   }
 

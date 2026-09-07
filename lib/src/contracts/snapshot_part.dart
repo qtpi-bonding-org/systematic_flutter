@@ -143,27 +143,34 @@ class SnapshotPart<T> {
 
   void _attempt(int attempt) {
     final epoch = _epoch;
+    final FutureOr<T> result;
+    // Only the loader is guarded. Settling notifies listeners, and a listener
+    // that throws must not be misreported as a load failure -- that swallowed
+    // the binding's own unsettleable-policy error and let the loop continue.
     try {
-      final result = _load();
-      if (result is Future<T>) {
-        _inFlight = _awaitValue(result, attempt, epoch);
-        return;
-      }
-      _settleValue(result, attempt, epoch);
+      result = _load();
     } on Object catch (error) {
       _settleError(error, attempt, epoch);
+      return;
     }
+    if (result is Future<T>) {
+      _inFlight = _awaitValue(result, attempt, epoch);
+      return;
+    }
+    _settleValue(result, attempt, epoch);
   }
 
   Future<void> _awaitValue(Future<T> future, int attempt, int epoch) async {
+    final T value;
     try {
-      final value = await future;
-      if (epoch != _epoch) return;
-      _settleValue(value, attempt, epoch);
+      value = await future;
     } on Object catch (error) {
       if (epoch != _epoch) return;
       _settleError(error, attempt, epoch);
+      return;
     }
+    if (epoch != _epoch) return;
+    _settleValue(value, attempt, epoch);
   }
 
   void _settleValue(T value, int attempt, int epoch) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_snapshot/nav_snapshot.dart';
 
@@ -55,10 +57,17 @@ class StayPolicy extends NavigationPolicy<TestRoute> {
   RouteDecision<TestRoute> decide() => const RouteStay<TestRoute>();
 }
 
+/// Invalidates a part it also reads — the pattern that overflowed the stack
+/// in revision 1 and livelocked on microtasks in revision 2.
+///
+/// [invalidateBudget] bounds the damage so a regression fails the suite
+/// instead of wedging the isolate: a microtask livelock starves timers, so
+/// neither the test timeout nor any frame would ever fire.
 class SelfInvalidatingPolicy extends NavigationPolicy<TestRoute> {
-  SelfInvalidatingPolicy(this.part);
+  SelfInvalidatingPolicy(this.part, {this.invalidateBudget = 5000});
 
   final SnapshotPart<bool> part;
+  final int invalidateBudget;
   int decideCalls = 0;
 
   @override
@@ -68,7 +77,7 @@ class SelfInvalidatingPolicy extends NavigationPolicy<TestRoute> {
   RouteDecision<TestRoute> decide() {
     decideCalls++;
     part.read();
-    part.invalidate();
+    if (decideCalls <= invalidateBudget) part.invalidate();
     return const RouteGo<TestRoute>(TestRoute.home);
   }
 }
@@ -169,17 +178,82 @@ void main() {
     expect(policy.decideCalls, before);
   });
 
-  test('a policy that invalidates inside decide does not overflow', () async {
+  test('the first evaluation subscribes only after decide returns', () {
     final policy = SelfInvalidatingPolicy(
       SnapshotPart<bool>(name: 'p', load: () => true),
     );
     NavigationBinding<TestRoute>(policy: policy, target: RecordingTarget())
         .start();
 
+    expect(policy.decideCalls, 1,
+        reason: 'pins the flaw in the original version of the test below: '
+            '_resubscribe runs after decide() returns, so an invalidate during '
+            'the first decide() notifies nobody and proves nothing');
+  });
+
+  test('a bounded burst of invalidations settles instead of spinning',
+      () async {
+    // Invalidates three times, then stops -- the shape of a policy that
+    // clears a cache on a state change and then converges.
+    final policy = SelfInvalidatingPolicy(
+      SnapshotPart<bool>(name: 'p', load: () => true),
+      invalidateBudget: 3,
+    );
+    final binding = NavigationBinding<TestRoute>(
+      policy: policy,
+      target: RecordingTarget(),
+    )..start();
+
+    // The second evaluation is the dangerous one: the part is subscribed by
+    // now, so invalidate() inside decide() reaches _onPartChanged.
+    binding.evaluate();
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
-    expect(policy.decideCalls, lessThan(50),
-        reason: 'reruns must be coalesced, not recursed');
+    expect(policy.decideCalls, lessThan(25),
+        reason: 'reruns must settle, not chain microtask after microtask');
+  });
+
+  test('the rerun budget resets once a chain settles', () async {
+    final policy = SelfInvalidatingPolicy(
+      SnapshotPart<bool>(name: 'p', load: () => true),
+      invalidateBudget: 3,
+    );
+    final binding = NavigationBinding<TestRoute>(
+      policy: policy,
+      target: RecordingTarget(),
+    )..start();
+
+    // Two separate bursts must not accumulate toward the cap.
+    binding.evaluate();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    final afterFirst = policy.decideCalls;
+
+    policy.part.invalidate();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(policy.decideCalls, greaterThan(afterFirst));
+    expect(policy.decideCalls, lessThan(25));
+  });
+
+  test('an unsettleable policy throws rather than hanging', () async {
+    final errors = <Object>[];
+    final policy = SelfInvalidatingPolicy(
+      SnapshotPart<bool>(name: 'p', load: () => true),
+    );
+
+    await runZonedGuarded(() async {
+      NavigationBinding<TestRoute>(
+        policy: policy,
+        target: RecordingTarget(),
+      )
+        ..start()
+        ..evaluate();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }, (error, _) => errors.add(error));
+
+    expect(errors, isNotEmpty,
+        reason: 'a genuine cycle must fail loudly, not silently wedge the app');
+    expect(errors.first, isA<StateError>());
   });
 
   test('dispose stops re-evaluation', () async {

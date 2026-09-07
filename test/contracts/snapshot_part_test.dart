@@ -181,6 +181,17 @@ void main() {
     expect(context.reads, contains(part));
   });
 
+  test('a throwing listener is not misreported as a load failure', () {
+    final part = SnapshotPart<int>(name: 'p', load: () => 1);
+    part.addListener(() => throw StateError('listener blew up'));
+
+    expect(part.read, throwsStateError,
+        reason: 'the listener error must surface, not be swallowed');
+    expect(part.peek(), isA<PartReady<int>>(),
+        reason: 'the load itself succeeded; only the listener failed');
+    expect(part.peek().valueOrNull, 1);
+  });
+
   test('seeding constructors produce fixed states without loading', () {
     expect(SnapshotPart<int>.ready('a', 3).peek().valueOrNull, 3);
     expect(SnapshotPart<int>.loading('b').peek(), isA<PartLoading<int>>());
