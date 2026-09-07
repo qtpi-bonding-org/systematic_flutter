@@ -2,6 +2,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 import 'src/rule_config.dart';
 import 'src/rules/no_hardcoded_colors.dart';
+import 'src/rules/no_hardcoded_font_family.dart';
 import 'src/rules/no_hardcoded_font_size.dart';
 
 PluginBase createPlugin() => _FlutterUiLintsPlugin();
@@ -18,5 +19,13 @@ class _FlutterUiLintsPlugin extends PluginBase {
           ),
         ),
         const NoHardcodedFontSize(),
+        NoHardcodedFontFamily(
+          allowedTypes: stringListOption(
+            configs,
+            'no_hardcoded_font_family',
+            'allowed_types',
+            const ['AppFonts'],
+          ),
+        ),
       ];
 }
