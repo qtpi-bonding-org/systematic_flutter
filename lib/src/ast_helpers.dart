@@ -24,6 +24,13 @@ bool isTokenExpression(Expression expr, List<String> allowedTypes) {
 
 /// The lexeme of the nearest enclosing class declaration, or null if
 /// [node] has none (e.g. a top-level function).
+///
+/// `ClassDeclaration.name` was removed in favor of `.namePart.typeName`
+/// when primary-constructor support landed (analyzer 13+).
 String? enclosingClassName(AstNode node) {
-  return node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
+  return node
+      .thisOrAncestorOfType<ClassDeclaration>()
+      ?.namePart
+      .typeName
+      .lexeme;
 }

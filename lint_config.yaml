@@ -1,0 +1,14 @@
+no_hardcoded_colors:
+  banned_types: [Colors, AppPalette]
+no_hardcoded_font_family:
+  allowed_types: [AppFonts]
+no_raw_sizedbox_spacing:
+  allowed_enclosing_classes: [VSpace, HSpace]
+no_inline_widget_composition_in_pages:
+  page_suffix: Screen
+  widget_dir_names: [widgets, adapters]
+  banned_widget_names: [Padding, Column, Row, Container, SizedBox, Text,
+    Icon, Stack, ListView, GridView, Align, Center, Expanded, Flexible,
+    Card, Scaffold, AppBar]
+no_hardcoded_strings:
+  allowed_types: [MessageKey]

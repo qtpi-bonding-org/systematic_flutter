@@ -1,16 +1,37 @@
-import 'package:test/test.dart';
-
-import 'package:flutter_ui_lints/src/rules/no_hardcoded_font_family.dart';
-
-import '../rule_test_harness.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
+import 'package:flutter_lint_generator/src/rules/no_hardcoded_font_family.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
-  test('flags a fontFamily: not routed through an allowed type', () async {
-    final rule = NoHardcodedFontFamily(allowedTypes: ['AppFonts']);
-    final errors =
-        await lintFixture(rule, 'no_hardcoded_font_family_fixture.dart');
-
-    expect(errors, hasLength(1));
-    expect(errors.single.errorCode.name, 'no_hardcoded_font_family');
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NoHardcodedFontFamilyTest);
   });
+}
+
+@reflectiveTest
+class NoHardcodedFontFamilyTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    rule = NoHardcodedFontFamily();
+    super.setUp();
+  }
+
+  Future<void> test_flags_raw_fontFamily() async {
+    await assertDiagnostics(
+      r'''
+class TextStyle {
+  const TextStyle({String? fontFamily});
+}
+
+class AppFonts {
+  AppFonts._();
+  static const mono = 'NotoSansMono';
+}
+
+const good = TextStyle(fontFamily: AppFonts.mono);
+const bad = TextStyle(fontFamily: 'Comic Sans');
+''',
+      [lint(221, 12)],
+    );
+  }
 }

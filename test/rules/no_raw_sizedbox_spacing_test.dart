@@ -1,18 +1,31 @@
-import 'package:test/test.dart';
-
-import 'package:flutter_ui_lints/src/rules/no_raw_sizedbox_spacing.dart';
-
-import '../rule_test_harness.dart';
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
+import 'package:flutter_lint_generator/src/rules/no_raw_sizedbox_spacing.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
-  test('flags a spacing SizedBox outside VSpace/HSpace', () async {
-    final rule = NoRawSizedBoxSpacing(
-      allowedEnclosingClasses: ['LocalVSpace', 'LocalHSpace'],
-    );
-    final errors =
-        await lintFixture(rule, 'no_raw_sizedbox_spacing_fixture.dart');
-
-    expect(errors, hasLength(1));
-    expect(errors.single.errorCode.name, 'no_raw_sizedbox_spacing');
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NoRawSizedboxSpacingTest);
   });
+}
+
+@reflectiveTest
+class NoRawSizedboxSpacingTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    rule = NoRawSizedboxSpacing();
+    super.setUp();
+  }
+
+  Future<void> test_flags_raw_spacer() async {
+    await assertDiagnostics(
+      r'''
+class SizedBox {
+  SizedBox({double? width, double? height});
+}
+
+final x = SizedBox(height: 16);
+''',
+      [lint(75, 20)],
+    );
+  }
 }

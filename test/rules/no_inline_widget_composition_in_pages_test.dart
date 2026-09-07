@@ -1,47 +1,94 @@
-import 'package:test/test.dart';
-
-import 'package:flutter_ui_lints/src/rules/no_inline_widget_composition_in_pages.dart';
-
-import '../rule_test_harness.dart';
-
-const _bannedWidgetNames = [
-  'Padding', 'Column', 'Row', 'Container', 'SizedBox', 'Text', 'Icon',
-  'Stack', 'ListView', 'GridView', 'Align', 'Center', 'Expanded',
-  'Flexible', 'Card', 'Scaffold', 'AppBar',
-];
-
-NoInlineWidgetCompositionInPages _rule() => NoInlineWidgetCompositionInPages(
-      pageSuffix: 'Screen',
-      widgetDirNames: const ['widgets', 'adapters'],
-      bannedWidgetNames: _bannedWidgetNames,
-    );
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
+import 'package:flutter_lint_generator/src/rules/no_inline_widget_composition_in_pages.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
-  test('flags banned widgets built inline in a *Screen build()', () async {
-    final errors =
-        await lintFixture(_rule(), 'pages/bad_inline_screen.dart');
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NoInlineWidgetCompositionInPagesTest);
+  });
+}
 
-    // Padding and Text are both banned; EdgeInsets.all/AppSizes.space are
-    // not widget constructors and must not be flagged by this rule.
-    expect(errors, hasLength(2));
-    expect(
-      errors.every(
-        (e) => e.errorCode.name == 'no_inline_widget_composition_in_pages',
-      ),
-      isTrue,
+const _stubs = r'''
+class Widget {
+  const Widget();
+}
+
+class BuildContext {}
+
+abstract class StatelessWidget extends Widget {
+  const StatelessWidget();
+  Widget build(BuildContext context);
+}
+
+class Padding extends Widget {
+  Padding({required Widget child});
+}
+
+class MultiBlocProvider extends Widget {
+  MultiBlocProvider({required List<Widget> providers, required Widget child});
+}
+
+class BlocProvider extends Widget {
+  BlocProvider({required Widget Function(BuildContext) create});
+}
+''';
+
+@reflectiveTest
+class NoInlineWidgetCompositionInPagesTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    rule = NoInlineWidgetCompositionInPages();
+    super.setUp();
+  }
+
+  Future<void> test_flags_banned_widget_inline_in_screen_build() async {
+    var path = '$testPackageLibPath/pages/bad_inline_screen.dart';
+    newFile(path, '''
+$_stubs
+class BadInlineScreen extends StatelessWidget {
+  const BadInlineScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(child: const Widget());
+  }
+}
+''');
+    await assertDiagnosticsInFile(path, [lint(610, 30)]);
+  }
+
+  Future<void> test_does_not_flag_wiring_widgets() async {
+    var path = '$testPackageLibPath/pages/good_wiring_screen.dart';
+    newFile(path, '''
+$_stubs
+class GoodWiringScreen extends StatelessWidget {
+  const GoodWiringScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [BlocProvider(create: (_) => const Widget())],
+      child: const Widget(),
     );
-  });
+  }
+}
+''');
+    await assertNoDiagnosticsInFile(path);
+  }
 
-  test('does not flag provider/DI wiring widgets', () async {
-    final errors =
-        await lintFixture(_rule(), 'pages/good_wiring_screen.dart');
-    expect(errors, isEmpty);
-  });
+  Future<void> test_does_not_flag_screen_named_class_in_widgets_dir() async {
+    var path = '$testPackageLibPath/pages/widgets/allowed_inline_widget.dart';
+    newFile(path, '''
+$_stubs
+class NotReallyAScreen extends StatelessWidget {
+  const NotReallyAScreen();
 
-  test('does not flag a *Screen-named class inside a widgets/ directory',
-      () async {
-    final errors =
-        await lintFixture(_rule(), 'pages/widgets/allowed_inline_widget.dart');
-    expect(errors, isEmpty);
-  });
+  @override
+  Widget build(BuildContext context) {
+    return Padding(child: const Widget());
+  }
+}
+''');
+    await assertNoDiagnosticsInFile(path);
+  }
 }

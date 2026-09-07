@@ -1,39 +1,56 @@
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/listener.dart' show ErrorReporter;
-import 'package:custom_lint_builder/custom_lint_builder.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
-class NoHardcodedPadding extends DartLintRule {
-  const NoHardcodedPadding() : super(code: _code);
-
-  static const _code = LintCode(
-    name: 'no_hardcoded_padding',
-    problemMessage:
-        'Padding insets must come from AppSizes, never a raw number.',
+class NoHardcodedPadding extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_hardcoded_padding',
+    'Padding insets must come from AppSizes, never a raw number.',
   );
 
-  static const _constructorNames = {'all', 'only', 'symmetric'};
+  NoHardcodedPadding()
+    : super(
+        name: 'no_hardcoded_padding',
+        description: 'Flags raw numeric EdgeInsets arguments.',
+      );
 
   @override
-  void run(
-    CustomLintResolver resolver,
-    ErrorReporter reporter,
-    CustomLintContext context,
-  ) {
-    context.registry.addInstanceCreationExpression((node) {
-      final constructorName = node.constructorName;
-      if (constructorName.type.name2.lexeme != 'EdgeInsets') return;
-      if (!_constructorNames.contains(constructorName.name?.name)) return;
+  LintCode get diagnosticCode => code;
 
-      for (final arg in node.argumentList.arguments) {
-        final expr = arg is NamedExpression ? arg.expression : arg;
-        if (expr is IntegerLiteral || expr is DoubleLiteral) {
-          reporter.atNode(expr, _code);
-        } else if (expr is PrefixExpression &&
-            (expr.operand is IntegerLiteral ||
-                expr.operand is DoubleLiteral)) {
-          reporter.atNode(expr, _code);
-        }
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    final visitor = _Visitor(this);
+    registry.addInstanceCreationExpression(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  static const _constructorNames = {'all', 'only', 'symmetric'};
+
+  final AnalysisRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final constructorName = node.constructorName;
+    if (constructorName.type.name.lexeme != 'EdgeInsets') return;
+    if (!_constructorNames.contains(constructorName.name?.name)) return;
+
+    for (final arg in node.argumentList.arguments) {
+      final expr = arg is NamedArgument ? arg.argumentExpression2 : arg;
+      if (expr is IntegerLiteral || expr is DoubleLiteral) {
+        rule.reportAtNode(expr);
+      } else if (expr is PrefixExpression &&
+          (expr.operand is IntegerLiteral || expr.operand is DoubleLiteral)) {
+        rule.reportAtNode(expr);
       }
-    });
+    }
   }
 }
