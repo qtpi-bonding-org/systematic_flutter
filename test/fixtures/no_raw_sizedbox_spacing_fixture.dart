@@ -5,13 +5,13 @@ import 'stubs.dart';
 // also imports) to avoid a duplicate-declaration error -- the rule only
 // matches on class-name text, so which name is used here doesn't matter,
 // as long as the test's allowedEnclosingClasses list matches it.
-class _LocalVSpace {
-  _LocalVSpace._();
+class LocalVSpace {
+  LocalVSpace._();
   static SizedBox get x1 => SizedBox(height: 8);
 }
 
-class _LocalHSpace {
-  _LocalHSpace._();
+class LocalHSpace {
+  LocalHSpace._();
   static SizedBox get x1 => SizedBox(width: 8);
 }
 

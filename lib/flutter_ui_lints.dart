@@ -5,6 +5,7 @@ import 'src/rules/no_hardcoded_colors.dart';
 import 'src/rules/no_hardcoded_font_family.dart';
 import 'src/rules/no_hardcoded_font_size.dart';
 import 'src/rules/no_hardcoded_padding.dart';
+import 'src/rules/no_inline_widget_composition_in_pages.dart';
 import 'src/rules/no_raw_sizedbox_spacing.dart';
 
 PluginBase createPlugin() => _FlutterUiLintsPlugin();
@@ -38,5 +39,29 @@ class _FlutterUiLintsPlugin extends PluginBase {
           ),
         ),
         const NoHardcodedPadding(),
+        NoInlineWidgetCompositionInPages(
+          pageSuffix: stringOption(
+            configs,
+            'no_inline_widget_composition_in_pages',
+            'page_suffix',
+            'Screen',
+          ),
+          widgetDirNames: stringListOption(
+            configs,
+            'no_inline_widget_composition_in_pages',
+            'widget_dir_names',
+            const ['widgets', 'adapters'],
+          ),
+          bannedWidgetNames: stringListOption(
+            configs,
+            'no_inline_widget_composition_in_pages',
+            'banned_widget_names',
+            const [
+              'Padding', 'Column', 'Row', 'Container', 'SizedBox', 'Text',
+              'Icon', 'Stack', 'ListView', 'GridView', 'Align', 'Center',
+              'Expanded', 'Flexible', 'Card', 'Scaffold', 'AppBar',
+            ],
+          ),
+        ),
       ];
 }
