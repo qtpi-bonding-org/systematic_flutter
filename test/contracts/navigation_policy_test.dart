@@ -8,7 +8,7 @@ class TestPolicy extends NavigationPolicy<TestRoute> {
 
   final SnapshotPart<bool> signedIn;
   final SnapshotPart<bool> exists;
-  final List<TestRoute> navigated = <TestRoute>[];
+  final List<TestRoute> applied = <TestRoute>[];
 
   @override
   List<SnapshotPart<Object?>> get parts => [signedIn, exists];
@@ -27,7 +27,8 @@ class TestPolicy extends NavigationPolicy<TestRoute> {
   }
 
   @override
-  void onNavigated(TestRoute route) => navigated.add(route);
+  void onDecisionApplied(TestRoute route, {required bool navigated}) =>
+      applied.add(route);
 }
 
 void main() {
@@ -83,9 +84,12 @@ void main() {
     expect(policy.decide(), policy.decide());
   });
 
-  test('onNavigated defaults to doing nothing', () {
+  test('onDecisionApplied defaults to doing nothing', () {
     final policy = _MinimalPolicy();
-    expect(() => policy.onNavigated(TestRoute.home), returnsNormally);
+    expect(
+      () => policy.onDecisionApplied(TestRoute.home, navigated: true),
+      returnsNormally,
+    );
   });
 }
 

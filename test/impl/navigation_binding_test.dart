@@ -21,6 +21,9 @@ class RecordingTarget implements IRouteTarget<TestRoute> {
     navigations.add(route);
     if (!lagging) _current = route;
   }
+
+  /// Simulates navigation by something other than the binding.
+  void setCurrent(TestRoute? route) => _current = route;
 }
 
 class GatePolicy extends NavigationPolicy<TestRoute> {
@@ -28,7 +31,9 @@ class GatePolicy extends NavigationPolicy<TestRoute> {
 
   final SnapshotPart<bool> signedIn;
   final SnapshotPart<bool> detail;
-  final List<TestRoute> navigated = <TestRoute>[];
+  /// Every applied decision, with whether the router was actually moved.
+  final List<({TestRoute route, bool navigated})> applied =
+      <({TestRoute route, bool navigated})>[];
   int decideCalls = 0;
 
   @override
@@ -46,7 +51,8 @@ class GatePolicy extends NavigationPolicy<TestRoute> {
   }
 
   @override
-  void onNavigated(TestRoute route) => navigated.add(route);
+  void onDecisionApplied(TestRoute route, {required bool navigated}) =>
+      applied.add((route: route, navigated: navigated));
 }
 
 class StayPolicy extends NavigationPolicy<TestRoute> {
@@ -106,7 +112,7 @@ void main() {
     expect(binding.lastDecision, const RouteStay<TestRoute>());
   });
 
-  test('go navigates once and fires onNavigated once', () {
+  test('go navigates once and reports it applied once', () {
     final target = RecordingTarget();
     final policy = GatePolicy(
       signedIn: SnapshotPart<bool>.ready('auth', false),
@@ -118,11 +124,16 @@ void main() {
     binding.evaluate();
     binding.evaluate();
 
+    // Navigation happens once; the hook fires on every applied decision, and
+    // only the first reports navigated: true.
     expect(target.navigations, [TestRoute.login]);
-    expect(policy.navigated, [TestRoute.login]);
+    expect(policy.applied.length, 3);
+    expect(policy.applied.every((e) => e.route == TestRoute.login), isTrue);
+    expect(policy.applied.map((e) => e.navigated), [true, false, false]);
   });
 
-  test('does not navigate twice when current lags behind go', () {
+  test('re-commands a lagging target rather than remembering the destination',
+      () {
     final target = RecordingTarget()..lagging = true;
     final policy = GatePolicy(
       signedIn: SnapshotPart<bool>.ready('auth', false),
@@ -133,10 +144,36 @@ void main() {
 
     binding.evaluate();
 
-    expect(target.navigations, [TestRoute.login]);
+    // Matches boot_routing_decider.dart:320-332, which compares against the
+    // live route only. Remembering the last commanded route would suppress
+    // the duplicate here, but would also suppress a legitimate re-assert
+    // forever once the user navigates to a route outside TRoute (where the
+    // target reports null). A harmless duplicate beats a permanent lockout.
+    expect(target.navigations, [TestRoute.login, TestRoute.login]);
   });
 
-  test('onNavigated does not fire when already at the destination', () {
+  test('re-asserts a route the user navigated away from', () {
+    final target = RecordingTarget();
+    final policy = GatePolicy(
+      signedIn: SnapshotPart<bool>.ready('auth', false),
+      detail: SnapshotPart<bool>.loading('detail'),
+    );
+    final binding =
+        NavigationBinding<TestRoute>(policy: policy, target: target)..start();
+
+    expect(target.navigations, [TestRoute.login]);
+
+    // The user navigates somewhere the policy has no enum value for, which is
+    // how GoRouterTarget reports every non-policy route.
+    target.setCurrent(null);
+    binding.evaluate();
+
+    expect(target.navigations, [TestRoute.login, TestRoute.login],
+        reason: 'the gate must keep working after user-driven navigation');
+  });
+
+  test('a decision for the route already showing applies without navigating',
+      () {
     final target = RecordingTarget(TestRoute.login);
     final policy = GatePolicy(
       signedIn: SnapshotPart<bool>.ready('auth', false),
@@ -145,7 +182,12 @@ void main() {
     NavigationBinding<TestRoute>(policy: policy, target: target).start();
 
     expect(target.navigations, isEmpty);
-    expect(policy.navigated, isEmpty);
+    // The hook still fires. boot_routing_decider.dart writes
+    // _confirmedLatchKey (line 291) and _lastDeployProgressRoute (line 311)
+    // on exactly this path, where no navigation occurs; only
+    // _hasLeftBootScreen (line 330) is gated on having actually moved.
+    expect(policy.applied.single.route, TestRoute.login);
+    expect(policy.applied.single.navigated, isFalse);
   });
 
   test('re-evaluates when a read part settles', () async {

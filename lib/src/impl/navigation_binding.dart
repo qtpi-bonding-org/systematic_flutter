@@ -20,7 +20,6 @@ class NavigationBinding<TRoute> {
   final Set<SnapshotPart<Object?>> _subscribed = <SnapshotPart<Object?>>{};
 
   RouteDecision<TRoute>? _lastDecision;
-  TRoute? _lastCommanded;
   bool _disposed = false;
   bool _evaluating = false;
   bool _rerunScheduled = false;
@@ -113,12 +112,18 @@ class NavigationBinding<TRoute> {
   void _apply(RouteDecision<TRoute> decision) {
     if (decision is! RouteGo<TRoute>) return;
     final destination = decision.to;
-    if (_lastCommanded == destination) return;
-    if (_target.current == destination) return;
 
-    _lastCommanded = destination;
-    _target.go(destination);
-    _policy.onNavigated(destination);
+    // Deliberately compares against the live route only, with no memory of
+    // what was last commanded. A remembered destination cannot distinguish
+    // "the router has not rebuilt yet" from "the user navigated away", and
+    // when the user moves to a route outside TRoute the target reports null
+    // -- so a remembered value suppresses the gate permanently. Commanding
+    // the same route twice within a frame is harmless and is what the
+    // decider this replaces already does.
+    final navigated = _target.current != destination;
+    if (navigated) _target.go(destination);
+
+    _policy.onDecisionApplied(destination, navigated: navigated);
   }
 
   void _onPartChanged() {

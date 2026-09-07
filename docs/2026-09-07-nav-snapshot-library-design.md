@@ -1,6 +1,6 @@
 # nav_snapshot: a navigation state library
 
-**Status:** design, revision 2. Not yet implemented.
+**Status:** design, revision 3. Library implemented; see the repo root.
 **Package:** `nav_snapshot`, repo `flutter_nav_snapshot`, in `/Users/aicoder/Documents/my-libs`.
 **Lineage:** extends the PocketCoder docs
 `2026-08-30-unified-boot-routing-design.md` (three deciders collapsed into one)
@@ -8,7 +8,11 @@ and `2026-09-01-post-deploy-auth-routing-design.md` (harness gate reinstated).
 Those unified *where* the decision is made. This extracts *how its inputs are
 resolved* into a reusable library.
 
-**Revision 2 incorporates:** an Opus review that built revision 1's code and ran
+**Revision 3 incorporates:** a second Opus review that built and ran revision 2
+(4 blockers), plus what surfaced while actually fixing them. Changes from
+revision 2 are marked **[R3]**.
+
+**Revision 2 incorporated:** an Opus review that built revision 1's code and ran
 its tests (6 blockers, 5 serious concerns), and
 `2026-09-07-pocketcoder-decide-paper-exercise.md`, which wrote PocketCoder's real
 policy against revision 1 and found nine points of friction. Changes from
@@ -197,17 +201,33 @@ abstract class NavigationPolicy<TRoute> {
   /// its first suspension. [R2]
   RouteDecision<TRoute> decide();
 
-  /// Called only when the binding actually navigated. [R2]
-  void onNavigated(TRoute route) {}
+  /// Called whenever a RouteGo was applied; `navigated` says whether the
+  /// router was actually moved. [R3]
+  void onDecisionApplied(TRoute route, {required bool navigated}) {}
 }
 ```
 
-**`onNavigated` is required, not optional. [R2]** PocketCoder's three
-cross-evaluation memories — `_confirmedLatchKey`, `_lastDeployProgressRoute`,
-`_hasLeftBootScreen` — are all written as a consequence of navigation *actually
-happening*. Writing them inside `decide()` sets them on evaluations where nothing
-moved, breaking the `duplicate latch on chats does not query or navigate` and
-`user route survives redundant provisioning emission` tests.
+**A post-decision hook is required, not optional. [R2]** PocketCoder's three
+cross-evaluation memories cannot be written inside `decide()`, which runs on
+evaluations that conclude nothing.
+
+**[R3] Correcting revision 2.** Revision 2 called this hook `onNavigated` and
+claimed all three memories "are written as a consequence of navigation actually
+happening." That is wrong, and only one of the three qualifies:
+
+| Memory | Written at | Conditional on navigating? |
+|---|---|---|
+| `_hasLeftBootScreen` | `boot_routing_decider.dart:330` | **Yes** — inside `if (navigating)` |
+| `_confirmedLatchKey` | line 291, *before* `_navigate` | No — unconditional |
+| `_lastDeployProgressRoute` | line 311, *after* `_navigate` | No — keyed on the requested route |
+
+An `onNavigated` that fires only on movement therefore cannot express two of
+them. Concretely it would lose the latch confirmation on the "already on chats"
+path, so a later `temporarilyUnavailable` for that key routes to login instead
+of being lenient — the behaviour `confirmed temporarilyUnavailable is lenient`
+(`boot_routing_decider_test.dart:629`) exists to protect. Hence
+`onDecisionApplied(route, {required bool navigated})`: it fires on every applied
+decision, and the flag carries the distinction the policy needs.
 
 ### RouteDecision
 
@@ -224,18 +244,31 @@ the policy can decide belong in it** — seven for PocketCoder, not the ~43 in
 1. Runs `decide()`, recording which parts were `read()`.
 2. Subscribes to exactly those, recomputing the set each evaluation.
 3. Re-runs when a subscribed part changes.
-4. Applies: `Go` → navigate if not already there, then `onNavigated`.
+4. Applies: `Go` → navigate if not already there, then `onDecisionApplied`.
 
-**Re-entrancy is coalesced onto a microtask, not recursed. [R2]** Revision 1
-called `evaluate()` from inside `evaluate()`; a policy that invalidates a
-subscribed part inside `decide()` — which a faithful PocketCoder port does,
-porting `boot_routing_decider.dart:214-217` — reached 8,462 calls and a
-`StackOverflowError` under test.
+**Re-entrancy is bounded, not merely deferred. [R3]** Revision 1 called
+`evaluate()` from inside `evaluate()` and reached a `StackOverflowError` at
+8,462 calls. Revision 2 deferred the rerun to a microtask, which was worse:
+Dart drains microtasks before timers, so an endless chain starved timers and
+frames and the isolate hung silently — for a boot router, a frozen splash
+screen with no error. Reruns now count toward `maxChainedReruns` (20) and throw
+a `StateError` naming the subscribed parts; the count resets when a chain
+settles.
 
-**The binding compares against the route it last commanded, not only
-`target.current`. [R2]** `GoRouterTarget.current` updates only after go_router
-rebuilds, so two evaluations in one frame would both see the pre-navigation route
-and navigate twice.
+**The binding keeps no memory of the route it last commanded. [R3]** Revision 2
+added one to stop a double-navigate when `GoRouterTarget.current` lags a frame
+behind. It could not be cleared correctly: no rule based on `current` can
+separate "the router has not rebuilt" from "the user navigated away", and a
+user on any route outside `TRoute` makes `current` report null, so the memory
+suppressed the gate permanently. The binding compares against the live route
+only, matching `boot_routing_decider.dart:320-332`. Commanding the same route
+twice within a frame is harmless; a permanent lockout is not.
+
+**A part must not swallow a listener's exception. [R3]** `SnapshotPart`
+originally wrapped the loader, the settle and the listener notification in one
+`try`, so an exception thrown by a listener was caught and reported as a load
+failure — which silently swallowed the binding's own unsettleable-policy error.
+Only the loader is guarded.
 
 Late answers are not a correctness problem: the binding never captures a value
 and acts on it later, it re-derives from current state on every change.
@@ -257,7 +290,7 @@ The paper exercise confirmed these cannot be library concepts:
   despite being load-bearing. **[R2]**
 
 All three memories become constructor-settable fields on the policy, written from
-`onNavigated`. `decide()` is therefore pure *given* its parts and its seeded
+`onDecisionApplied`. `decide()` is therefore pure *given* its parts and its seeded
 memories, not pure absolutely. Three of the four effect-layer `fix(boot)` commits
 were latch bugs; the library does not prevent them, it only makes them testable
 without a widget tree.
@@ -287,7 +320,7 @@ without a widget tree.
 | generation counter + 5 stale guards | moved into `SnapshotPart`'s epoch |
 | `_inFlightRestore` / `_inFlightExistence` | part-level de-dup |
 | `_currentRouteName()` StateError guard | `GoRouterTarget.current` |
-| latch writes | `onNavigated` |
+| latch writes | `onDecisionApplied` |
 
 ## Testing
 
