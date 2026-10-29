@@ -1,384 +1,125 @@
-import 'package:test/test.dart';
 import 'package:l10n_generator/src/arb_parser.dart';
 import 'package:l10n_generator/src/resolver_generator.dart';
+import 'package:test/test.dart';
+
+String gen(Map<String, dynamic> arb, {bool dotKeys = true}) =>
+    ResolverGenerator(
+      localizationsClass: 'AppLocalizations',
+      localizationsImport: 'app_localizations.dart',
+      generateDotKeys: dotKeys,
+    ).generate(ArbParser().parse(arb));
 
 void main() {
-  group('ResolverGenerator', () {
-    late ResolverGenerator generator;
-
-    setUp(() {
-      generator = ResolverGenerator(
-        localizationsClass: 'AppLocalizations',
-        localizationsImport: 'app_localizations.dart',
-        generateDotKeys: true,
-      );
-    });
-
-    test('generates header with imports', () {
-      final entries = <ArbEntry>[];
-      final code = generator.generate(entries);
-
+  group('header', () {
+    test('imports the runtime and the localizations, with no timestamp', () {
+      final code = gen({});
       expect(code, contains('// GENERATED CODE - DO NOT MODIFY BY HAND'));
+      expect(code, contains("import 'package:l10n_key_resolver/runtime.dart';"));
       expect(code, contains("import 'app_localizations.dart';"));
+      expect(code, isNot(contains('Generated at')));
     });
 
-    test('generates class with constructor', () {
-      final entries = <ArbEntry>[];
-      final code = generator.generate(entries);
-
-      expect(code, contains('class L10nKeyResolver {'));
-      expect(code, contains('final AppLocalizations _l10n;'));
-      expect(code, contains('const L10nKeyResolver(this._l10n);'));
+    test('output is identical across runs', () {
+      final arb = {'a': 'A', 'bCount': '{n}'};
+      expect(gen(arb), gen(arb));
     });
+  });
 
-    test('generates resolve method for simple keys', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains("'error.timeout' => _l10n.errorTimeout,"));
-    });
-
-    test('generates resolve method for parameterized keys', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'templateFieldsCount',
-          dotKey: 'template.fields.count',
-          value: '{count} Fields',
-          placeholders: [ArbPlaceholder(name: 'count', type: 'int')],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
+  group('L10nKeys', () {
+    test('plain key is a const L10nKey', () {
       expect(
-        code,
-        contains("'template.fields.count' => _l10n.templateFieldsCount("),
-      );
-      expect(code, contains("args?['count'] as int? ?? 0"));
-    });
-
-    test('calls a message method for a value placeholder without metadata', () {
-      final entries = ArbParser().parse({
-        'initializationReady': 'Ready at {ipAddress}',
-      });
-
-      final code = generator.generate(entries);
-
-      expect(
-        code,
+        gen({'errorTimeout': 'Timeout'}),
         contains(
-          "'initialization.ready' => _l10n.initializationReady(args?['ipAddress'] as String? ?? ''),",
+          "static const errorTimeout = L10nKey.generated('error.timeout');",
         ),
-      );
-      expect(
-        code,
-        isNot(contains("'initialization.ready' => _l10n.initializationReady,")),
       );
     });
 
-    test('uses metadata type when generating a detected message method', () {
-      final entries = ArbParser().parse({
-        'initializationSyncAttempt': 'Sync attempt {attempt}',
-        '@initializationSyncAttempt': {
+    test('parameterized key is a static method with named required args', () {
+      final code = gen({
+        'templateFieldsCount': '{count} Fields',
+        '@templateFieldsCount': {
           'placeholders': {
-            'attempt': {'type': 'int'},
+            'count': {'type': 'int'},
           },
         },
       });
-
-      final code = generator.generate(entries);
-
       expect(
         code,
         contains(
-          "'initialization.sync.attempt' => _l10n.initializationSyncAttempt(args?['attempt'] as int? ?? 0),",
+          'static L10nKey templateFieldsCount({required int count}) => '
+          "L10nKey.generated('template.fields.count', {'count': count});",
         ),
       );
     });
 
-    test('keeps a message without placeholders as a getter reference', () {
-      final entries = ArbParser().parse({
-        'initializationComplete': 'Initialization complete',
+    test('undeclared placeholder is Object, plural count is num', () {
+      final code = gen({
+        'who': 'Hi {name}',
+        'rows': '{n, plural, =1{row} other{rows}}',
       });
+      expect(code, contains('static L10nKey who({required Object name})'));
+      expect(code, contains('static L10nKey rows({required num n})'));
+    });
 
-      final code = generator.generate(entries);
-
+    test('generateDotKeys false uses the arb key', () {
       expect(
-        code,
-        contains("'initialization.complete' => _l10n.initializationComplete,"),
+        gen({'errorTimeout': 'T'}, dotKeys: false),
+        contains("L10nKey.generated('errorTimeout')"),
       );
+    });
+  });
+
+  group('L10nKeyResolver', () {
+    test('implements LabelResolver and resolves both label kinds', () {
+      final code = gen({'errorTimeout': 'T'});
+      expect(code, contains('class L10nKeyResolver implements LabelResolver {'));
+      expect(code, contains('String resolve(Label label)'));
+      expect(code, contains('DataText(:final value) => value'));
+    });
+
+    test('has no raw-string lookup', () {
+      expect(gen({'a': 'A'}), isNot(contains('String? resolve(')));
+    });
+
+    test('switch uses the real ARB key for the getter', () {
+      final code = gen({'errorTimeout': 'T'});
+      expect(code, contains("'error.timeout' => _l10n.errorTimeout,"));
+    });
+
+    test('parameterized call casts args in message order', () {
+      final code = gen({
+        'greet': '{greeting} {name}',
+        '@greet': {
+          'placeholders': {
+            'name': {'type': 'String'},
+            'greeting': {'type': 'String'},
+          },
+        },
+      });
       expect(
         code,
-        isNot(
-          contains(
-            "'initialization.complete' => _l10n.initializationComplete(",
-          ),
+        contains(
+          "'greet' => _l10n.greet(args['greeting'] as String, "
+          "args['name'] as String),",
         ),
       );
     });
 
-    test('generates knownKeys set', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-        const ArbEntry(
-          arbKey: 'successGeneric',
-          dotKey: 'success.generic',
-          value: 'Success',
-        ),
-      ];
+    test('unknown key reports, throws in debug, returns the key text', () {
+      final code = gen({'a': 'A'});
+      expect(code, contains('onUnknownKey?.call(key);'));
+      expect(code, contains('assert(isDebug = true);'));
+      expect(code, contains("throw StateError('Unknown l10n key: \$key');"));
+      expect(code, contains('return key;'));
+    });
 
-      final code = generator.generate(entries);
-
-      expect(code, contains('static const knownKeys = <String>{'));
+    test('exposes knownKeys, hasKey and key maps', () {
+      final code = gen({'errorTimeout': 'T'});
       expect(code, contains("'error.timeout',"));
-      expect(code, contains("'success.generic',"));
-    });
-
-    test('generates hasKey method', () {
-      final entries = <ArbEntry>[];
-      final code = generator.generate(entries);
-
-      expect(
-        code,
-        contains('static bool hasKey(String key) => knownKeys.contains(key);'),
-      );
-    });
-
-    test('generates bidirectional key maps when generateDotKeys is true', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains('static const arbToDotKey = <String, String>{'));
+      expect(code, contains('static bool hasKey(String key)'));
       expect(code, contains("'errorTimeout': 'error.timeout',"));
-      expect(code, contains('static const dotToArbKey = <String, String>{'));
       expect(code, contains("'error.timeout': 'errorTimeout',"));
-    });
-
-    test('uses arbKey when generateDotKeys is false', () {
-      final gen = ResolverGenerator(
-        localizationsClass: 'AppLocalizations',
-        localizationsImport: 'app_localizations.dart',
-        generateDotKeys: false,
-      );
-
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-      ];
-
-      final code = gen.generate(entries);
-
-      expect(code, contains("'errorTimeout' => _l10n.errorTimeout,"));
-      expect(code, isNot(contains("'error.timeout' =>")));
-    });
-
-    test('handles multiple parameter types', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'complexMessage',
-          dotKey: 'complex.message',
-          value: '{name} did {count} things at {time}',
-          placeholders: [
-            ArbPlaceholder(name: 'name', type: 'String'),
-            ArbPlaceholder(name: 'count', type: 'int'),
-            ArbPlaceholder(name: 'time', type: 'DateTime'),
-          ],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains("args?['name'] as String? ?? ''"));
-      expect(code, contains("args?['count'] as int? ?? 0"));
-      expect(code, contains("args?['time'] as DateTime? ?? DateTime.now()"));
-    });
-
-    test('generates L10nKeys class with constants', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-        const ArbEntry(
-          arbKey: 'successGeneric',
-          dotKey: 'success.generic',
-          value: 'Success',
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains('abstract class L10nKeys {'));
-      expect(code, contains("static const errorTimeout = 'error.timeout';"));
-      expect(
-        code,
-        contains("static const successGeneric = 'success.generic';"),
-      );
-    });
-
-    test('L10nKeys uses arbKey when generateDotKeys is false', () {
-      final gen = ResolverGenerator(
-        localizationsClass: 'AppLocalizations',
-        localizationsImport: 'app_localizations.dart',
-        generateDotKeys: false,
-      );
-
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-      ];
-
-      final code = gen.generate(entries);
-
-      expect(code, contains("static const errorTimeout = 'errorTimeout';"));
-    });
-
-    test('L10nKeys generates typed method for single-param entry', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'templateFieldsCount',
-          dotKey: 'template.fields.count',
-          value: '{count} Fields',
-          placeholders: [ArbPlaceholder(name: 'count', type: 'int')],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      // Should NOT generate a simple const for parameterized keys
-      expect(
-        code,
-        isNot(
-          contains(
-            "static const templateFieldsCount = 'template.fields.count';",
-          ),
-        ),
-      );
-
-      // Should generate a typed static method returning a record
-      expect(
-        code,
-        contains(
-          "static (String, Map<String, dynamic>) templateFieldsCount(int count) => ('template.fields.count', {'count': count});",
-        ),
-      );
-    });
-
-    test('L10nKeys generates typed method for multi-param entry', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'retryAttempt',
-          dotKey: 'retry.attempt',
-          value: 'Attempt {attempt} using {strategy}',
-          placeholders: [
-            ArbPlaceholder(name: 'attempt', type: 'int'),
-            ArbPlaceholder(name: 'strategy', type: 'String'),
-          ],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(
-        code,
-        contains(
-          "static (String, Map<String, dynamic>) retryAttempt(int attempt, String strategy) => ('retry.attempt', {'attempt': attempt, 'strategy': strategy});",
-        ),
-      );
-    });
-
-    test('L10nKeys keeps simple const for non-parameterized entries', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'errorTimeout',
-          dotKey: 'error.timeout',
-          value: 'Timeout',
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains("static const errorTimeout = 'error.timeout';"));
-      // Should NOT contain a method signature for simple entries
-      expect(
-        code,
-        isNot(contains('static (String, Map<String, dynamic>) errorTimeout')),
-      );
-    });
-
-    test('L10nKeys mixes consts and typed methods correctly', () {
-      final entries = [
-        const ArbEntry(
-          arbKey: 'simpleKey',
-          dotKey: 'simple.key',
-          value: 'Simple',
-        ),
-        const ArbEntry(
-          arbKey: 'paramKey',
-          dotKey: 'param.key',
-          value: 'Hello {name}',
-          placeholders: [ArbPlaceholder(name: 'name', type: 'String')],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      expect(code, contains("static const simpleKey = 'simple.key';"));
-      expect(
-        code,
-        contains(
-          "static (String, Map<String, dynamic>) paramKey(String name) => ('param.key', {'name': name});",
-        ),
-      );
-    });
-
-    test('generates valid Dart code structure', () {
-      final entries = [
-        const ArbEntry(arbKey: 'simple', dotKey: 'simple', value: 'Simple'),
-        const ArbEntry(
-          arbKey: 'withParam',
-          dotKey: 'with.param',
-          value: '{n}',
-          placeholders: [ArbPlaceholder(name: 'n', type: 'int')],
-        ),
-      ];
-
-      final code = generator.generate(entries);
-
-      // Check balanced braces
-      final openBraces = '{'.allMatches(code).length;
-      final closeBraces = '}'.allMatches(code).length;
-      expect(openBraces, closeBraces);
-
-      // Check balanced parentheses
-      final openParens = '('.allMatches(code).length;
-      final closeParens = ')'.allMatches(code).length;
-      expect(openParens, closeParens);
     });
   });
 }

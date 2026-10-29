@@ -66,7 +66,7 @@ void main() {
       expect(entries.single.hasParameters, isTrue);
       expect(entries.single.placeholders, hasLength(1));
       expect(entries.single.placeholders.single.name, 'ipAddress');
-      expect(entries.single.placeholders.single.dartType, 'String');
+      expect(entries.single.placeholders.single.dartType, 'Object');
     });
 
     test('uses metadata type for a placeholder found in the message', () {
@@ -141,11 +141,108 @@ void main() {
     });
   });
 
+  group('ArbParser ICU scanning', () {
+    final parser = ArbParser();
+    List<String> names(Map<String, dynamic> arb) =>
+        parser.parse(arb).single.placeholders.map((p) => p.name).toList();
+
+    test('Quanitya accessibilityDataTableRows: branch words are not arguments',
+        () {
+      final entries = parser.parse({
+        'accessibilityDataTableRows':
+            'Data table with {count} {count, plural, =1{row} other{rows}}',
+        '@accessibilityDataTableRows': {
+          'placeholders': {
+            'count': {'type': 'int'},
+          },
+        },
+      });
+      final ph = entries.single.placeholders;
+      expect(ph.map((p) => p.name), ['count']);
+      expect(ph.single.dartType, 'int');
+    });
+
+    test('undeclared plural count is num', () {
+      final ph = parser.parse({
+        'items': '{n, plural, =0{none} other{many}}',
+      }).single.placeholders;
+      expect(ph.single.name, 'n');
+      expect(ph.single.dartType, 'num');
+    });
+
+    test('select placeholder is String and branches are not arguments', () {
+      final ph = parser.parse({
+        'who': '{gender, select, male{He} female{She} other{They}}',
+      }).single.placeholders;
+      expect(ph.map((p) => p.name), ['gender']);
+      expect(ph.single.dartType, 'String');
+    });
+
+    test('arguments nested in branches are found, in order', () {
+      expect(
+        names({
+          'm': '{count, plural, =1{{name} has one} other{{name} has {count}}}',
+        }),
+        ['count', 'name'],
+      );
+    });
+
+    test('quoted braces are literal', () {
+      final entries = parser.parse({'lit': "Use '{braces}' and {real}"});
+      expect(entries.single.placeholders.map((p) => p.name), ['real']);
+    });
+
+    test('doubled apostrophe is a literal apostrophe', () {
+      final entries = parser.parse({'lit': "It''s {x}"});
+      expect(entries.single.placeholders.map((p) => p.name), ['x']);
+    });
+
+    test('number, date and other formats name their argument', () {
+      expect(
+        names({'f': 'Cost {price, number, currency} on {when, date, short}'}),
+        ['price', 'when'],
+      );
+    });
+
+    test('declared double stays double', () {
+      final ph = parser.parse({
+        'ratio': '{value}',
+        '@ratio': {
+          'placeholders': {
+            'value': {'type': 'double'},
+          },
+        },
+      }).single.placeholders;
+      expect(ph.single.dartType, 'double');
+    });
+
+    test('plural with offset', () {
+      expect(
+        names({'o': '{n, plural, offset:1 =0{nobody} other{# others}}'}),
+        ['n'],
+      );
+    });
+
+    test('unbalanced braces throw a FormatException naming the key', () {
+      expect(
+        () => parser.parse({'bad': 'Hello {name'}),
+        throwsA(isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('bad'),
+        )),
+      );
+    });
+  });
+
   group('ArbPlaceholder', () {
     test('maps type to dartType correctly', () {
       expect(const ArbPlaceholder(name: 'n', type: 'int').dartType, 'int');
       expect(const ArbPlaceholder(name: 'n', type: 'integer').dartType, 'int');
-      expect(const ArbPlaceholder(name: 'n', type: 'double').dartType, 'num');
+      expect(
+        const ArbPlaceholder(name: 'n', type: 'double').dartType,
+        'double',
+      );
       expect(const ArbPlaceholder(name: 'n', type: 'num').dartType, 'num');
       expect(
         const ArbPlaceholder(name: 'n', type: 'DateTime').dartType,
@@ -157,7 +254,24 @@ void main() {
       );
       expect(
         const ArbPlaceholder(name: 'n', type: 'unknown').dartType,
+        'Object',
+      );
+      expect(const ArbPlaceholder(name: 'n').dartType, 'Object');
+      expect(
+        const ArbPlaceholder(name: 'n', kind: ArbArgKind.plural).dartType,
+        'num',
+      );
+      expect(
+        const ArbPlaceholder(name: 'n', kind: ArbArgKind.select).dartType,
         'String',
+      );
+      expect(
+        const ArbPlaceholder(
+          name: 'n',
+          type: 'int',
+          kind: ArbArgKind.plural,
+        ).dartType,
+        'int',
       );
     });
   });
