@@ -27,7 +27,7 @@ cubit_ui_flow:
 
 1. `l10n`: no widgets, no Flutter.
 2. `cubit_ui_flow`: may use `l10n`.
-3. `ui`: may use `l10n`.
+3. `ui`: may use `l10n` and `color_palette`.
 3. `error_privserver`: uses `cubit_ui_flow`.
 4. `nav_snapshot`: independent.
 5. `color_palette`: independent.

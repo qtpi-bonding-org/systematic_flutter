@@ -13,9 +13,7 @@ dependencies:
   l10n_key_resolver:
     path: ../l10n
   flutter_color_palette:
-    git:
-      url: https://github.com/qtpi-bonding-org/flutter_color_palette.git
-      ref: e8755f5993cb66c6dfd4696df87bf6ef64229756
+    path: ../color_palette
 
 dev_dependencies:
   flutter_test:
