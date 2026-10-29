@@ -1,0 +1,28 @@
+name: flutter_error_privserver_example
+description: Example app demonstrating flutter_error_privserver usage
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.0
+  cubit_ui_flow:
+    git:
+      url: git@github.com:qtpi-bonding-org/systematic_flutter.git
+      ref: fefa598cbee772ad2704d5414c09640d8527fc1f
+      path: packages/cubit_ui_flow
+  flutter_error_privserver:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
