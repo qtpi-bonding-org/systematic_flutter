@@ -8,7 +8,7 @@
 /// [ControlId.item] so each instance is unique.
 ///
 /// A `const` constructor cannot assert, so validity (non-empty, no whitespace)
-/// is checked by `QtpiSemantics` in debug builds and by the semantics audit.
+/// is checked by `SystematicSemantics` in debug builds and by the semantics audit.
 extension type const ControlId(String value) {
   static final RegExp _pattern = RegExp(r'^\S+$');
 

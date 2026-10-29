@@ -13,15 +13,15 @@ class _MapResolver implements LabelResolver {
 
   @override
   String resolve(Label label) => switch (label) {
-    L10nKey(:final key) => strings[key] ?? key,
-    DataText(:final value) => value,
-  };
+        L10nKey(:final key) => strings[key] ?? key,
+        DataText(:final value) => value,
+      };
 }
 
 Widget _host(Widget child, {LabelResolver? resolver}) => LabelScope(
-  resolver: resolver ?? _MapResolver({}),
-  child: MaterialApp(home: Scaffold(body: Center(child: child))),
-);
+      resolver: resolver ?? _MapResolver({}),
+      child: MaterialApp(home: Scaffold(body: Center(child: child))),
+    );
 
 void main() {
   group('ControlId', () {
@@ -58,7 +58,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _host(
-          const QtpiSemantics(
+          const SystematicSemantics(
             id: ControlId('save'),
             text: SpokenText(label: DataText('')),
             behavior: ControlBehavior(role: ControlRole.button),
@@ -70,10 +70,12 @@ void main() {
     });
 
     test('value equality', () {
-      expect(const SpokenText(label: DataText('Save')), const SpokenText(label: DataText('Save')));
+      expect(const SpokenText(label: DataText('Save')),
+          const SpokenText(label: DataText('Save')));
       expect(
         const SpokenText(label: DataText('Save')),
-        isNot(const SpokenText(label: DataText('Save'), hint: DataText('Saves the note'))),
+        isNot(const SpokenText(
+            label: DataText('Save'), hint: DataText('Saves the note'))),
       );
     });
   });
@@ -113,7 +115,7 @@ void main() {
     });
   });
 
-  group('QtpiSemantics', () {
+  group('SystematicSemantics', () {
     testWidgets('exposes identifier, label, button role and tap', (
       tester,
     ) async {
@@ -121,7 +123,7 @@ void main() {
       var taps = 0;
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('save'),
             text: const SpokenText(label: DataText('Save')),
             behavior: const ControlBehavior(role: ControlRole.button),
@@ -153,7 +155,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('save'),
             text: const SpokenText(label: DataText('Save')),
             behavior: const ControlBehavior(role: ControlRole.button),
@@ -169,7 +171,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('docked.tab_notes'),
             text: const SpokenText(label: DataText('Notes')),
             behavior: const ControlBehavior(
@@ -195,7 +197,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          const QtpiSemantics(
+          const SystematicSemantics(
             id: ControlId('save'),
             text: SpokenText(label: DataText('Save')),
             behavior: ControlBehavior(
@@ -223,9 +225,12 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          const QtpiSemantics(
+          const SystematicSemantics(
             id: ControlId('volume'),
-            text: SpokenText(label: DataText('Volume'), hint: DataText('Drag'), value: DataText('70%')),
+            text: SpokenText(
+                label: DataText('Volume'),
+                hint: DataText('Drag'),
+                value: DataText('70%')),
             behavior: ControlBehavior(role: ControlRole.none),
             child: SizedBox(width: 80, height: 48),
           ),
@@ -240,14 +245,15 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('a wrapped TextField is named once and keeps its actions on '
+    testWidgets(
+        'a wrapped TextField is named once and keeps its actions on '
         'the identifier node', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
           const SizedBox(
             width: 240,
-            child: QtpiSemantics(
+            child: SystematicSemantics(
               id: ControlId('name_field'),
               text: SpokenText(label: DataText('Name')),
               behavior: ControlBehavior(role: ControlRole.textField),
@@ -286,7 +292,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('save'),
             behavior: const ControlBehavior(role: ControlRole.button),
             onTap: () {},
@@ -308,7 +314,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('close'),
             text: const SpokenText(label: DataText('Close tab')),
             behavior: const ControlBehavior(role: ControlRole.button),
@@ -330,14 +336,14 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          QtpiSemantics(
+          SystematicSemantics(
             id: const ControlId('tab_rail'),
             text: const SpokenText(label: DataText('Open tabs')),
             behavior: const ControlBehavior(role: ControlRole.tabBar),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                QtpiSemantics(
+                SystematicSemantics(
                   id: const ControlId('tab_rail.a'),
                   text: const SpokenText(label: DataText('A')),
                   behavior: const ControlBehavior(
@@ -347,7 +353,7 @@ void main() {
                   onTap: () {},
                   child: const SizedBox(width: 60, height: 48),
                 ),
-                QtpiSemantics(
+                SystematicSemantics(
                   id: const ControlId('tab_rail.b'),
                   text: const SpokenText(label: DataText('B')),
                   behavior: const ControlBehavior(
@@ -372,11 +378,12 @@ void main() {
   group('localized labels', () {
     const saveKey = L10nKey.generated('common.save');
 
-    testWidgets('an L10nKey is spoken in the scope\'s language', (tester) async {
+    testWidgets('an L10nKey is spoken in the scope\'s language',
+        (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          const QtpiSemantics(
+          const SystematicSemantics(
             id: ControlId('save'),
             text: SpokenText(label: saveKey, hint: DataText('h')),
             behavior: ControlBehavior(role: ControlRole.button),
@@ -397,7 +404,7 @@ void main() {
 
     testWidgets('changing the resolver re-speaks the label', (tester) async {
       final handle = tester.ensureSemantics();
-      const control = QtpiSemantics(
+      const control = SystematicSemantics(
         id: ControlId('save'),
         text: SpokenText(label: saveKey),
         behavior: ControlBehavior(role: ControlRole.button),
@@ -422,7 +429,7 @@ void main() {
     testWidgets('building without a LabelScope fails loudly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: QtpiSemantics(
+          home: SystematicSemantics(
             id: ControlId('save'),
             text: SpokenText(label: saveKey),
             behavior: ControlBehavior(role: ControlRole.button),

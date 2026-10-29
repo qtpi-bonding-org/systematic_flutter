@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'control_behavior.freezed.dart';
 
 /// What kind of control this is. Maps onto Flutter's semantics flags and
-/// `SemanticsRole` inside `QtpiSemantics`.
+/// `SemanticsRole` inside `SystematicSemantics`.
 enum ControlRole {
   /// No role of its own: a label, id or state added to something that already
   /// carries its own semantics (a `TextField`, a container).

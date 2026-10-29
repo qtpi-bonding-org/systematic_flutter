@@ -22,8 +22,8 @@ import 'spoken_text.dart';
 /// The wrapper's [onTap] adds a screen-reader action only; a pointer tap still
 /// needs a gesture handler in the child (the design-system primitives already
 /// have one).
-class QtpiSemantics extends StatelessWidget {
-  const QtpiSemantics({
+class SystematicSemantics extends StatelessWidget {
+  const SystematicSemantics({
     super.key,
     required this.id,
     required this.behavior,
@@ -48,27 +48,28 @@ class QtpiSemantics extends StatelessWidget {
   // Not textField: a `TextField` sets its own enabled flag, and two nodes with
   // the same flag will not merge, which strands the identifier on a parent.
   static bool _hasEnabledState(ControlRole role) => switch (role) {
-    ControlRole.button ||
-    ControlRole.link ||
-    ControlRole.tab ||
-    ControlRole.checkbox ||
-    ControlRole.switchToggle => true,
-    _ => false,
-  };
+        ControlRole.button ||
+        ControlRole.link ||
+        ControlRole.tab ||
+        ControlRole.checkbox ||
+        ControlRole.switchToggle =>
+          true,
+        _ => false,
+      };
 
   static SemanticsRole? _semanticsRole(ControlRole role) => switch (role) {
-    ControlRole.tab => SemanticsRole.tab,
-    ControlRole.tabBar => SemanticsRole.tabBar,
-    ControlRole.status => SemanticsRole.status,
-    ControlRole.alert => SemanticsRole.alert,
-    ControlRole.loadingSpinner => SemanticsRole.loadingSpinner,
-    _ => null,
-  };
+        ControlRole.tab => SemanticsRole.tab,
+        ControlRole.tabBar => SemanticsRole.tabBar,
+        ControlRole.status => SemanticsRole.status,
+        ControlRole.alert => SemanticsRole.alert,
+        ControlRole.loadingSpinner => SemanticsRole.loadingSpinner,
+        _ => null,
+      };
 
   static bool _hasContent(SpokenText? text) => switch (text?.label) {
-    DataText(:final value) => value.isNotEmpty,
-    _ => true,
-  };
+        DataText(:final value) => value.isNotEmpty,
+        _ => true,
+      };
 
   static String? _resolve(LabelResolver resolver, Label? label) =>
       label == null ? null : resolver.resolve(label);
@@ -95,9 +96,8 @@ class QtpiSemantics extends StatelessWidget {
         hint: _resolve(resolver, text?.hint),
         value: _resolve(resolver, text?.value),
         role: _semanticsRole(role),
-        button: role == ControlRole.button || role == ControlRole.tab
-            ? true
-            : null,
+        button:
+            role == ControlRole.button || role == ControlRole.tab ? true : null,
         link: role == ControlRole.link ? true : null,
         header: role == ControlRole.header ? true : null,
         image: role == ControlRole.image ? true : null,

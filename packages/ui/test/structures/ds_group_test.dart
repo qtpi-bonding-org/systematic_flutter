@@ -6,7 +6,8 @@ void main() {
   group('DsGroup', () {
     testWidgets('non-tappable renders plain Padding', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsGroup(
+        home: Scaffold(
+            body: DsGroup(
           testId: 'test-group',
           child: const Text('content'),
         )),
@@ -18,7 +19,8 @@ void main() {
     testWidgets('tappable renders InkWell and fires onTap', (tester) async {
       var tapped = false;
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsGroup(
+        home: Scaffold(
+            body: DsGroup(
           testId: 'tap-group',
           onTap: () => tapped = true,
           child: const Text('tap me'),
@@ -29,9 +31,11 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('showChevron renders chevron_right icon when tappable', (tester) async {
+    testWidgets('showChevron renders chevron_right icon when tappable',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsGroup(
+        home: Scaffold(
+            body: DsGroup(
           testId: 'chevron-group',
           onTap: () {},
           showChevron: true,
@@ -43,7 +47,8 @@ void main() {
 
     testWidgets('showChevron is false by default', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsGroup(
+        home: Scaffold(
+            body: DsGroup(
           testId: 'no-chevron',
           onTap: () {},
           child: const Text('tap'),

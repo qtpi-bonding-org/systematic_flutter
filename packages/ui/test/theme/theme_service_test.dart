@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qtpi_ui/qtpi_ui.dart';
 
 AppColorPalette _palette(String name, Color fill) => AppColorPalette(
-  colors: {'color1': fill, 'accent': const Color(0xFF00C3FF)},
-  name: name,
-);
+      colors: {'color1': fill, 'accent': const Color(0xFF00C3FF)},
+      name: name,
+    );
 
 void main() {
   group('ThemeService', () {
@@ -16,7 +16,8 @@ void main() {
       expect(svc.currentPalette.name, 'light');
     });
 
-    test('returns lightPalette when darkPalette is null and dark mode toggled', () {
+    test('returns lightPalette when darkPalette is null and dark mode toggled',
+        () {
       final light = _palette('light', const Color(0xFFFFFFFF));
       final svc = ThemeService(lightPalette: light)..toggleDarkMode();
       expect(svc.currentPalette.name, 'light');
@@ -25,7 +26,8 @@ void main() {
     test('returns darkPalette when dark mode set and darkPalette provided', () {
       final light = _palette('light', const Color(0xFFFFFFFF));
       final dark = _palette('dark', const Color(0xFF000000));
-      final svc = ThemeService(lightPalette: light, darkPalette: dark)..setDarkMode(true);
+      final svc = ThemeService(lightPalette: light, darkPalette: dark)
+        ..setDarkMode(true);
       expect(svc.currentPalette.name, 'dark');
     });
 

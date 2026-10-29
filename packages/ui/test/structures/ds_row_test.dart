@@ -13,7 +13,8 @@ void main() {
 
     testWidgets('no middle renders Spacer', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsRow(
+        home: Scaffold(
+            body: DsRow(
           start: const Text('s'),
           end: const Text('e'),
         )),
@@ -23,7 +24,8 @@ void main() {
 
     testWidgets('renders start and end alongside middle', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsRow(
+        home: Scaffold(
+            body: DsRow(
           start: const Text('s'),
           middle: const Text('mid'),
           end: const Text('e'),

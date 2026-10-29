@@ -59,12 +59,16 @@ class AppSizes {
   // --- Bioluminescent Opacity Scale ---
   /// Primary, focused, fully active
   static const double opacityFull = 1.0;
+
   /// Hover, secondary emphasis
   static const double opacityHover = 0.7;
+
   /// Inactive chrome, non-text dividers (NOT for dim text — contrast too low)
   static const double opacityInactive = 0.4;
+
   /// Disabled (Material standard 0.38, quanitya-validated)
   static const double opacityDisabled = 0.38;
+
   /// Ghost fill for input fields at rest (barely visible cyan hint)
   static const double opacityGhost = 0.06;
 

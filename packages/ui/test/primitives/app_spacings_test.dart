@@ -4,7 +4,8 @@ import 'package:qtpi_ui/qtpi_ui.dart';
 
 void main() {
   group('VSpace', () {
-    testWidgets('x1 renders a SizedBox with height == AppSizes.space', (tester) async {
+    testWidgets('x1 renders a SizedBox with height == AppSizes.space',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: VSpace.x1)));
       final box = tester.widget<SizedBox>(find.byType(SizedBox).first);
       expect(box.height, AppSizes.space);
@@ -18,7 +19,8 @@ void main() {
   });
 
   group('HSpace', () {
-    testWidgets('x1 renders a SizedBox with width == AppSizes.space', (tester) async {
+    testWidgets('x1 renders a SizedBox with width == AppSizes.space',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: HSpace.x1)));
       final box = tester.widget<SizedBox>(find.byType(SizedBox).first);
       expect(box.width, AppSizes.space);

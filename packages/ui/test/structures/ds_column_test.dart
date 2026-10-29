@@ -12,10 +12,14 @@ void main() {
       expect(find.byType(VSpace), findsNothing);
     });
 
-    testWidgets('interleaves VSpace.x1 between children by default', (tester) async {
+    testWidgets('interleaves VSpace.x1 between children by default',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsColumn(children: [
-          const Text('a'), const Text('b'), const Text('c'),
+        home: Scaffold(
+            body: DsColumn(children: [
+          const Text('a'),
+          const Text('b'),
+          const Text('c'),
         ])),
       ));
       expect(find.byType(VSpace), findsNWidgets(2));
@@ -23,7 +27,8 @@ void main() {
 
     testWidgets('uses custom spacing widget when provided', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsColumn(
+        home: Scaffold(
+            body: DsColumn(
           spacing: VSpace.x3,
           children: [const Text('a'), const Text('b')],
         )),
@@ -34,7 +39,8 @@ void main() {
 
     testWidgets('respects mainAxisSize parameter', (tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: DsColumn(
+        home: Scaffold(
+            body: DsColumn(
           mainAxisSize: MainAxisSize.min,
           children: [const Text('a')],
         )),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_color_palette/flutter_color_palette.dart';
 
 class ThemeService extends ChangeNotifier {
-  ThemeService({required IColorPalette lightPalette, IColorPalette? darkPalette})
+  ThemeService(
+      {required IColorPalette lightPalette, IColorPalette? darkPalette})
       : _lightPalette = lightPalette,
         _darkPalette = darkPalette;
 

@@ -23,7 +23,8 @@ class DsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectivePadding = padding ?? AppPadding.listItem;
-    final effectiveChevronColor = chevronColor ?? Theme.of(context).colorScheme.primary;
+    final effectiveChevronColor =
+        chevronColor ?? Theme.of(context).colorScheme.primary;
 
     if (onTap != null) {
       return Semantics(
