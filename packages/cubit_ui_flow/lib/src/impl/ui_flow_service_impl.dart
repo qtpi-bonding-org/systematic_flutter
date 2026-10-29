@@ -1,30 +1,32 @@
+import 'package:l10n_key_resolver/runtime.dart';
+
 import '../contracts/all_contracts.dart';
 
 /// Default implementation of [IUiFlowService].
 ///
 /// This service orchestrates:
-/// - Translating message keys to localized strings
+/// - Resolving message labels to localized strings
 /// - Showing/hiding loading overlays
 /// - Displaying feedback messages
 ///
 /// Example:
 /// ```dart
 /// final uiService = UiFlowService(
-///   localization: AppLocalizationService(),
+///   resolver: L10nKeyResolver(l10n),
 ///   feedback: OverlayFeedbackService(navigatorKey),
 ///   loading: OverlayLoadingService(navigatorKey),
 /// );
 /// ```
 class UiFlowService implements IUiFlowService {
-  final ILocalizationService _localization;
+  final LabelResolver _resolver;
   final IFeedbackService _feedback;
   final ILoadingService _loading;
 
   UiFlowService({
-    required ILocalizationService localization,
+    required LabelResolver resolver,
     required IFeedbackService feedback,
     required ILoadingService loading,
-  })  : _localization = localization,
+  })  : _resolver = resolver,
         _feedback = feedback,
         _loading = loading;
 
@@ -40,7 +42,7 @@ class UiFlowService implements IUiFlowService {
     hideLoading();
 
     // Translate and show feedback
-    final message = _localization.translate(key.key, args: key.args);
+    final message = _resolver.resolve(key.label);
     _feedback.show(FeedbackMessage(message: message, type: key.type));
   }
 

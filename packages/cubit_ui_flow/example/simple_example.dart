@@ -10,20 +10,19 @@ void main() {
   print('UiFlowStatus.loading.isLoading: ${UiFlowStatus.loading.isLoading}');
   print('UiFlowStatus.success.isSuccess: ${UiFlowStatus.success.isSuccess}');
   
-  // Test MessageKey
-  const errorKey = MessageKey.error('test.error');
-  const successKey = MessageKey.success('test.success', {'count': 5});
-  print('Error key: ${errorKey.key} (${errorKey.type})');
-  print('Success key: ${successKey.key} (${successKey.type}) args: ${successKey.args}');
-  
-  // Test FallbackLocalizationService
-  const localization = FallbackLocalizationService();
-  print('Localized: ${localization.translate('hello.{name}', args: {'name': 'world'})}');
-  
+  // Test MessageKey and the resolver
+  const resolver = FallbackLabelResolver();
+  const errorKey = MessageKey.error(ExampleKeys.genericError);
+  final successKey = MessageKey.success(
+    L10nKey.generated('test.success', {'count': 5}),
+  );
+  print('Error: ${resolver.resolve(errorKey.label)} (${errorKey.type})');
+  print('Success: ${resolver.resolve(successKey.label)} (${successKey.type})');
+
   // Test DefaultExceptionKeyMapper
   const exceptionMapper = DefaultExceptionKeyMapper();
   final networkKey = exceptionMapper.map(Exception('Network error'));
-  print('Exception mapped: ${networkKey?.key ?? 'null'}');
+  print('Exception mapped: ${networkKey == null ? 'null' : resolver.resolve(networkKey.label)}');
   
   print('✅ All basic functionality works!');
 }

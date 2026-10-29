@@ -84,7 +84,7 @@ graph TD
 - `AsyncUiListener` widget that wires everything together
 
 **What You Must Implement:**
-- `ILocalizationService` - your l10n system
+- `LabelResolver` - the generated `L10nKeyResolver`
 - `IExceptionKeyMapper` - global exception → message key mapping  
 - `IFeedbackService` - your toast/snackbar system
 - `ILoadingService` - your loading overlay system
@@ -113,35 +113,17 @@ class TrackerState with _$TrackerState, AsyncStateMixin {
 
 ### 2. Implement Required Services
 
-#### ILocalizationService (REQUIRED)
+#### LabelResolver (REQUIRED)
+
+`MessageKey` holds a `Label`, never a string. Generate `L10nKeys` and
+`L10nKeyResolver` with `l10n_generator`; the resolver implements
+`LabelResolver` and needs the current `AppLocalizations`:
+
 ```dart
-class AppLocalizationService implements ILocalizationService {
-  final AppLocalizations Function() _getL10n;
-  
-  AppLocalizationService(this._getL10n);
-  
-  @override
-  String translate(String key, {Map<String, dynamic>? args}) {
-    final l10n = _getL10n();
-    return switch (key) {
-      // Library keys
-      'async_ui.error.generic' => l10n.errorGeneric,
-      'async_ui.error.network' => l10n.errorNetwork,
-      'async_ui.success.generic' => l10n.successGeneric,
-      
-      // Your app keys
-      'tracker.created' => l10n.trackerCreated(args?['name'] ?? ''),
-      'tracker.deleted' => l10n.trackerDeleted,
-      'error.validation.name' => l10n.errorNameRequired,
-      
-      _ => key, // Fallback
-    };
-  }
-  
-  @override
-  bool hasKey(String key) => true;
-}
+final resolver = L10nKeyResolver(AppLocalizations.of(context));
 ```
+
+Use `DataText('...')` only for runtime data such as a server message.
 
 #### IExceptionKeyMapper (REQUIRED - Global)
 ```dart
@@ -149,15 +131,14 @@ class AppExceptionKeyMapper implements IExceptionKeyMapper {
   @override
   MessageKey? map(Object exception) {
     return switch (exception) {
-      NetworkException() => MessageKey.networkError,
-      TimeoutException() => MessageKey.timeoutError,
-      AuthException() => const MessageKey.error('error.auth'),
+      NetworkException() => const MessageKey.error(L10nKeys.errorNetwork),
+      TimeoutException() => const MessageKey.error(L10nKeys.errorTimeout),
+      AuthException() => const MessageKey.error(L10nKeys.errorAuth),
       ValidationException e => MessageKey.error(
-          'error.validation.${e.field}',
-          {'field': e.field},
+          L10nKeys.errorValidation(field: e.field),
         ),
-      StorageException() => const MessageKey.error('error.storage'),
-      _ => null, // Falls back to MessageKey.genericError
+      StorageException() => const MessageKey.error(L10nKeys.errorStorage),
+      _ => null, // Falls back to the generic error
     };
   }
 }
@@ -226,12 +207,11 @@ class TrackerDomainMapper implements IDomainStateKeyMapper<TrackerState> {
     // Only return keys for states that need user feedback
     if (state.isSuccess && state.lastAction == TrackerAction.created) {
       return MessageKey.success(
-        'tracker.created', 
-        {'name': state.tracker?.name}
+        L10nKeys.trackerCreated(name: state.tracker?.name ?? ''),
       );
     }
     if (state.isSuccess && state.lastAction == TrackerAction.deleted) {
-      return const MessageKey.success('tracker.deleted');
+      return const MessageKey.success(L10nKeys.trackerDeleted);
     }
     
     // Return null for states that don't need feedback
@@ -244,10 +224,10 @@ class SettingsDomainMapper implements IDomainStateKeyMapper<SettingsState> {
   @override
   MessageKey? map(SettingsState state) {
     if (state.isSuccess && state.lastAction == SettingsAction.saved) {
-      return const MessageKey.success('settings.saved');
+      return const MessageKey.success(L10nKeys.settingsSaved);
     }
     if (state.isSuccess && state.lastAction == SettingsAction.exported) {
-      return const MessageKey.info('settings.exported');
+      return const MessageKey.info(L10nKeys.settingsExported);
     }
     return null;
   }
@@ -258,10 +238,10 @@ class AuthDomainMapper implements IDomainStateKeyMapper<AuthState> {
   @override
   MessageKey? map(AuthState state) {
     if (state.isSuccess && state.lastAction == AuthAction.loggedIn) {
-      return MessageKey.success('auth.welcome', {'name': state.user?.name});
+      return MessageKey.success(L10nKeys.authWelcome(name: state.user?.name ?? ''));
     }
     if (state.isSuccess && state.lastAction == AuthAction.loggedOut) {
-      return const MessageKey.info('auth.goodbye');
+      return const MessageKey.info(L10nKeys.authGoodbye);
     }
     return null;
   }
@@ -279,8 +259,8 @@ class AuthDomainMapper implements IDomainStateKeyMapper<AuthState> {
 ```dart
 void configureDependencies() {
   // Your services
-  getIt.registerLazySingleton<ILocalizationService>(
-    () => AppLocalizationService(() => getIt<AppLocalizations>()),
+  getIt.registerLazySingleton<LabelResolver>(
+    () => L10nKeyResolver(getIt<AppLocalizations>()),
   );
   getIt.registerLazySingleton<IFeedbackService>(
     () => AppFeedbackService(),
@@ -435,7 +415,7 @@ class TrackerCubit extends Cubit<TrackerState> with TryOperationMixin<TrackerSta
 5. AsyncUiListener → uiService.handleMessage(messageKey)
    ↓
 6. GlobalUiService:
-   - Translates key via ILocalizationService
+   - Resolves the label via LabelResolver
    - Shows loading via ILoadingService
    - Shows feedback via IFeedbackService
 ```
@@ -446,7 +426,7 @@ class TrackerCubit extends Cubit<TrackerState> with TryOperationMixin<TrackerSta
 
 | Hookpoint | Required? | Purpose |
 |-----------|-----------|---------|
-| `ILocalizationService` | ✅ Yes | Connect to your l10n system |
+| `LabelResolver` | ✅ Yes | The generated `L10nKeyResolver` |
 | `IExceptionKeyMapper` | ✅ Yes | Map all app exceptions globally |
 | `IFeedbackService` | ✅ Yes | Your toast/snackbar implementation |
 | `ILoadingService` | ✅ Yes | Your loading overlay implementation |

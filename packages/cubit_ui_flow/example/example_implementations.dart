@@ -30,6 +30,15 @@ class BaseStateMessageMapper<S extends IUiFlowState> implements IStateMessageMap
   }
 }
 
+/// Stand-in for the generated `L10nKeys` of `l10n_generator`. In an app this
+/// class is generated from the ARB file; nothing hand-writes
+/// `L10nKey.generated`.
+abstract final class ExampleKeys {
+  static const networkError = L10nKey.generated('error.network');
+  static const timeoutError = L10nKey.generated('error.timeout');
+  static const genericError = L10nKey.generated('error.generic');
+}
+
 /// Default implementation of [IExceptionKeyMapper]
 class DefaultExceptionKeyMapper implements IExceptionKeyMapper {
   const DefaultExceptionKeyMapper();
@@ -37,34 +46,27 @@ class DefaultExceptionKeyMapper implements IExceptionKeyMapper {
   @override
   MessageKey? map(Object exception) {
     final message = exception.toString().toLowerCase();
-    
+
     if (message.contains('network') || message.contains('connection')) {
-      return MessageKey.networkError;
+      return const MessageKey.error(ExampleKeys.networkError);
     }
-    
+
     if (message.contains('timeout')) {
-      return MessageKey.timeoutError;
+      return const MessageKey.error(ExampleKeys.timeoutError);
     }
-    
-    return MessageKey.genericError;
+
+    return const MessageKey.error(ExampleKeys.genericError);
   }
 }
 
-/// Fallback implementation of [ILocalizationService]
-class FallbackLocalizationService implements ILocalizationService {
-  const FallbackLocalizationService();
+/// Stand-in for the generated `L10nKeyResolver`: shows the key and arguments.
+class FallbackLabelResolver implements LabelResolver {
+  const FallbackLabelResolver();
 
   @override
-  String translate(String key, {Map<String, dynamic>? args}) {
-    String result = key;
-    
-    // Simple template replacement
-    if (args != null) {
-      args.forEach((placeholder, value) {
-        result = result.replaceAll('{$placeholder}', value.toString());
-      });
-    }
-    
-    return result;
-  }
+  String resolve(Label label) => switch (label) {
+        L10nKey(:final key, :final args) =>
+          args.isEmpty ? key : '$key $args',
+        DataText(:final value) => value,
+      };
 }

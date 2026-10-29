@@ -24,6 +24,8 @@ dependencies:
     sdk: flutter
   flutter_bloc: ^8.1.0
   meta: ^1.9.0
+  l10n_key_resolver:
+    path: ../l10n
 
 dev_dependencies:
   flutter_test:

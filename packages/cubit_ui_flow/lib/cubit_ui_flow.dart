@@ -2,6 +2,8 @@ library cubit_ui_flow;
 
 // Core contracts and types
 export 'src/contracts/all_contracts.dart';
+// Label types appear in the public API (MessageKey), so re-export them.
+export 'package:l10n_key_resolver/runtime.dart';
 
 // Utility extensions
 export 'src/utils/cubit_extensions.dart';

@@ -79,7 +79,7 @@ class ExampleExceptionMapper implements IExceptionKeyMapper {
   @override
   MessageKey? map(Object exception) {
     if (exception is Exception) {
-      return const MessageKey.error('error.generic');
+      return const MessageKey.error(ExampleKeys.genericError);
     }
     return null;
   }
@@ -90,7 +90,9 @@ class ExampleDomainMapper implements IDomainStateKeyMapper<ExampleState> {
   @override
   MessageKey? map(ExampleState state) {
     if (state.isSuccess && state.items.isNotEmpty) {
-      return MessageKey.success('items.loaded', {'count': state.items.length});
+      return MessageKey.success(
+        L10nKey.generated('items.loaded', {'count': state.items.length}),
+      );
     }
     return null;
   }

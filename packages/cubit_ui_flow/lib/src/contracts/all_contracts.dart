@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:l10n_key_resolver/runtime.dart';
 
 // UI Flow State
 enum UiFlowStatus {
@@ -86,51 +87,29 @@ enum MessageType {
   loading,
 }
 
+/// A message to show: a [Label] (a generated `L10nKey`, or explicit
+/// `DataText`) and how to present it. A raw string cannot be passed.
 @immutable
 class MessageKey {
-  final String key;
+  final Label label;
   final MessageType type;
-  final Map<String, dynamic>? args;
 
-  const MessageKey._(this.key, this.type, [this.args]);
-
-  const MessageKey.info(this.key, [this.args]) : type = MessageType.info;
-  const MessageKey.success(this.key, [this.args]) : type = MessageType.success;
-  const MessageKey.warning(this.key, [this.args]) : type = MessageType.warning;
-  const MessageKey.error(this.key, [this.args]) : type = MessageType.error;
-  const MessageKey.loading(this.key, [this.args]) : type = MessageType.loading;
-
-  /// Factories that accept typed (key, args) records from L10nKeys.
-  MessageKey.infoFrom((String, Map<String, dynamic>) record)
-      : key = record.$1, args = record.$2, type = MessageType.info;
-  MessageKey.successFrom((String, Map<String, dynamic>) record)
-      : key = record.$1, args = record.$2, type = MessageType.success;
-  MessageKey.warningFrom((String, Map<String, dynamic>) record)
-      : key = record.$1, args = record.$2, type = MessageType.warning;
-  MessageKey.errorFrom((String, Map<String, dynamic>) record)
-      : key = record.$1, args = record.$2, type = MessageType.error;
-  MessageKey.loadingFrom((String, Map<String, dynamic>) record)
-      : key = record.$1, args = record.$2, type = MessageType.loading;
-
-  static const MessageKey genericError = MessageKey._('error.generic', MessageType.error);
-  static const MessageKey genericSuccess = MessageKey._('success.generic', MessageType.success);
-  static const MessageKey networkError = MessageKey._('error.network', MessageType.error);
-  static const MessageKey timeoutError = MessageKey._('error.timeout', MessageType.error);
+  const MessageKey.info(this.label) : type = MessageType.info;
+  const MessageKey.success(this.label) : type = MessageType.success;
+  const MessageKey.warning(this.label) : type = MessageType.warning;
+  const MessageKey.error(this.label) : type = MessageType.error;
+  const MessageKey.loading(this.label) : type = MessageType.loading;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is MessageKey &&
-        other.key == key &&
-        other.type == type &&
-        mapEquals(other.args, args);
-  }
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MessageKey && other.label == label && other.type == type;
 
   @override
-  int get hashCode => Object.hash(key, type, args);
+  int get hashCode => Object.hash(label, type);
 
   @override
-  String toString() => 'MessageKey(key: $key, type: $type, args: $args)';
+  String toString() => 'MessageKey(label: $label, type: $type)';
 }
 
 // Mappers
@@ -147,10 +126,6 @@ abstract class IStateMessageMapper<S extends IUiFlowState> {
 }
 
 // Services
-abstract class ILocalizationService {
-  String translate(String key, {Map<String, dynamic>? args});
-}
-
 @immutable
 class FeedbackMessage {
   final String message;

@@ -46,28 +46,15 @@ class AppExceptionKeyMapper implements IExceptionKeyMapper {
   @override
   MessageKey? map(Object exception) {
     return switch (exception) {
-      NetworkException() => MessageKey.networkError,
-      AuthException() => const MessageKey.error('error.auth'),
+      NetworkException() => const MessageKey.error(L10nKeys.errorNetwork),
+      AuthException() => const MessageKey.error(L10nKeys.errorAuth),
       _ => null, // Falls back to generic
     };
   }
 }
 
-// Localization service (REQUIRED)
-class AppLocalizationService implements ILocalizationService {
-  @override
-  String translate(String key, {Map<String, dynamic>? args}) {
-    return switch (key) {
-      'async_ui.error.generic' => 'Something went wrong',
-      'async_ui.error.network' => 'Network error',
-      'tracker.created' => 'Tracker "${args?['name']}" created',
-      _ => key,
-    };
-  }
-  
-  @override
-  bool hasKey(String key) => true;
-}
+// Label resolver (REQUIRED): the generated L10nKeyResolver from l10n_generator
+// implements LabelResolver; register it with the current AppLocalizations.
 
 // Your toast/feedback service (REQUIRED)
 class AppFeedbackService implements IFeedbackService {
@@ -185,7 +172,7 @@ graph TD
 - ✅ Default implementations for mappers and orchestration
 
 ### You Must Implement (Your UI System)
-- 🔧 `ILocalizationService` - your l10n system
+- 🔧 `LabelResolver` - the generated `L10nKeyResolver` (package `l10n_generator`)
 - 🔧 `IExceptionKeyMapper` - global exception → message key mapping  
 - 🔧 `IFeedbackService` - your toast/snackbar system
 - 🔧 `ILoadingService` - your loading overlay system
