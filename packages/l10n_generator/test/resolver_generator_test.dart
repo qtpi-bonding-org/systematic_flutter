@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:l10n_key_resolver/src/arb_parser.dart';
-import 'package:l10n_key_resolver/src/resolver_generator.dart';
+import 'package:l10n_generator/src/arb_parser.dart';
+import 'package:l10n_generator/src/resolver_generator.dart';
 
 void main() {
   group('ResolverGenerator', () {

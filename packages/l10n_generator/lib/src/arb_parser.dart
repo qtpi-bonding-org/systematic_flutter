@@ -1,4 +1,4 @@
-import 'key_converter.dart';
+import 'package:l10n_key_resolver/l10n_key_resolver.dart';
 
 /// Represents a parsed ARB entry with its metadata.
 class ArbEntry {

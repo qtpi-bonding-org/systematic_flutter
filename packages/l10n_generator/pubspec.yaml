@@ -1,0 +1,19 @@
+name: l10n_generator
+description: build_runner generator that turns ARB files into typed L10nKeys and an L10nKeyResolver for l10n_key_resolver's Label types.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  build: ">=2.4.0 <5.0.0"
+  path: ^1.8.0
+  l10n_key_resolver:
+    path: ../l10n
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  build_test: ^2.2.0
+  test: ^1.24.0
+  lints: ^3.0.0
