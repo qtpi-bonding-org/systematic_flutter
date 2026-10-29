@@ -9,6 +9,7 @@ The shared Flutter foundation for the apps (Episutra, Quanitya, Pocketcoder, Ach
 | `packages/l10n` | `l10n_key_resolver` | build_runner generator: ARB keys to a resolver and typed key constants |
 | `packages/cubit_ui_flow` | `cubit_ui_flow` | cubit state to UI feedback: `MessageKey`, listener, exception mapping |
 | `packages/ui` | `systematic_ui` | design tokens (`AppSizes`, `VSpace`, `HSpace`, `AppPadding`, `UiScaler`), `ThemeService`, layout widgets |
+| `packages/color_palette` | `flutter_color_palette` | color system with generated themes and colorblind simulation |
 | `packages/error_privserver` | `flutter_error_privserver` | privacy-preserving error capture for cubits; stores keys only, never user text |
 | `packages/nav_snapshot` | `nav_snapshot` | startup routing state: snapshots of slow inputs, re-decided routes |
 
@@ -29,6 +30,7 @@ cubit_ui_flow:
 3. `ui`: may use `l10n`.
 3. `error_privserver`: uses `cubit_ui_flow`.
 4. `nav_snapshot`: independent.
+5. `color_palette`: independent.
 
 ## History
 
@@ -40,6 +42,7 @@ Each package was imported with `git subtree add` (no squash), so the original co
 | `cubit_ui_flow` | `flutter_cubit_ui_flow` | `43deb62` |
 | `ui` | `systematic_ui` | `ad5088b` |
 | `nav_snapshot` | `flutter_nav_snapshot` | `704a9dd` |
+| `color_palette` | `flutter_color_palette` | `e8755f5` |
 | `error_privserver` | `flutter_error_privserver` | `d9e9355` (local patch commit on top of `be38ae6`) |
 
 The old repos are not changed by this consolidation. See `docs/plans/` for the plan.
