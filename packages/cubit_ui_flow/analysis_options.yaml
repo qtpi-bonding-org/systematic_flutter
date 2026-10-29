@@ -1,0 +1,26 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_empty_else
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_final_fields
+    - use_key_in_widget_constructors
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+    # cubit_ui_flow_lints is a separate pub package (Prerequisite A split);
+    # its analyzer/custom_lint_builder deps are unrelated to this package's
+    # resolution and it has its own analysis_options.yaml.
+    - cubit_ui_flow_lints/**
