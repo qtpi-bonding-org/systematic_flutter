@@ -37,7 +37,8 @@ class ResolverGenerator {
       ..writeln('/// Resolves [Label]s to text for the locale of the wrapped')
       ..writeln('/// [$localizationsClass].')
       ..writeln('///')
-      ..writeln('/// An unknown key calls [onUnknownKey]; debug builds and tests')
+      ..writeln(
+          '/// An unknown key calls [onUnknownKey]; debug builds and tests')
       ..writeln('/// then throw, release builds show the key text.')
       ..writeln('class L10nKeyResolver implements LabelResolver {')
       ..writeln('  final $localizationsClass _l10n;')
@@ -48,7 +49,8 @@ class ResolverGenerator {
       ..writeln('  @override')
       ..writeln('  String resolve(Label label) => switch (label) {')
       ..writeln('        DataText(:final value) => value,')
-      ..writeln('        L10nKey(:final key, :final args) => _byKey(key, args),')
+      ..writeln(
+          '        L10nKey(:final key, :final args) => _byKey(key, args),')
       ..writeln('      };')
       ..writeln()
       ..writeln('  String _byKey(String key, Map<String, Object> args) {')
@@ -106,7 +108,8 @@ class ResolverGenerator {
     b
       ..writeln('/// The only source of [L10nKey]s.')
       ..writeln('///')
-      ..writeln('/// Plain keys are const; parameterized keys are methods, so they')
+      ..writeln(
+          '/// Plain keys are const; parameterized keys are methods, so they')
       ..writeln('/// cannot be used in a const context.')
       ..writeln('abstract final class L10nKeys {');
     for (final e in entries) {

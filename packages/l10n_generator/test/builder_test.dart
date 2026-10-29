@@ -49,7 +49,8 @@ void main() {
       'a|lib/l10n/app_en.arb': en,
       'a|lib/l10n/app_es.arb': arb({'hello': 'Hola'}),
     }, expectOutput: false);
-    expect(severe(logs).join(), allOf(contains('app_es.arb'), contains('pair')));
+    expect(
+        severe(logs).join(), allOf(contains('app_es.arb'), contains('pair')));
   });
 
   test('a locale with a placeholder the template lacks fails', () async {
@@ -77,7 +78,9 @@ void main() {
     final logs = await run({
       'a|lib/l10n/app_en.arb': en,
       'a|lib/l10n/app_es.arb': arb({'hello': 'Hola'}),
-    }, options: {'strict_locales': false}, expectOutput: true);
+    }, options: {
+      'strict_locales': false
+    }, expectOutput: true);
     expect(severe(logs), isEmpty);
   });
 
@@ -91,7 +94,9 @@ void main() {
     final custom = await run({
       'a|lib/l10n/app_en.arb': en,
       'a|lib/l10n/other_es.arb': arb({'hello': 'Hola'}),
-    }, options: {'locale_pattern': 'other_*.arb'}, expectOutput: false);
+    }, options: {
+      'locale_pattern': 'other_*.arb'
+    }, expectOutput: false);
     expect(severe(custom).join(), contains('other_es.arb'));
   });
 
@@ -114,10 +119,12 @@ Future<String> _generate(Map<String, String> files) async {
   await testBuilder(
     l10nKeyResolverBuilder(BuilderOptions.empty),
     files,
-    outputs: {out: predicate<List<int>>((b) {
-      result = utf8.decode(b);
-      return true;
-    })},
+    outputs: {
+      out: predicate<List<int>>((b) {
+        result = utf8.decode(b);
+        return true;
+      })
+    },
   );
   return result!;
 }

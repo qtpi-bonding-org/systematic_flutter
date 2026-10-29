@@ -201,9 +201,8 @@ class ArbParser {
       final type = t?.group(0) ?? '';
       c.i = t?.end ?? c.i;
       _skipSpace(s, c);
-      final isBranching = type == 'plural' ||
-          type == 'select' ||
-          type == 'selectordinal';
+      final isBranching =
+          type == 'plural' || type == 'select' || type == 'selectordinal';
       if (isBranching && c.i < s.length && s[c.i] == ',') {
         kind = type == 'select' ? ArbArgKind.select : ArbArgKind.plural;
         c.i++;

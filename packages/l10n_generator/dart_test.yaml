@@ -1,0 +1,4 @@
+tags:
+  compile:
+    # Runs flutter gen-l10n and dart analyze against real ARBs; slow.
+    timeout: 5x

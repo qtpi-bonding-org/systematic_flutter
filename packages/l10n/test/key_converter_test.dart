@@ -9,7 +9,8 @@ void main() {
       });
 
       test('converts multi-level dot notation', () {
-        expect(KeyConverter.dotToCamelCase('error.auth.failed'), 'errorAuthFailed');
+        expect(KeyConverter.dotToCamelCase('error.auth.failed'),
+            'errorAuthFailed');
       });
 
       test('converts deep dot notation', () {
@@ -34,7 +35,8 @@ void main() {
       });
 
       test('converts multi-word camelCase', () {
-        expect(KeyConverter.camelCaseToDot('errorAuthFailed'), 'error.auth.failed');
+        expect(KeyConverter.camelCaseToDot('errorAuthFailed'),
+            'error.auth.failed');
       });
 
       test('converts long camelCase', () {
@@ -67,7 +69,8 @@ void main() {
         expect(KeyConverter.isValidDotKey('error.'), false);
         expect(KeyConverter.isValidDotKey('error..timeout'), false);
         expect(KeyConverter.isValidDotKey('Error.Timeout'), false);
-        expect(KeyConverter.isValidDotKey('error_timeout'), false); // no underscores
+        expect(KeyConverter.isValidDotKey('error_timeout'),
+            false); // no underscores
       });
     });
 

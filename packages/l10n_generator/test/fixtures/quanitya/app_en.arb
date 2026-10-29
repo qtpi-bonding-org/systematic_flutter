@@ -1,0 +1,1152 @@
+{
+  "@@locale": "en",
+  "onboardingAcceptTerms": "Accept terms",
+  "onboardingTitle": "QUANITYA",
+  "successGeneric": "Success",
+  "errorGeneric": "An error occurred",
+  "appOperatingModeSwitched": "Operating mode updated",
+  "appOperatingConnectionSuccess": "Connection successful",
+  "appOperatingConnectionFailed": "Connection failed",
+  "appOperatingConfigured": "Configuration saved",
+  "validationRequired": "This field is required",
+  "actionSave": "Save",
+  "actionCancel": "Cancel",
+  "actionDelete": "Delete",
+  "actionEdit": "Edit",
+  "actionAdd": "Add",
+  "templateGenerationValidationFailed": "Template request invalid",
+  "@templateGenerationValidationFailed": {
+    "description": "Error message when template generation request validation fails"
+  },
+  "templateGenerationAiServiceFailed": "Template generation failed",
+  "@templateGenerationAiServiceFailed": {
+    "description": "Error message when AI service fails during template generation"
+  },
+  "templateGenerationSchemaValidationFailed": "Template generation failed",
+  "@templateGenerationSchemaValidationFailed": {
+    "description": "Error message when generated template fails schema validation"
+  },
+  "templateGenerationPerformanceFailed": "Template generation timed out",
+  "@templateGenerationPerformanceFailed": {
+    "description": "Error message when template generation exceeds performance limits"
+  },
+  "analysisSaved": "Analysis saved",
+  "@analysisSaved": {
+    "description": "Success message when analysis analysis is saved"
+  },
+  "analysisStepAdded": "Step added",
+  "@analysisStepAdded": {
+    "description": "Success message when step is added to analysis"
+  },
+  "analysisStepRemoved": "Step removed",
+  "@analysisStepRemoved": {
+    "description": "Success message when step is removed from analysis"
+  },
+  "analysisStepUpdated": "Step updated",
+  "@analysisStepUpdated": {
+    "description": "Success message when step is updated"
+  },
+  "templateGenerationProcessingFailed": "Template processing failed",
+  "@templateGenerationProcessingFailed": {
+    "description": "Error message when template post-processing fails"
+  },
+  "templateParsingMissingField": "Generated template is missing required fields.",
+  "templateParsingInvalidValue": "Generated template has invalid data.",
+  "templateParsingInvalidCombination": "Generated template has incompatible field types.",
+  "templateParsingColorPaletteError": "Color scheme error",
+  "templateParsingColorMappingError": "Color assignment error",
+  "templateParsingGenericError": "Template processing error",
+  "templateRenderingContextFailed": "Template rendering failed",
+  "templateRenderingColorResolutionFailed": "Color resolution failed",
+  "templateRenderingValidationFailed": "Template validation failed",
+  "templateRenderingWidgetCreationFailed": "Failed to create interface elements.",
+  "templateRenderingAccessibilityFailed": "Accessibility check failed",
+  "templateRenderingLayoutFailed": "Template layout error",
+  "templateAccessibilityContrastRatioFailed": "Insufficient color contrast for accessibility.",
+  "templateAccessibilityColorBlindnessIssue": "Some colors may not be distinguishable for color vision differences.",
+  "templateAccessibilityFocusIndicatorFailed": "Some elements in your template need better focus indicators for keyboard navigation.",
+  "templateAccessibilityTouchTargetSizeFailed": "Some interactive elements in your template are too small for easy touch interaction.",
+  "templateAccessibilityTextReadabilityFailed": "Some text may be hard to read.",
+  "templateAccessibilityGenericIssue": "Template has accessibility issues",
+  "logHistoryTitle": "Log History",
+  "logEntryNoData": "No data",
+  "logEntryNoEntries": "No entries yet",
+  "templateInfoTitle": "Info",
+  "templateFieldsCount": "{count} Fields",
+  "@templateFieldsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "templateCreatedDate": "Created: {date}",
+  "@templateCreatedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recentEntriesTitle": "Recent Entries",
+  "viewAll": "View All",
+  "scheduleTitle": "Schedule",
+  "manage": "Manage",
+  "addSchedule": "Add Schedule",
+  "active": "Active",
+  "inactive": "Inactive",
+  "settingsTitle": "Settings",
+  "settingsAccountSection": "Account",
+  "settingsAccountId": "Account ID",
+  "copiedToClipboard": "Copied to clipboard",
+  "settingsDevicesSection": "Devices",
+  "settingsDataSection": "Data Import / Export",
+  "validateRecoveryKey": "Validate Recovery Key",
+  "actionValidate": "Validate",
+  "settingsTutorialSection": "Tutorial",
+  "recoveryEntitlementOffline": "Could not load entitlements. Sync will be available when online.",
+  "confirm": "Confirm",
+  "import_": "Import",
+  "exportData": "Export Data",
+  "importData": "Import Data",
+  "settingsExportSuccess": "Data exported",
+  "settingsImportSuccess": "Data imported",
+  "importDataConfirmTitle": "Import Data?",
+  "importDataConfirmMessage": "This will replace all existing data with the imported file. This cannot be undone.",
+  "importDataConfirmButton": "Import & Replace",
+  "selectTablesTitle": "Select Tables",
+  "selectTablesExportButton": "Export Selected",
+  "selectTablesImportButton": "Import Selected",
+  "importRecoveryKey": "Import Recovery Key",
+  "importRecoveryKeyTitle": "Import Recovery Key",
+  "importRecoveryKeyMessage": "Paste your recovery key below to verify it.",
+  "importRecoveryKeyHint": "Paste recovery key here",
+  "settingsRecoveryKeyVerified": "Recovery key verified",
+  "settingsRecoveryAccountRecovered": "Account recovered",
+  "settingsDevicesRevoked": "Device revoked",
+  "accountRecoveryTitle": "Recover Account",
+  "accountRecoveryDescription": "Enter your recovery key to restore access to your account. This will register this device with your existing account.",
+  "recoveryKeyLabel": "Recovery Key",
+  "recoveryKeyRequired": "Recovery key is required",
+  "recoveryKeyInvalidFormat": "Invalid recovery key format",
+  "recoveryKeysExistWarning": "Keys already exist on this device.",
+  "recoveryConfirmEraseKeys": "I understand this will erase my existing keys and replace them with the recovered account.",
+  "deviceLabelLabel": "Device Name",
+  "recoverAccount": "Recover Account",
+  "recovering": "Recovering...",
+  "logEntryViewLabel": "View log entry",
+  "logEntryAction": "Log Entry",
+  "createTemplateTitle": "Template Designer",
+  "editTemplateTitle": "Edit Template",
+  "previewAction": "Preview",
+  "templateRequiresNameAndFields": "Add a name and at least one field",
+  "templateRequiresName": "Add a template name",
+  "templateRequiresFields": "Add at least one field",
+  "discardAction": "Discard",
+  "templateNameLabel": "Template Name",
+  "templateNameHint": "e.g., Daily Mood Check-in",
+  "templateDescriptionLabel": "Description (Optional)",
+  "templateDescriptionHint": "Brief description of what this template tracks",
+  "colorThemeSection": "Color Theme",
+  "typographySection": "Typography",
+  "fontTitleLabel": "Title Font",
+  "fontBodyLabel": "Body Font",
+  "pickColorTitle": "Pick Color",
+  "pickIconTitle": "Pick Icon",
+  "searchIconsHint": "Search icons...",
+  "noResultsFound": "No results found",
+  "browseTemplatesTitle": "Browse Templates",
+  "importAction": "Import",
+  "selectAction": "Select",
+  "templateFieldsSection": "Template Fields",
+  "fieldsCount": "{count} Fields",
+  "@fieldsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noFieldsTitle": "No fields yet",
+  "noFieldsMessage": "Add fields below to start building.",
+  "fieldNumber": "Number",
+  "fieldText": "Text",
+  "fieldToggle": "Toggle",
+  "fieldDate": "Date",
+  "fieldChoice": "Choice",
+  "fieldFloat": "Decimal",
+  "fieldLabelLabel": "Field Label",
+  "groupFieldsAction": "Group {count} fields",
+  "@groupFieldsAction": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "groupFieldsConfirm": "Create Group",
+  "groupLabelTitle": "Group Name",
+  "groupLabelHint": "e.g., Vitals, Mood, Exercise",
+  "ungroupAction": "Ungroup",
+  "allowMultipleLabel": "Multiple",
+  "groupModeTooltip": "Group fields",
+  "groupModeHint": "Tap fields to select, then group",
+  "actionDone": "Done",
+  "fieldLabelHint": "e.g., Mood Level, Energy, Notes",
+  "widgetTypeLabel": "Input Style",
+  "widgetSlider": "Slider",
+  "widgetStepper": "Stepper (+/-)",
+  "widgetTextField": "Text Field",
+  "widgetTextArea": "Text Area",
+  "widgetDropdown": "Dropdown",
+  "widgetRadio": "Radio Buttons",
+  "widgetChips": "Chips",
+  "widgetToggleSwitch": "Toggle Switch",
+  "widgetCheckbox": "Checkbox",
+  "widgetDatePicker": "Date Picker",
+  "widgetTimePicker": "Time Picker",
+  "widgetDatetimePicker": "Date & Time Picker",
+  "widgetSearchField": "Search Field",
+  "widgetLocationPicker": "Location Picker",
+  "widgetTimer": "Timer",
+  "deleteFieldTitle": "Delete Field",
+  "deleteFieldMessage": "Are you sure you want to delete \"{label}\"?",
+  "@deleteFieldMessage": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldOptionsLabel": "Options",
+  "addOptionHint": "Add an option",
+  "fieldUnitLabel": "Unit",
+  "dimensionMass": "Mass",
+  "dimensionLength": "Length",
+  "dimensionVolume": "Volume",
+  "dimensionTime": "Time",
+  "dimensionTemperature": "Temperature",
+  "dimensionSpeed": "Speed",
+  "dimensionEnergy": "Energy",
+  "dimensionFrequency": "Frequency",
+  "quickAccessIconLabel": "Quick Access Icon",
+  "quickAccessIconDescription": "This icon appears on the home page for quick access.",
+  "templateNamePlaceholder": "Template Name",
+  "homePastDescription": "History & Logs",
+  "homePresentDescription": "Today's Trackers",
+  "homeFutureDescription": "Planned Tasks",
+  "modeIndicatorConnected": "{mode}, connected",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, disconnected",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "tooltipEditTemplate": "Edit template",
+  "tooltipCustomLog": "Custom log",
+  "tooltipQuickEntry": "Quick entry",
+  "tooltipQuickEntryUnavailable": "No default values set — quick log unavailable",
+  "reminderLabel": "Reminder",
+  "aestheticsSection": "Aesthetics",
+  "optionalLabel": "Optional",
+  "addFieldTitle": "Add Field",
+  "scheduleOff": "Off",
+  "scheduleDaily": "Daily",
+  "scheduleWeekly": "Weekly",
+  "scheduleTimeLabel": "Time:",
+  "aboutTitle": "Quanitya",
+  "aboutSubtitle": "Quanitya is a portmanteau of {quaWord} (Measurement) and {anityaWord} (Impermanence).",
+  "@aboutSubtitle": {
+    "placeholders": {
+      "quaWord": {
+        "type": "String"
+      },
+      "anityaWord": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutPronunciation": "/kwɑˈnɪtjə/ (Kwah-NIT-yuh)",
+  "aboutQuaTitle": "Qua",
+  "aboutQuaSubtitle": "QUA(NTI/LI)TATIVE",
+  "aboutQuaDescription": "Measurements of the self.",
+  "aboutAnityaTitle": "Anitya",
+  "aboutAnityaSubtitle": "IMPERMANENCE",
+  "aboutAnityaDescription": "The self is changing.",
+  "aboutPersonalTitle": "Personal",
+  "aboutPersonalDescription": "Your data, your device. No cloud required.",
+  "aboutPrivacyTitle": "Private",
+  "aboutPrivacyDescription": "Encrypted before it leaves this device.",
+  "aboutAnonymousTitle": "Anonymous",
+  "aboutAnonymousDescription": "No email, no name. Just a cryptographic key.",
+  "aboutTransparentTitle": "Transparent",
+  "aboutTransparentDescription": "Source code is public for anyone to audit.",
+  "getStarted": "Get Started",
+  "recoveryKeyTitle": "Save Your Recovery Key",
+  "recoveryKeyDescription": "This key is the only way to recover your account. Save it somewhere safe — there is no other recovery method.",
+  "exportToICloud": "Save to iCloud Keychain",
+  "exportToFile": "Save as File",
+  "copyToClipboard": "Copy to Clipboard",
+  "continueAction": "Continue",
+  "onboardingAccountCreated": "Account created",
+  "onboardingExportedICloud": "Saved to iCloud Keychain",
+  "onboardingExportedFile": "Recovery key exported",
+  "onboardingCopiedClipboard": "Copied to clipboard",
+  "onboardingStoredBiometrics": "Stored on device with biometrics.",
+  "backupMethodsTitle": "Backup Methods",
+  "backupICloudSubtitle": "Syncs across your Apple devices.",
+  "backupFileSubtitle": "Save to Files or other apps.",
+  "backupClipboardSubtitle": "Paste into a password manager.",
+  "backupRequiredMessage": "At least one backup method is required.",
+  "backupCompleteMessage": "{count, plural, =1{1 backup method completed} other{{count} backup methods completed}}",
+  "@backupCompleteMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createAccount": "Create Account",
+  "generatingKeysTitle": "Setting up encryption",
+  "generatingKeysDescription": "Creating your unique encryption keys to keep your data private and secure.",
+  "generatingKeysHint": "This may take a few seconds.",
+  "errorTimeout": "Operation timed out",
+  "errorAuthFailed": "Authentication failed",
+  "errorAuthUnauthorized": "You don't have permission to perform this action.",
+  "errorStorageFailed": "Failed to save data",
+  "errorDatabaseFailed": "Database error",
+  "errorSyncFailed": "Sync failed",
+  "errorEncryptionFailed": "Encryption error",
+  "errorKeysFailed": "Key management error",
+  "errorKeysAlreadyExist": "This device already has an account.",
+  "errorPairingDeviceAlreadySetup": "This device is already set up. Cannot pair again.",
+  "errorPairingFailed": "Pairing failed",
+  "errorFormatInvalid": "Invalid data format.",
+  "errorArgumentInvalid": "Invalid input provided.",
+  "errorStateInvalid": "Invalid operation state.",
+  "errorOffline": "You're offline. Some features require an internet connection.",
+  "templateSaved": "Template saved",
+  "templateFieldAdded": "Field added",
+  "templateFieldRemoved": "Field removed",
+  "templateDiscarded": "Changes discarded",
+  "templateDeleted": "Template deleted",
+  "templatePrivateLabel": "Hidden",
+  "templateArchived": "Template archived",
+  "templateHidden": "Template hidden",
+  "templateUnhidden": "Template shown",
+  "templateIntegrationCombinationGenerationFailed": "Could not create this template.",
+  "templateIntegrationSchemaConversionFailed": "Template conversion failed",
+  "templateIntegrationScriptOrchestrationFailed": "Something went wrong",
+  "templateIntegrationWidgetGenerationFailed": "Could not build the form.",
+  "logEntrySaved": "Entry logged",
+  "scheduleCreated": "Schedule created",
+  "schedulePaused": "Schedule paused",
+  "scheduleResumed": "Schedule resumed",
+  "scheduleDeleted": "Schedule deleted",
+  "errorLogEntryValidation": "Entry validation failed: {errors}",
+  "@errorLogEntryValidation": {
+    "placeholders": {
+      "errors": {
+        "type": "String"
+      }
+    }
+  },
+  "errorTemplateNotFound": "Template not found",
+  "errorTemplateSchemaChange": "Cannot change field types on existing template.",
+  "confirmDeleteTemplate": "Are you sure you want to delete this template? This cannot be undone.",
+  "confirmDeleteEntry": "Are you sure you want to delete this entry? This cannot be undone.",
+  "entryDeleted": "Entry deleted",
+  "entryUpdated": "Entry updated",
+  "scheduleUpdated": "Schedule updated",
+  "information": "Information",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "sourceCode": "Source Code",
+  "sourceCodeSubtitle": "View on GitHub",
+  "visualizationTitle": "Visualization",
+  "visualizationDataTitle": "Data Visualization",
+  "visualizationLast30Days": "{templateName} - Last 30 days",
+  "@visualizationLast30Days": {
+    "placeholders": {
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "visualizationTrend": "Trend",
+  "visualizationCompletion": "Completion",
+  "visualizationCategories": "Categories",
+  "visualizationNoData": "No data",
+  "visualizationEntries": "Entries",
+  "visualizationConsistency": "Consistency",
+  "devicesTitle": "Devices",
+  "noDevices": "No devices registered",
+  "thisDevice": "This Device",
+  "revoked": "Revoked",
+  "revokedDevices": "Revoked Devices",
+  "lastActive": "Last active",
+  "revoke": "Revoke",
+  "revokeDevice": "Revoke Device",
+  "revokeDeviceConfirmation": "Are you sure you want to revoke access for \"{deviceName}\"? This device will no longer be able to sync data.",
+  "@revokeDeviceConfirmation": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "revokeRequiresRecoveryKey": "Paste your recovery key to authorize this action.",
+  "recoveryKeyHint": "Paste recovery key here...",
+  "createPlatformDeviceKey": "Create {platform} Device Key",
+  "@createPlatformDeviceKey": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "webhooksCreateTemplateFirst": "Create a template first to add webhooks",
+  "devToolsTitle": "Dev Tools",
+  "devSeedFakeData": "Seed Fake Data",
+  "devSeed": "Seed",
+  "devSeeded": "Fake data seeded",
+  "devClearAllData": "Clear All Data",
+  "devClear": "Clear",
+  "devCleared": "All data cleared",
+  "devWipeCryptoKeys": "Wipe Crypto Keys",
+  "devWipe": "Wipe",
+  "devWipeKeysTitle": "Wipe Crypto Keys",
+  "devWipeKeysMessage": "This will delete all encryption keys. You will need to go through onboarding again. Continue?",
+  "devWipeKeysConfirm": "Wipe Keys",
+  "devConnectToCloud": "Connect to Cloud",
+  "devConnect": "Connect",
+  "devCreateAccount": "Create Account",
+  "devCreate": "Create",
+  "devAccountCreated": "Account created",
+  "devAccountCreationFailed": "Account creation failed",
+  "devRegisterAccount": "Register Account",
+  "devRegister": "Register",
+  "devAccountRegistered": "Account registered",
+  "devAccountRegistrationFailed": "Account registration failed",
+  "addToExistingAccount": "Add to Existing Account",
+  "connectDevice": "Connect Device",
+  "connectDeviceTitle": "Connect This Device",
+  "connectDeviceDescription": "Choose how to connect this device to your existing account.",
+  "connectPairWithDeviceTitle": "Pair with Another Device",
+  "connectPairWithDeviceDescription": "If you have another device with your account, scan a QR code to add this device.",
+  "connectUseRecoveryKeyTitle": "Use Recovery Key",
+  "connectUseRecoveryKeyDescription": "If you've lost access to all devices, enter your recovery key to restore your account.",
+  "addDevice": "Add Device",
+  "pairingDeviceNameLabel": "This device will be registered as:",
+  "pairingGenerateQr": "Generate QR Code",
+  "pairingScanWithOtherDevice": "Scan this QR code with your other device.",
+  "pairingWaitingForScan": "Waiting for scan...",
+  "pairingCompleting": "Completing pairing...",
+  "pairingScanInstructions": "Point your camera at the QR code on the new device.",
+  "pairingRegistering": "Adding device...",
+  "pairingConfirmTitle": "Add Device?",
+  "pairingConfirmMessage": "Add \"{deviceName}\" to your account? This device will have access to all your data.",
+  "@pairingConfirmMessage": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "pairingConfirmAdd": "Add Device",
+  "pairingQrGenerated": "QR code ready",
+  "pairingCompleted": "Device paired",
+  "pairingDeviceAdded": "Device added",
+  "copyPairingData": "Copy Pairing Data",
+  "enterPairingData": "Enter Pairing Data",
+  "pairingDataHint": "Paste pairing data here",
+  "webhookCreated": "Webhook created",
+  "webhookUpdated": "Webhook updated",
+  "webhookDeleted": "Webhook deleted",
+  "webhookTriggered": "Webhook triggered",
+  "apiKeyCreated": "API key created",
+  "apiKeyUpdated": "API key updated",
+  "apiKeyDeleted": "API key deleted",
+  "webhooksTitle": "Webhooks",
+  "webhooksDescription": "This URL is called when an entry is logged. URLs are stored unencrypted.",
+  "addWebhook": "Add Webhook",
+  "editWebhook": "Edit Webhook",
+  "webhookName": "Name",
+  "webhookNameHint": "e.g., Daily Log Sync",
+  "webhookUrl": "URL",
+  "webhookUrlHint": "https://",
+  "webhookUrlRequired": "URL is required",
+  "webhookUrlHttpsRequired": "URL must use HTTPS",
+  "webhookUrlInvalid": "Invalid URL format",
+  "webhookTemplate": "Template",
+  "webhookSelectTemplate": "Select template",
+  "webhookApiKey": "Authentication",
+  "webhookNoAuth": "No authentication",
+  "webhookSelectApiKey": "Select an API key",
+  "webhookNoApiKeys": "No API keys available. Add one in the API Keys section above.",
+  "webhookEnabled": "Enabled",
+  "webhookLastTriggered": "Last triggered",
+  "webhookNeverTriggered": "Never",
+  "webhookRetry": "Retry",
+  "apiKeysTitle": "API Keys",
+  "apiKeysDescription": "Bring your own keys for webhooks. Keys are stored securely on-device.",
+  "addApiKey": "Add API Key",
+  "editApiKey": "Edit API Key",
+  "apiKeyName": "Name",
+  "apiKeyNameHint": "e.g., My Custom API",
+  "apiKeyType": "Type",
+  "apiKeyTypeBearer": "Bearer Token",
+  "apiKeyTypeHeader": "API Key Header",
+  "apiKeyHeaderName": "Header Name",
+  "apiKeyHeaderNameHint": "e.g., X-API-Key",
+  "apiKeyValue": "Key Value",
+  "apiKeyValueHint": "Enter your API key",
+  "apiKeyConfigured": "Configured",
+  "deleteWebhookTitle": "Delete Webhook",
+  "deleteWebhookMessage": "Are you sure you want to delete this webhook?",
+  "deleteApiKeyTitle": "Delete API Key",
+  "deleteApiKeyMessage": "Are you sure you want to delete this API key? Webhooks using it will lose authentication.",
+  "fieldIsListLabel": "Allow multiple values",
+  "fieldIsListHint": "Records multiple entries per field, like workout sets or ingredients.",
+  "fieldOptionalLabel": "Optional",
+  "fieldRangeLabel": "Range (optional)",
+  "fieldRangeMinHint": "Min",
+  "fieldRangeMaxHint": "Max",
+  "fieldRangeRequired": "Required for this widget",
+  "fieldDefaultValueLabel": "Default Value (optional)",
+  "fieldDefaultValueLabelShort": "Default",
+  "validationMustBeWholeNumber": "Must be a whole number",
+  "validationMustBeNumber": "Must be a number",
+  "fieldDefaultValueHint": "Quick log value",
+  "fieldDefaultValueQuickLogHint": "Set default value to enable quick log",
+  "fieldDefaultValueAddOptionsFirst": "Add options first to set a default.",
+  "booleanTrue": "Yes",
+  "booleanFalse": "No",
+  "actionClear": "Clear",
+  "actionClose": "Close",
+  "actionToggleVisibility": "Toggle visibility",
+  "aiPromptSend": "Send",
+  "fieldBuilderNoUiElement": "No UI element defined",
+  "fieldBuilderNoOptions": "No options available",
+  "aiSuggestionsApplied": "AI suggestion applied",
+  "notificationMarkedAsReceived": "Notification marked as received",
+  "notificationDismissed": "Notification dismissed",
+  "notificationAllMarkedAsReceived": "All notifications marked as received.",
+  "feedbackSubmitted": "Feedback submitted",
+  "errorFeedbackTooShort": "Feedback must be at least 10 characters.",
+  "errorFeedbackTooLong": "Feedback must be less than 5000 characters.",
+  "errorFeedbackInvalidType": "Invalid feedback type",
+  "errorPublicSubmissionFailed": "Submission failed",
+  "errorChallengeRequestFailed": "Failed to get challenge from server.",
+  "errorProofOfWorkFailed": "Verification failed",
+  "errorSignatureFailed": "Failed to sign submission",
+  "errorRateLimitExceeded": "Too many submissions",
+  "cameraPermissionDeniedTitle": "Camera Access Required",
+  "cameraPermissionDeniedMessage": "Camera access is needed to scan QR codes for device pairing.",
+  "actionOpenSettings": "Open Settings",
+  "pairingDataManualInstructions": "If you can't scan the QR code, tap 'Copy Pairing Data' on your other device and paste the code here.",
+  "analyticsInboxSendAllSuccess": "All analytics sent",
+  "analyticsInboxClearSentSuccess": "Sent items cleared",
+  "analyticsInboxClearAllSuccess": "All items cleared",
+  "analyticsInboxToggleAutoSendSuccess": "Auto-send updated",
+  "analyticsInboxSendAllError": "Failed to send analytics",
+  "analyticsInboxOperationError": "Analytics inbox operation failed",
+  "appOperatingConnectionTested": "Connection tested",
+  "appOperatingModeChangedExternally": "Operating mode was changed externally.",
+  "templateInfoUpdated": "Template info updated",
+  "templateFieldUpdated": "Field updated",
+  "templateFieldsReordered": "Fields reordered",
+  "templateAestheticsUpdated": "Appearance updated",
+  "templateScheduleUpdated": "Schedule updated",
+  "templateGenerated": "Template generated",
+  "templateFormCleared": "Form cleared",
+  "templateSharingImported": "Template imported",
+  "templateSharingExported": "Template exported",
+  "entrySubmitted": "Entry submitted",
+  "timelineFiltered": "Timeline filtered",
+  "timelineSorted": "Timeline sorted",
+  "timelineHiddenToggled": "Hidden entries toggled",
+  "feedbackTitle": "Send Feedback",
+  "feedbackTypeFeature": "Feature",
+  "feedbackTypeBug": "Bug",
+  "feedbackTypeGeneral": "General",
+  "feedbackHint": "What's on your mind",
+  "feedbackPrivacyNotice": "Feedback is anonymous and helps improve Quanitya.",
+  "feedbackSubmitButton": "Submit Feedback",
+  "errorPageTitle": "Error",
+  "errorPageNotFound": "Page not found: {location}",
+  "@errorPageNotFound": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAll": "Mark All",
+  "notificationsEmpty": "No notifications",
+  "notificationsCaughtUp": "You're all caught up",
+  "sortByHeader": "Sort By",
+  "sortByDate": "Date",
+  "sortByTemplate": "Template",
+  "sortOldestFirst": "Oldest First",
+  "sortNewestFirst": "Newest First",
+  "timeRangeHeader": "Time Range",
+  "templateFilterHeader": "Template",
+  "allTemplates": "All Templates",
+  "tooltipSortAndTime": "Sort & Time",
+  "tooltipFilterByTemplate": "Filter by Template",
+  "tooltipNotifications": "Notifications",
+  "tooltipAnalyticsOutbox": "Outbox",
+  "tooltipHidePrivate": "Hide hidden entries",
+  "tooltipShowPrivate": "Show hidden entries",
+  "purchaseTitle": "Purchases",
+  "purchaseAvailableProducts": "Available Products",
+  "purchaseSectionSubscriptions": "Plans",
+  "purchaseSectionConsumables": "Add-ons",
+  "purchasePeriodMonthly": "Monthly",
+  "purchasePeriodYearly": "Yearly",
+  "purchaseNoProducts": "No products available",
+  "purchaseSuccessful": "Purchase complete",
+  "purchaseFailed": "Purchase failed",
+  "purchaseCancelled": "Purchase was cancelled",
+  "purchasePending": "Purchase is pending — we'll process it shortly",
+  "purchaseAlreadyOwned": "You already own this item",
+  "entitlementRefreshFailed": "Couldn't refresh — tap to retry",
+  "purchaseLoadFailed": "Could not load products",
+  "actionRetry": "Retry",
+  "errorPurchaseFailed": "Purchase failed. Please try again.",
+  "errorEntitlementFailed": "Account details unavailable — using local mode",
+  "settingsPurchase": "Purchases",
+  "settingsErrorReports": "Error Reports",
+  "settingsAnalyticsInbox": "Analytics Inbox",
+  "settingsSendFeedback": "Send Feedback",
+  "analyticsInboxTitle": "Analytics Inbox",
+  "analyticsInboxPrivacyNotice": "Events include: action name, timestamp, and platform. No personal data or content is ever sent.",
+  "analyticsInboxAutoSend": "Auto-send on startup",
+  "analyticsInboxAutoSendDescription": "Batch-send all events when Quanitya opens.",
+  "analyticsInboxEmpty": "No Pending Events",
+  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use Quanitya.",
+  "analyticsInboxClearAll": "Clear All",
+  "analyticsInboxSendAll": "Send All ({count})",
+  "@analyticsInboxSendAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsInboxClearSentTitle": "Clear Sent Events?",
+  "analyticsInboxClearSentMessage": "{count} events were sent successfully. Would you like to clear them from the inbox?",
+  "@analyticsInboxClearSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsInboxClearSent": "Clear Sent",
+  "analyticsInboxClearAllTitle": "Clear All Events?",
+  "analyticsInboxClearAllMessage": "This will permanently delete all unsent analytics events.",
+  "analysisBuilderTitle": "Analysis Scripter",
+  "analysisBuilderJsTitle": "Analysis Scripter",
+  "analysisBuilderTooltipHidePreview": "Hide Live Preview",
+  "analysisBuilderTooltipShowPreview": "Show Live Preview",
+  "analysisBuilderEmptyTitle": "No analysis loaded",
+  "analysisBuilderEmptyDescription": "Load a script to view its JavaScript code.",
+  "chartNoData": "No data",
+  "templateContainerStyleTitle": "Container Style",
+  "templateContainerStyleDescription": "This controls the shape of field containers.",
+  "templateAccentLabel": "Accent",
+  "templateToneLabel": "Tone",
+  "aiGeneratorTitle": "AI Template Designer",
+  "aiGeneratorHint": "Describe what you want to track",
+  "aiGenerationFailed": "Template generation failed. Please try again.",
+  "aiAddApiKeyTitle": "Add OpenRouter API Key",
+  "aiAddApiKeyDescription": "An OpenRouter API key is required for AI generation. Get one at openrouter.ai",
+  "aiApiKeyNameLabel": "Name",
+  "aiApiKeyNameDefault": "OpenRouter",
+  "aiApiKeyLabel": "API Key",
+  "aiApiKeyHint": "sk-or-v1-",
+  "aiApiKeyRequired": "API key is required",
+  "aiApiKeyNotFound": "API key value not found.",
+  "templateImportUrlHint": "https://github.com/",
+  "stackTraceCopied": "Stack trace copied",
+  "pairingDataCopied": "Pairing data copied",
+  "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode.",
+  "deviceLocalOnly": "Stored locally",
+  "deleteCloudKey": "Delete Cloud Key",
+  "deleteCloudKeyWarning": "This will permanently remove your iCloud recovery key. If you also lose your ultimate recovery key, there will be no way to recover your account or entitlements. This cannot be undone.",
+  "tooltipViewInsights": "View insights",
+  "tooltipAnalyzeData": "Analyze Data",
+  "tooltipStop": "Stop",
+  "tooltipStart": "Start",
+  "tooltipReset": "Reset",
+  "restorePurchases": "Restore Purchases",
+  "restorePurchasesSuccess": "Purchases restored",
+  "deleteAccountTitle": "Delete Account",
+  "deleteAccountMessage": "This will permanently delete your cloud account, all synced data, and your iCloud recovery key. The only copy of your data will be on this device. You will also lose all purchased entitlements. This does not cancel active subscriptions — manage them in your device Settings. This cannot be undone.",
+  "deleteAccountConfirm": "Delete Account",
+  "deleteAccountSuccess": "Cloud account deleted. Your local data is still on this device.",
+  "deleteAccountFailed": "Could not delete cloud account. Check your connection and try again.",
+  "purchaseSubscribe": "Subscribe",
+  "purchaseBuy": "Buy",
+  "syncActive": "Cloud Sync Active",
+  "syncInactive": "No Sync Access",
+  "entitlementLabel": "Entitlement #{id}",
+  "entitlementActive": "Active",
+  "entitlementInactive": "Inactive",
+  "featureCloudSync": "Cloud Sync",
+  "featureAi": "AI Credits",
+  "outboxTitle": "Outbox",
+  "outboxTabFeedback": "Feedback",
+  "outboxTabAnalytics": "Analytics",
+  "outboxTabErrors": "Errors",
+  "postageTabNotices": "Notices",
+  "officeTabSettings": "Settings",
+  "officeTabPurchases": "Purchases",
+  "officeTabInfo": "Info",
+  "noticesEmpty": "No Notices",
+  "noticesEmptyDescription": "Notifications will appear here when there's something to review.",
+  "@entitlementLabel": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsEditApiKey": "Edit API key: {name}",
+  "@settingsEditApiKey": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "settingsEditWebhook": "Edit webhook",
+  "settingsLlmSection": "LLM Provider",
+  "llmProviderSaved": "Provider config saved",
+  "llmProviderDeleted": "Provider config deleted",
+  "llmProviderConnectionSuccess": "Connection successful",
+  "errorLlmProviderFailed": "LLM provider operation failed",
+  "llmProviderBaseUrl": "Base URL",
+  "llmProviderModel": "Model",
+  "llmProviderSearchModels": "Search models...",
+  "llmProviderTestConnection": "Test Connection",
+  "llmProviderAddConfig": "Add Config",
+  "llmProviderAddOpenRouter": "Add OpenRouter",
+  "llmProviderAddOllama": "Add Ollama",
+  "llmProviderQuanitya": "Quanitya LLM",
+  "llmProviderNoConfigs": "No LLM providers configured",
+  "llmProviderNoConfigsDescription": "Add an OpenRouter or Ollama config to use AI features",
+  "llmProviderModelTested": "Tested",
+  "llmProviderModelUntested": "Untested — may not work with Quanitya",
+  "llmProviderConfigureLlm": "Configure LLM in Settings to use AI features",
+  "llmProviderFetchingModels": "Fetching models...",
+
+  "errorBoxSendOneSuccess": "Error report sent",
+  "errorBoxSendAllSuccess": "All error reports sent",
+  "errorBoxClearedSuccess": "Sent reports cleared",
+  "errorBoxDeleteSuccess": "Error report deleted",
+  "errorBoxSendError": "Failed to send error report",
+  "errorBoxOperationError": "Error box operation failed",
+  "errorBoxClearSentTitle": "Clear Sent Report?",
+  "errorBoxClearSentMessage": "This report was sent successfully. Clear it from the inbox?",
+  "errorBoxClearAllSentTitle": "Clear Sent Reports?",
+  "errorBoxClearAllSentMessage": "{count} report(s) sent successfully. Clear them from the inbox?",
+  "@errorBoxClearAllSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAction": "Clear",
+
+  "errorAnalyticsFailed": "Analytics operation failed",
+  "errorImportFailed": "Import failed",
+  "errorLogEntrySaveFailed": "Failed to save log entry",
+  "errorLogEntryUpdateFailed": "Failed to update log entry",
+  "errorLogEntryDeleteFailed": "Failed to delete log entry",
+  "errorNotificationFailed": "Notification error",
+  "errorLlmFailed": "AI request failed",
+  "errorSettingsFailed": "Settings operation failed",
+  "errorLocationFailed": "Location error",
+  "errorRecoveryFailed": "Account recovery failed",
+  "errorDeviceRevocationFailed": "Device revocation failed",
+  "errorIngestionFailed": "Data ingestion failed",
+  "errorScheduleFailed": "Schedule operation failed",
+  "errorScheduleGenerationFailed": "Schedule generation failed",
+  "errorWebhookFailed": "Webhook operation failed",
+  "errorApiKeyFailed": "API key operation failed",
+  "errorTemplateImportFailed": "Template import failed",
+  "errorKeyNotProvisioned": "Device not set up. Complete onboarding first.",
+  "errorDeviceAuthFailed": "Device authentication failed",
+  "errorSearchFailed": "Search failed",
+
+  "settingsHealthData": "Health Data",
+  "healthImportData": "Import Health Data",
+  "healthEntriesImported": "{count} entries imported",
+  "@healthEntriesImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "resultsLoggingActivity": "Logging activity",
+  "resultsTabGraphs": "Graphs",
+  "resultsTabAnalysis": "Analysis",
+  "resultsNoResultsTitle": "No Results Yet",
+  "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
+  "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
+  "resultsAnalyzeField": "Analyze: {fieldName}",
+  "@resultsAnalyzeField": {
+    "placeholders": {
+      "fieldName": { "type": "String" }
+    }
+  },
+  "importSourceCamera": "Camera",
+  "importSourcePhotoLibrary": "Photo Library",
+  "importValuesFilled": "Filled from image",
+  "importEntriesImported": "{count} entries imported",
+  "@importEntriesImported": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importReviewTitle": "Review Import",
+  "importReviewConfirm": "Import All",
+  "importModelDownloadTitle": "Download AI Model",
+  "importModelDownloadMessage": "Extract data from photos using an on-device AI model. One-time download, ~470 MB. Runs privately on your device.",
+  "importModelDownloadConfirm": "Download",
+  "importModelDownloading": "Downloading model…",
+  "resultsAnalyzeFields": "Analyze",
+  "resultsNoAnalysisTitle": "No Analysis Available",
+  "resultsNoAnalysisDescription": "Add numeric fields to your template to enable analysis scripts.",
+  "resultsDataPoints": "{count} data points",
+  "@resultsDataPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "errorBoxNoReports": "No Error Reports",
+  "errorBoxNoReportsDescription": "Error reports will appear here as you encounter errors.",
+  "errorBoxPrivacyBanner": "Privacy-first: Only technical error data, no personal information",
+  "errorBoxSendAll": "Send All ({count})",
+  "@errorBoxSendAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAll": "Clear All",
+  "errorBoxClearAllTitle": "Clear All Error Reports?",
+  "errorBoxClearAllMessage": "This will permanently remove all error reports from the inbox.",
+  "errorBoxAutoSend": "Auto-send on startup",
+  "errorBoxAutoSendDescription": "Automatically send error reports when Quanitya starts",
+  "errorBoxToggleAutoSendSuccess": "Auto-send preference updated",
+
+  "notificationMarkAsRead": "Mark as Read",
+  "notificationOpen": "Open",
+  "notificationJustNow": "Just now",
+  "notificationMinutesAgo": "{count}m ago",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationHoursAgo": "{count}h ago",
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationDaysAgo": "{count}d ago",
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "tabLogbook": "Logbook",
+  "tabResults": "Results",
+  "tabPostage": "Postage",
+  "tabOffice": "Office",
+
+  "analysisDescribeHint": "Describe the analysis you want...",
+  "analysisNewScript": "+ New",
+  "analysisResults": "Results",
+  "analysisRun": "Run",
+  "analysisDeleteScript": "Delete",
+  "analysisDeleteConfirmTitle": "Delete Script",
+  "analysisDeleteConfirmMessage": "This will permanently delete this analysis script.",
+  "analysisSaveScript": "Save Script",
+  "analysisDeleted": "Script deleted",
+  "analysisScriptNameHint": "Script name...",
+  "analysisNoVectorData": "No vector data",
+  "analysisNoMatrixData": "No matrix data",
+  "analysisMatrix": "Matrix",
+
+  "livePreview": "Live Preview",
+  "matrixDimensions": "Matrix: {cols} cols x {rows} rows",
+  "@matrixDimensions": {
+    "placeholders": {
+      "cols": { "type": "int" },
+      "rows": { "type": "int" }
+    }
+  },
+  "matrixColumns": "Columns: {columns}",
+  "@matrixColumns": {
+    "placeholders": {
+      "columns": { "type": "String" }
+    }
+  },
+  "waitingForResults": "Waiting for results...",
+
+  "errorOccurrenceOnce": "Once",
+  "errorOccurrenceTimes": "{count} times",
+  "@errorOccurrenceTimes": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "errorFromSource": "From {source}",
+  "@errorFromSource": {
+    "placeholders": {
+      "source": { "type": "String" }
+    }
+  },
+  "errorDetailErrorType": "Error Type",
+  "errorDetailErrorCode": "Error Code",
+  "errorDetailSourceCubit": "Source Cubit",
+  "errorDetailUserMessage": "User Message",
+  "errorDetailStackTrace": "Stack Trace",
+  "actionCopy": "Copy",
+  "actionSendReport": "Send Report",
+
+  "selectExperiment": "Select Experiment",
+
+  "importTemplateTitle": "Import Template",
+  "importTemplateUrlSection": "TEMPLATE URL",
+  "importTemplateUrlDescription": "Paste a GitHub Gist or raw JSON URL",
+
+  "logEntryToday": "Today",
+  "logEntryMoreFields": "... +{count} more",
+  "@logEntryMoreFields": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "fieldNoDefaultWarning": "No default value set - quick log won't work",
+
+  "timelineNoDetails": "No details",
+
+  "operatingModeLocal": "Local Only",
+  "operatingModeSelfHosted": "Self-Hosted",
+  "operatingModeCloud": "Quanitya Cloud",
+  "operatingModeLocalDescription": "All data stays on your device",
+  "operatingModeSelfHostedDescription": "Sync with your own server",
+  "operatingModeCloudDescription": "Managed cloud with premium features",
+
+  "templatePreviewEdit": "Edit",
+  "templatePreviewSave": "Save Template",
+  "templatePreviewDiscard": "Discard",
+  "templatePreviewImport": "Import Template",
+
+  "timeRangeAll": "ALL",
+  "timeRangeToday": "TODAY",
+  "timeRangeWeek": "WEEK",
+  "timeRangeMonth": "MONTH",
+  "timeRangeCustom": "CUSTOM",
+
+  "templateDefaultAuthor": "Quanitya User",
+
+  "operationCompletedSuccessfully": "Operation completed successfully",
+
+  "selectDate": "Select date",
+  "selectTime": "Select time",
+
+  "authenticateViewHidden": "Authenticate to view hidden entries",
+  "authenticateStoreRecoveryKey": "Authenticate to store your recovery key securely",
+
+  "chartNameTrend": "Trend",
+  "chartNameCompletion": "Completion",
+  "chartNameCategories": "Categories",
+  "chartNameNotApplicable": "N/A",
+
+  "editFieldType": "Edit {fieldType}",
+  "@editFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
+  },
+  "addFieldType": "Add {fieldType}",
+  "@addFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
+  },
+
+  "fieldBuilderTooltipRemove": "Remove",
+  "fieldBuilderTooltipMinItems": "Minimum items reached",
+  "fieldBuilderAddItem": "Add {label}",
+  "@fieldBuilderAddItem": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderMaxItemsReached": "Maximum {count} items reached",
+  "@fieldBuilderMaxItemsReached": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fieldBuilderEnterHint": "Enter {label}",
+  "@fieldBuilderEnterHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderSelectHint": "Select {label}",
+  "@fieldBuilderSelectHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderUpdateLocation": "Update Location",
+  "fieldBuilderCaptureLocation": "Capture Location",
+  "fieldBuilderLocationFailed": "Could not capture location. Check permissions.",
+  "syncLocalOnly": "Local only",
+  "syncConnecting": "Connecting...",
+  "syncConnected": "Synced",
+  "syncDownloading": "Downloading...",
+  "syncUploading": "Uploading...",
+  "syncError": "Sync error",
+  "syncDisconnected": "Not syncing",
+  "estimatedEntries": "~{count} entries",
+  "@estimatedEntries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesThousands": "~{count}K entries",
+  "@estimatedEntriesThousands": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesMillions": "~{count}M entries",
+  "@estimatedEntriesMillions": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "tourHomeTemporalLabels": "Swipe between pages:\n-t = Past — your history\n t = Present — today's trackers\n+t = Future — upcoming reminders",
+  "tourHomeDesignerButton": "Tap here to create a new tracker — describe what you want to track or design it from scratch.",
+  "tourHomeResultsTab": "View your charts and analysis insights here.",
+  "tourHomePostageTab": "Check notifications and send feedback here.",
+  "tourHomeOfficeTab": "Manage your account, settings, and subscriptions.",
+  "tourDesignerAiPrompt": "Describe what you want to track and we'll generate a template for you.",
+  "tourDesignerNameField": "Give your tracker a name.",
+  "tourDesignerFields": "Add fields to define what data you want to capture — numbers, text, toggles, sliders, and more.",
+  "tourDesignerSchedule": "Set up daily or weekly reminders so you don't forget to log.",
+  "tourDesignerPreview": "Preview your tracker before saving.",
+  "settingsShowTour": "Show guided tour again",
+  "tourResetSuccess": "Tours will show on next visit",
+
+  "catalogFilterAll": "All",
+
+  "galleryTitle": "Get started with predefined templates",
+  "gallerySubtitle": "(or skip and create your own)",
+  "gallerySkip": "Skip",
+  "galleryStartWith": "Start with {count} templates",
+  "@galleryStartWith": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "gallerySelect": "Select",
+  "galleryDeselect": "Deselect",
+  "galleryOffline": "Connect to browse templates",
+
+  "subscriptionDisclosure": "Payment will be charged to your {storeName} account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your device {settingsPath}.",
+  "@subscriptionDisclosure": {
+    "description": "Store-required subscription disclosure text shown near purchase buttons",
+    "placeholders": {
+      "storeName": { "type": "String" },
+      "settingsPath": { "type": "String" }
+    }
+  },
+  "subscriptionDisclosurePrivacyPolicy": "Privacy Policy",
+  "subscriptionDisclosureTermsOfService": "Terms of Service",
+
+  "accessibilityChangeColor": "Change color",
+  "accessibilityChangeReminderTime": "Change reminder time",
+  "accessibilityChangeTemplateIcon": "Change template icon",
+
+  "accessibilityScheduleFor": "Schedule for {name}",
+  "@accessibilityScheduleFor": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "accessibilityChangeTime": "Change time",
+  "accessibilityAddField": "Add {label} field",
+  "@accessibilityAddField": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "accessibilityAllowMultipleValues": "Allow multiple values",
+  "accessibilitySetDefaultDateTime": "Set default date/time",
+  "accessibilityDecrease": "Decrease",
+  "accessibilityIncrease": "Increase",
+  "accessibilityGenerating": "Generating...",
+  "accessibilityDataType": "Data type: {typeName}",
+  "@accessibilityDataType": {
+    "placeholders": {
+      "typeName": { "type": "String" }
+    }
+  },
+  "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
+  "@accessibilityDataTableRows": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "analysisEntriesCount": "Entries ({count})",
+  "@analysisEntriesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "catalogTemplatesImported": "Templates imported",
+  "syncReconnected": "Sync reconnected",
+  "validationFixErrors": "Please fix the highlighted fields.",
+  "fieldTypeNumber": "Number",
+  "fieldTypeDecimal": "Decimal",
+  "fieldTypeText": "Text",
+  "fieldTypeToggle": "Toggle",
+  "fieldTypeDate": "Date",
+  "fieldTypeChoice": "Choice",
+  "fieldTypeMeasurement": "Measurement",
+  "fieldTypeReference": "Reference",
+  "fieldTypeLocation": "Location",
+  "fieldTypeGroup": "Group",
+  "fieldTypeMultiSelect": "Multi-Select",
+  "outputModeScalar": "Scalar",
+  "outputModeVector": "Vector",
+  "outputModeMatrix": "Matrix"
+}

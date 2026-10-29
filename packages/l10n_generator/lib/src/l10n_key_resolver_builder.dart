@@ -56,8 +56,8 @@ class L10nKeyResolverBuilder implements Builder {
         .toList()
       ..sort();
     for (final id in localeIds) {
-      final locale = jsonDecode(await buildStep.readAsString(id))
-          as Map<String, dynamic>;
+      final locale =
+          jsonDecode(await buildStep.readAsString(id)) as Map<String, dynamic>;
       for (final issue in checkLocale(entries, locale, p.basename(id.path))) {
         issues.add(
           issue.severity == Severity.error && !strictLocales
@@ -78,8 +78,8 @@ class L10nKeyResolverBuilder implements Builder {
     final generator = ResolverGenerator(
       localizationsClass:
           config['localizations_class'] as String? ?? 'AppLocalizations',
-      localizationsImport: config['localizations_import'] as String? ??
-          'app_localizations.dart',
+      localizationsImport:
+          config['localizations_import'] as String? ?? 'app_localizations.dart',
       generateDotKeys: generateDotKeys,
     );
     await buildStep.writeAsString(

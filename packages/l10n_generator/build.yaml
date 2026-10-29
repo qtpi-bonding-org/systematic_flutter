@@ -1,6 +1,6 @@
 builders:
-  l10n_key_resolver:
-    import: "package:l10n_key_resolver/builder.dart"
+  l10n_generator:
+    import: "package:l10n_generator/builder.dart"
     builder_factories: ["l10nKeyResolverBuilder"]
     build_extensions:
       "lib/l10n/app_en.arb":
@@ -14,3 +14,6 @@ builders:
         localizations_class: "AppLocalizations"
         localizations_import: "app_localizations.dart"
         generate_dot_keys: true
+        # Other locales are checked against the template in the same pass.
+        locale_pattern: "app_*.arb"
+        strict_locales: true

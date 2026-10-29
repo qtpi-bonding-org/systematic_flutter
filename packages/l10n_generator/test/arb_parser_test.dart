@@ -163,17 +163,23 @@ void main() {
     });
 
     test('undeclared plural count is num', () {
-      final ph = parser.parse({
-        'items': '{n, plural, =0{none} other{many}}',
-      }).single.placeholders;
+      final ph = parser
+          .parse({
+            'items': '{n, plural, =0{none} other{many}}',
+          })
+          .single
+          .placeholders;
       expect(ph.single.name, 'n');
       expect(ph.single.dartType, 'num');
     });
 
     test('select placeholder is String and branches are not arguments', () {
-      final ph = parser.parse({
-        'who': '{gender, select, male{He} female{She} other{They}}',
-      }).single.placeholders;
+      final ph = parser
+          .parse({
+            'who': '{gender, select, male{He} female{She} other{They}}',
+          })
+          .single
+          .placeholders;
       expect(ph.map((p) => p.name), ['gender']);
       expect(ph.single.dartType, 'String');
     });
@@ -205,14 +211,17 @@ void main() {
     });
 
     test('declared double stays double', () {
-      final ph = parser.parse({
-        'ratio': '{value}',
-        '@ratio': {
-          'placeholders': {
-            'value': {'type': 'double'},
-          },
-        },
-      }).single.placeholders;
+      final ph = parser
+          .parse({
+            'ratio': '{value}',
+            '@ratio': {
+              'placeholders': {
+                'value': {'type': 'double'},
+              },
+            },
+          })
+          .single
+          .placeholders;
       expect(ph.single.dartType, 'double');
     });
 

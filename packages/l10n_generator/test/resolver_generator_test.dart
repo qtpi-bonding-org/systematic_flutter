@@ -14,7 +14,8 @@ void main() {
     test('imports the runtime and the localizations, with no timestamp', () {
       final code = gen({});
       expect(code, contains('// GENERATED CODE - DO NOT MODIFY BY HAND'));
-      expect(code, contains("import 'package:l10n_key_resolver/runtime.dart';"));
+      expect(
+          code, contains("import 'package:l10n_key_resolver/runtime.dart';"));
       expect(code, contains("import 'app_localizations.dart';"));
       expect(code, isNot(contains('Generated at')));
     });
@@ -73,7 +74,8 @@ void main() {
   group('L10nKeyResolver', () {
     test('implements LabelResolver and resolves both label kinds', () {
       final code = gen({'errorTimeout': 'T'});
-      expect(code, contains('class L10nKeyResolver implements LabelResolver {'));
+      expect(
+          code, contains('class L10nKeyResolver implements LabelResolver {'));
       expect(code, contains('String resolve(Label label)'));
       expect(code, contains('DataText(:final value) => value'));
     });

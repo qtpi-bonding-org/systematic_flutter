@@ -49,70 +49,92 @@ void main() {
     });
 
     test('identical key set passes', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola',
-        'rows': 'Tabla con {count}',
-        'pair': '{b} y {a}',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola',
+            'rows': 'Tabla con {count}',
+            'pair': '{b} y {a}',
+          },
+          'app_es.arb');
       expect(issues, isEmpty);
     });
 
     test('a missing key is an error naming the file and key', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola',
-        'rows': '{count}',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola',
+            'rows': '{count}',
+          },
+          'app_es.arb');
       expect(issues.single.severity, Severity.error);
-      expect(issues.single.message, allOf(contains('app_es.arb'), contains('pair')));
+      expect(issues.single.message,
+          allOf(contains('app_es.arb'), contains('pair')));
     });
 
     test('an extra key is a warning', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola',
-        'rows': '{count}',
-        'pair': '{a}{b}',
-        'stale': 'x',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola',
+            'rows': '{count}',
+            'pair': '{a}{b}',
+            'stale': 'x',
+          },
+          'app_es.arb');
       expect(issues.single.severity, Severity.warning);
       expect(issues.single.message, contains('stale'));
     });
 
     test('a translation may drop placeholders', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola',
-        'rows': 'Tabla',
-        'pair': '{a}',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola',
+            'rows': 'Tabla',
+            'pair': '{a}',
+          },
+          'app_es.arb');
       expect(issues, isEmpty);
     });
 
     test('a placeholder the template lacks is an error', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola {name}',
-        'rows': '{count}',
-        'pair': '{a}{b}',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola {name}',
+            'rows': '{count}',
+            'pair': '{a}{b}',
+          },
+          'app_es.arb');
       expect(issues.single.severity, Severity.error);
       expect(issues.single.message, allOf(contains('hello'), contains('name')));
     });
 
     test('metadata keys and @@locale are ignored', () {
-      final issues = checkLocale(template, {
-        '@@locale': 'es',
-        'hello': 'Hola',
-        'rows': '{count}',
-        'pair': '{a}{b}',
-        '@hello': {'description': 'x'},
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            '@@locale': 'es',
+            'hello': 'Hola',
+            'rows': '{count}',
+            'pair': '{a}{b}',
+            '@hello': {'description': 'x'},
+          },
+          'app_es.arb');
       expect(issues, isEmpty);
     });
 
     test('a malformed message is an error', () {
-      final issues = checkLocale(template, {
-        'hello': 'Hola {',
-        'rows': '{count}',
-        'pair': '{a}{b}',
-      }, 'app_es.arb');
+      final issues = checkLocale(
+          template,
+          {
+            'hello': 'Hola {',
+            'rows': '{count}',
+            'pair': '{a}{b}',
+          },
+          'app_es.arb');
       expect(issues.single.severity, Severity.error);
     });
   });
