@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'config/error_privserver_config.dart';
 import 'cubits/error_privserver_cubit.dart';
 import 'models/error_entry.dart';
+import 'utils/message_text.dart';
 
 /// Convenience API for flutter_error_privserver.
 ///
@@ -91,7 +92,7 @@ class ErrorPrivserver {
         errorCode: errorCode,
         stackTrace: stackTrace.toString(),
         timestamp: DateTime.now(),
-        userMessage: messageKey?.key,
+        userMessage: messageText(messageKey),
       );
 
       await config.storage.saveError(errorEntry);

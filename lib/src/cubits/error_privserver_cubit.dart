@@ -4,6 +4,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../config/error_privserver_config.dart';
 import '../models/error_entry.dart';
+import '../utils/message_text.dart';
 
 /// Mixin that adds privacy-preserving error capture to any [TryOperationCubit].
 ///
@@ -49,7 +50,7 @@ mixin ErrorPrivserverMixin<S extends IUiFlowState> on TryOperationCubit<S> {
 
     try {
       final messageKey = _config!.exceptionMapper(error);
-      final userMessage = messageKey?.key;
+      final userMessage = messageText(messageKey);
       final errorCode = _config!.errorCodeMapper(error);
 
       final errorEntry = ErrorEntry(
