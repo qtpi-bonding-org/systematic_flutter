@@ -1,0 +1,25 @@
+name: qtpi_ui_storybook
+description: Standalone Storybook host for qtpi_ui.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  qtpi_ui:
+    path: ../
+  flutter_color_palette:
+    git:
+      url: https://github.com/qtpi-bonding-org/flutter_color_palette.git
+      ref: e8755f5993cb66c6dfd4696df87bf6ef64229756
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
