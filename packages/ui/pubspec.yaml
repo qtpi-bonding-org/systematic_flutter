@@ -1,5 +1,5 @@
-name: qtpi_ui
-description: Shared design system bones for qtpi apps.
+name: systematic_ui
+description: Shared design system bones for the Systematic Flutter apps.
 version: 0.1.0
 
 environment:

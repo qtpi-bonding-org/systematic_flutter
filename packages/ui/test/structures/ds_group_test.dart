@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qtpi_ui/qtpi_ui.dart';
+import 'package:systematic_ui/systematic_ui.dart';
 
 void main() {
   group('DsGroup', () {

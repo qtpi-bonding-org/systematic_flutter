@@ -1,6 +1,6 @@
-# qtpi_ui
+# systematic_ui
 
-Shared Flutter design system bones for qtpi apps (episutra, quanitya, and future apps).
+Shared Flutter design system bones for the apps (episutra, quanitya, and future apps).
 
 This is the single source of truth for tokens (`AppSizes`, `VSpace`, `HSpace`, `AppPadding`, `UiScaler`), the theming mechanism (`ThemeService`) and the structural primitives (`DsColumn`, `DsRow`, `DsGroup`). App-specific brand (palette values, fonts) and signature widgets stay in each app.
 
