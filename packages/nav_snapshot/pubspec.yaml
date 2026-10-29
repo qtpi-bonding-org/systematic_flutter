@@ -1,0 +1,26 @@
+name: nav_snapshot
+description: Navigation state snapshots with lazy pull parts, stream-fed push parts, per-part invalidation, retry, and automatic route re-decision.
+version: 0.1.0
+homepage: https://github.com/quanitya/flutter_nav_snapshot
+repository: https://github.com/quanitya/flutter_nav_snapshot
+
+topics:
+  - flutter
+  - navigation
+  - routing
+  - go-router
+  - state
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: '>=13.0.0 <18.0.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
