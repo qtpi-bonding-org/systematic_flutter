@@ -1,7 +1,7 @@
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
-import 'package:flutter_lint_generator/src/rules/avoid_getit_in_adapters_dir.dart';
+import 'package:systematic_lints/src/rules/avoid_getit_in_adapters_dir.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 // See avoid_bloc_imports_in_widgets_dir_test.dart for why the

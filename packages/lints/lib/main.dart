@@ -15,11 +15,11 @@ import 'src/rules/no_raw_sizedbox_spacing.dart';
 import 'src/rules/require_cubitfield_over_raw_bloc_apis.dart';
 import 'src/rules/require_static_selector.dart';
 
-final plugin = FlutterLintGeneratorPlugin();
+final plugin = SystematicLintsPlugin();
 
-class FlutterLintGeneratorPlugin extends Plugin {
+class SystematicLintsPlugin extends Plugin {
   @override
-  String get name => 'flutter_lint_generator';
+  String get name => 'systematic_lints';
 
   @override
   void register(PluginRegistry registry) {

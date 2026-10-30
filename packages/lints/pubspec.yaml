@@ -1,5 +1,5 @@
-name: flutter_lint_generator
-description: Custom Dart analyzer plugin (rules + a config codegen step) enforcing design-system and cubit_ui_flow discipline, surfaced directly in flutter analyze/dart analyze.
+name: systematic_lints
+description: Analyzer plugin enforcing design-system and cubit_ui_flow discipline. Options come from lint_config.yaml in the analyzed package.
 version: 0.1.0
 publish_to: 'none'
 
@@ -10,6 +10,8 @@ dependencies:
   analysis_server_plugin: 0.3.22
   analyzer: 14.3.0
   meta: ^1.16.0
+  glob: ^2.1.0
+  path: ^1.9.0
   yaml: ^3.1.0
 
 dev_dependencies:
@@ -20,5 +22,5 @@ dev_dependencies:
 plugin:
   platforms:
     dart:
-      pluginClass: FlutterLintGeneratorPlugin
+      pluginClass: SystematicLintsPlugin
       fileName: main.dart

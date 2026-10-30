@@ -4,6 +4,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import '../lint_config.dart';
 
 class NoHardcodedStrings extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -27,18 +28,64 @@ class NoHardcodedStrings extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this);
+    if (!LintConfig.applies(context, name)) return;
+    final config = LintConfig.forContext(context);
+    final visitor = _Visitor(
+      this,
+      config.list(name, 'text_arguments', _defaultTextArguments).toSet(),
+    );
     registry.addInstanceCreationExpression(this, visitor);
+    registry.addMethodInvocation(this, visitor);
   }
 }
 
+/// Named arguments whose value is text the user reads or hears.
+const _defaultTextArguments = [
+  'tooltip',
+  'semanticLabel',
+  'hintText',
+  'labelText',
+  'helperText',
+  'errorText',
+  'label',
+  'hint',
+];
+
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
+  final Set<String> textArguments;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.textArguments);
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) =>
+      _checkNamed(node.argumentList);
+
+  /// A literal with no letter ('', '•', ' ') carries no wording to translate.
+  static bool _hasWording(StringLiteral literal) => switch (literal) {
+    SimpleStringLiteral(:final value) => RegExp(
+      r'\p{L}',
+      unicode: true,
+    ).hasMatch(value),
+    StringInterpolation(:final elements) =>
+      elements.whereType<InterpolationString>().any(
+        (e) => RegExp(r'\p{L}', unicode: true).hasMatch(e.value),
+      ),
+    _ => true,
+  };
+
+  void _checkNamed(ArgumentList list) {
+    for (final arg in list.arguments) {
+      if (arg is! NamedArgument) continue;
+      if (!textArguments.contains(arg.name.lexeme)) continue;
+      final expr = arg.argumentExpression2;
+      if (expr is StringLiteral && _hasWording(expr)) rule.reportAtNode(expr);
+    }
+  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _checkNamed(node.argumentList);
     final constructorName = node.constructorName;
     if (constructorName.type.name.lexeme != 'Text') return;
     if (constructorName.name != null) return; // skip Text.rich, etc.

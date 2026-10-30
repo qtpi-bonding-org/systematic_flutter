@@ -4,8 +4,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-
-import '../../generated_config.dart';
+import '../lint_config.dart';
 
 class NoHardcodedColors extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -30,7 +29,12 @@ class NoHardcodedColors extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this, noHardcodedColorsBannedTypes);
+    if (!LintConfig.applies(context, name)) return;
+    final config = LintConfig.forContext(context);
+    final visitor = _Visitor(
+      this,
+      config.list(name, 'banned_types', const ['Colors', 'AppPalette']),
+    );
     registry
       ..addInstanceCreationExpression(this, visitor)
       ..addPrefixedIdentifier(this, visitor);

@@ -4,8 +4,27 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import '../lint_config.dart';
 
-import '../../generated_config.dart';
+const _defaultBannedWidgets = [
+  'Padding',
+  'Column',
+  'Row',
+  'Container',
+  'SizedBox',
+  'Text',
+  'Icon',
+  'Stack',
+  'ListView',
+  'GridView',
+  'Align',
+  'Center',
+  'Expanded',
+  'Flexible',
+  'Card',
+  'Scaffold',
+  'AppBar',
+];
 
 class NoInlineWidgetCompositionInPages extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -30,17 +49,24 @@ class NoInlineWidgetCompositionInPages extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
+    if (!LintConfig.applies(context, name)) return;
+    final config = LintConfig.forContext(context);
     final path =
         context.currentUnit?.file.path ?? context.definingUnit.file.path;
     final segments = path.split(RegExp(r'[\\/]'));
-    if (segments.any(noInlineWidgetCompositionInPagesWidgetDirNames.contains)) {
+    if (segments.any(
+      config.list(name, 'widget_dir_names', const [
+        'widgets',
+        'adapters',
+      ]).contains,
+    )) {
       return;
     }
 
     final visitor = _Visitor(
       this,
-      noInlineWidgetCompositionInPagesPageSuffix,
-      noInlineWidgetCompositionInPagesBannedWidgetNames,
+      config.string(name, 'page_suffix', 'Screen'),
+      config.list(name, 'banned_widget_names', _defaultBannedWidgets),
     );
     registry.addClassDeclaration(this, visitor);
   }

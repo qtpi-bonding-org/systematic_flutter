@@ -5,8 +5,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
-import '../../generated_config.dart';
 import '../ast_helpers.dart';
+import '../lint_config.dart';
 
 class NoRawSizedboxSpacing extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -30,7 +30,15 @@ class NoRawSizedboxSpacing extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this, noRawSizedboxSpacingAllowedEnclosingClasses);
+    if (!LintConfig.applies(context, name)) return;
+    final config = LintConfig.forContext(context);
+    final visitor = _Visitor(
+      this,
+      config.list(name, 'allowed_enclosing_classes', const [
+        'VSpace',
+        'HSpace',
+      ]),
+    );
     registry.addInstanceCreationExpression(this, visitor);
   }
 }

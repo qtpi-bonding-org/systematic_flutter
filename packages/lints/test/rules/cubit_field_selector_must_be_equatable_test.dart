@@ -1,5 +1,5 @@
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
-import 'package:flutter_lint_generator/src/rules/cubit_field_selector_must_be_equatable.dart';
+import 'package:systematic_lints/src/rules/cubit_field_selector_must_be_equatable.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {

@@ -5,8 +5,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
-import '../../generated_config.dart';
 import '../ast_helpers.dart';
+import '../lint_config.dart';
 
 class NoHardcodedFontFamily extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -30,7 +30,12 @@ class NoHardcodedFontFamily extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this, noHardcodedFontFamilyAllowedTypes);
+    if (!LintConfig.applies(context, name)) return;
+    final config = LintConfig.forContext(context);
+    final visitor = _Visitor(
+      this,
+      config.list(name, 'allowed_types', const ['AppFonts']),
+    );
     registry.addNamedArgument(this, visitor);
   }
 }

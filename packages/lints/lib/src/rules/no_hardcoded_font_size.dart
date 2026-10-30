@@ -4,6 +4,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import '../lint_config.dart';
 
 class NoHardcodedFontSize extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -25,6 +26,7 @@ class NoHardcodedFontSize extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
+    if (!LintConfig.applies(context, name)) return;
     final visitor = _Visitor(this);
     registry.addNamedArgument(this, visitor);
   }
