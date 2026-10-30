@@ -52,12 +52,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.constructorName.type.name.lexeme != 'SizedBox') return;
-    final isSpacingArg = node.argumentList.arguments.any(
-      (arg) =>
-          arg is NamedArgument &&
-          (arg.name.lexeme == 'height' || arg.name.lexeme == 'width'),
-    );
-    if (!isSpacingArg) return;
+    // A spacer has one dimension and no child; a box with a child or both
+    // dimensions is sizing, not spacing.
+    final names = {
+      for (final arg in node.argumentList.arguments)
+        if (arg is NamedArgument) arg.name.lexeme,
+    };
+    if (names.contains('child')) return;
+    if (names.contains('height') == names.contains('width')) return;
     final enclosing = enclosingClassName(node);
     if (enclosing != null && allowedEnclosingClasses.contains(enclosing)) {
       return;

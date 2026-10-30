@@ -20,12 +20,45 @@ class NoRawSizedboxSpacingTest extends AnalysisRuleTest {
     await assertDiagnostics(
       r'''
 class SizedBox {
-  SizedBox({double? width, double? height});
+  SizedBox({double? width, double? height, Object? child});
 }
 
 final x = SizedBox(height: 16);
 ''',
-      [lint(75, 20)],
+      [lint(90, 20)],
     );
+  }
+
+  Future<void> test_flags_horizontal_spacer() async {
+    await assertDiagnostics(
+      r'''
+class SizedBox {
+  SizedBox({double? width, double? height, Object? child});
+}
+
+final x = SizedBox(width: 8);
+''',
+      [lint(90, 18)],
+    );
+  }
+
+  Future<void> test_ignores_box_with_child() async {
+    await assertNoDiagnostics(r'''
+class SizedBox {
+  SizedBox({double? width, double? height, Object? child});
+}
+
+final x = SizedBox(height: 16, child: Object());
+''');
+  }
+
+  Future<void> test_ignores_fixed_size_box() async {
+    await assertNoDiagnostics(r'''
+class SizedBox {
+  SizedBox({double? width, double? height, Object? child});
+}
+
+final x = SizedBox(width: 16, height: 16);
+''');
   }
 }
