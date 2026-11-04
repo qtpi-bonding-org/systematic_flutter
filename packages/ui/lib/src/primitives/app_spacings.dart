@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_sizes.dart';
+import 'systematic_sizes.dart';
 
 /// Predefined, responsive EdgeInsets using the design system spacing.
 class AppPadding {
@@ -42,39 +43,45 @@ class AppPadding {
 }
 
 /// Vertical spacer widget using design system spacing.
+///
+/// Each spacer is a multiple of the theme's base unit ([SystematicSizes.space])
+/// and reads it when it builds, so changing the sizes in the theme re-spaces
+/// every spacer under it.
 class VSpace extends StatelessWidget {
-  final double height;
-  const VSpace._(this.height);
+  final double units;
+  const VSpace._(this.units);
 
-  static VSpace get x025 => VSpace._(AppSizes.space * 0.25); // 2px (Tiny glue)
-  static VSpace get x05 => VSpace._(AppSizes.space * 0.5);
-  static VSpace get x1 => VSpace._(AppSizes.space);
-  static VSpace get x2 => VSpace._(AppSizes.space * 2);
-  static VSpace get x3 => VSpace._(AppSizes.space * 3);
-  static VSpace get x4 => VSpace._(AppSizes.space * 4);
-  static VSpace get x5 => VSpace._(AppSizes.space * 5);
-  static VSpace get x6 => VSpace._(AppSizes.space * 6);
-  static VSpace get x8 => VSpace._(AppSizes.space * 8);
+  static const VSpace x025 = VSpace._(0.25); // Tiny glue
+  static const VSpace x05 = VSpace._(0.5);
+  static const VSpace x1 = VSpace._(1);
+  static const VSpace x2 = VSpace._(2);
+  static const VSpace x3 = VSpace._(3);
+  static const VSpace x4 = VSpace._(4);
+  static const VSpace x5 = VSpace._(5);
+  static const VSpace x6 = VSpace._(6);
+  static const VSpace x8 = VSpace._(8);
 
   @override
-  Widget build(BuildContext context) => SizedBox(height: height);
+  Widget build(BuildContext context) =>
+      SizedBox(height: units * SystematicSizes.of(context).space);
 }
 
 /// Horizontal spacer widget using design system spacing.
 class HSpace extends StatelessWidget {
-  final double width;
-  const HSpace._(this.width);
+  final double units;
+  const HSpace._(this.units);
 
-  static HSpace get x025 => HSpace._(AppSizes.space * 0.25);
-  static HSpace get x05 => HSpace._(AppSizes.space * 0.5);
-  static HSpace get x1 => HSpace._(AppSizes.space);
-  static HSpace get x2 => HSpace._(AppSizes.space * 2);
-  static HSpace get x3 => HSpace._(AppSizes.space * 3);
-  static HSpace get x4 => HSpace._(AppSizes.space * 4);
-  static HSpace get x5 => HSpace._(AppSizes.space * 5);
-  static HSpace get x6 => HSpace._(AppSizes.space * 6);
-  static HSpace get x8 => HSpace._(AppSizes.space * 8);
+  static const HSpace x025 = HSpace._(0.25);
+  static const HSpace x05 = HSpace._(0.5);
+  static const HSpace x1 = HSpace._(1);
+  static const HSpace x2 = HSpace._(2);
+  static const HSpace x3 = HSpace._(3);
+  static const HSpace x4 = HSpace._(4);
+  static const HSpace x5 = HSpace._(5);
+  static const HSpace x6 = HSpace._(6);
+  static const HSpace x8 = HSpace._(8);
 
   @override
-  Widget build(BuildContext context) => SizedBox(width: width);
+  Widget build(BuildContext context) =>
+      SizedBox(width: units * SystematicSizes.of(context).space);
 }

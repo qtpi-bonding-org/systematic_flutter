@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../primitives/app_spacings.dart';
+import '../primitives/systematic_sizes.dart';
 import '../primitives/app_sizes.dart';
 
 class DsGroup extends StatelessWidget {
@@ -22,7 +23,7 @@ class DsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectivePadding = padding ?? AppPadding.listItem;
+    final effectivePadding = padding ?? context.padding.listItem;
     final effectiveChevronColor =
         chevronColor ?? Theme.of(context).colorScheme.primary;
 
@@ -32,7 +33,7 @@ class DsGroup extends StatelessWidget {
         identifier: testId,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          borderRadius: BorderRadius.circular(context.sizes.radiusMedium),
           child: Padding(
             padding: effectivePadding,
             child: showChevron
