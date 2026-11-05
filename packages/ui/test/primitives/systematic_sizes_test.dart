@@ -13,9 +13,9 @@ void main() {
   );
 
   Widget app(Widget child, {SystematicSizes? sizes}) => MaterialApp(
-    theme: sizes == null ? null : ThemeData(extensions: [sizes]),
-    home: Scaffold(body: child),
-  );
+        theme: sizes == null ? null : ThemeData(extensions: [sizes]),
+        home: Scaffold(body: child),
+      );
 
   group('SystematicSizes', () {
     testWidgets('a bare app gets the AppSizes scale', (tester) async {
@@ -34,6 +34,49 @@ void main() {
       expect(seen.space, AppSizes.space);
       expect(seen.spaceHalf, AppSizes.spaceHalf);
       expect(seen.radiusMedium, AppSizes.radiusMedium);
+      expect(seen.iconSmall, AppSizes.iconSmall);
+      expect(seen.iconXLarge, AppSizes.iconXLarge);
+      expect(seen.borderWidth, AppSizes.borderWidth);
+      expect(seen.borderWidthThick, AppSizes.borderWidthThick);
+      expect(seen.buttonHeight, AppSizes.buttonHeight);
+      expect(seen.inputHeight, AppSizes.inputHeight);
+      expect(seen.appBarHeight, AppSizes.appBarHeight);
+    });
+
+    testWidgets('control heights follow the spacing unit', (tester) async {
+      late SystematicSizes seen;
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) {
+              seen = context.sizes;
+              return const SizedBox.shrink();
+            },
+          ),
+          sizes: compact,
+        ),
+      );
+      expect(seen.buttonHeight, seen.space * 6);
+      expect(seen.inputHeight, seen.space * 7);
+    });
+
+    testWidgets('icon sizes and border widths can be overridden', (
+      tester,
+    ) async {
+      late SystematicSizes seen;
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) {
+              seen = context.sizes;
+              return const SizedBox.shrink();
+            },
+          ),
+          sizes: compact.copyWith(iconSmall: 20, borderWidth: 3),
+        ),
+      );
+      expect(seen.iconSmall, UiScaler.instance.sp(20));
+      expect(seen.borderWidth, UiScaler.instance.px(3));
     });
 
     testWidgets('sizes follow the screen scale live, not a snapshot', (
