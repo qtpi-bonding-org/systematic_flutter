@@ -4,6 +4,7 @@ export 'src/primitives/screen_metrics.dart';
 export 'src/primitives/app_sizes.dart';
 export 'src/primitives/app_spacings.dart';
 export 'src/primitives/systematic_sizes.dart';
+export 'src/primitives/systematic_opacity.dart';
 
 // Structures
 export 'src/structures/ds_column.dart';

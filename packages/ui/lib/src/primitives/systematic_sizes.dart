@@ -113,6 +113,11 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   /// Emphasis stroke (2 before scaling).
   double get borderWidthThick => _scaled(_borderWidthThick);
 
+  /// The icon theme for `ThemeData.iconTheme`: icons grow with the system text
+  /// size, so a label and its icon stay in proportion at large text.
+  IconThemeData get iconTheme =>
+      IconThemeData(size: iconMedium, applyTextScaling: true);
+
   // Control heights are multiples of the spacing unit, so they follow it:
   // changing [space] resizes buttons and bars with it.
   double get buttonHeight => space * 6;
