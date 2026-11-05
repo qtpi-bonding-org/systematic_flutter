@@ -33,7 +33,7 @@ class AppSizes {
 }
 ''';
 
-  Future<void> test_flags_scale_reads_but_not_font_tokens() async {
+  Future<void> test_flags_every_scale_read() async {
     const code =
         '''
 ${_stub}final a = AppSizes.space;
@@ -43,6 +43,7 @@ final c = AppSizes.fontMini;
     await assertDiagnostics(code, [
       lint(code.indexOf('AppSizes.space'), 'AppSizes.space'.length),
       lint(code.indexOf('AppSizes.iconSmall'), 'AppSizes.iconSmall'.length),
+      lint(code.indexOf('AppSizes.fontMini'), 'AppSizes.fontMini'.length),
     ]);
   }
 

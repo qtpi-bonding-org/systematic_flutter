@@ -35,6 +35,9 @@ void main() {
       expect(seen.spaceHalf, AppSizes.spaceHalf);
       expect(seen.radiusMedium, AppSizes.radiusMedium);
       expect(seen.iconSmall, AppSizes.iconSmall);
+      expect(seen.fontMini, AppSizes.fontMini);
+      expect(seen.fontStandard, AppSizes.fontStandard);
+      expect(seen.fontMassive, AppSizes.fontMassive);
       expect(seen.iconXSmall, AppSizes.size12);
       expect(seen.icon(IconStep.x5), AppSizes.size20);
       expect(seen.icon(IconStep.x14), AppSizes.size56);
@@ -76,12 +79,14 @@ void main() {
               return const SizedBox.shrink();
             },
           ),
-          sizes: compact.copyWith(iconUnit: 5, borderWidth: 3),
+          sizes: compact.copyWith(iconUnit: 5, borderWidth: 3, fontMini: 10),
         ),
       );
       expect(seen.iconSmall, UiScaler.instance.sp(20));
       expect(seen.icon(IconStep.x2), UiScaler.instance.sp(10));
       expect(seen.borderWidth, UiScaler.instance.px(3));
+      expect(seen.fontMini, UiScaler.instance.sp(10));
+      expect(seen.fontMassive, AppSizes.fontMassive);
     });
 
     testWidgets('sizes follow the screen scale live, not a snapshot', (

@@ -12,7 +12,7 @@ import '../lint_config.dart';
 /// ```yaml
 /// no_raw_app_sizes:
 ///   type_name: AppSizes         # the class to watch (default)
-///   allowed_members: [font*]    # a trailing * allows a prefix (default)
+///   allowed_members: []         # names allowed anyway; a trailing * is a prefix
 /// ```
 class NoRawAppSizes extends AnalysisRule {
   static const LintCode code = LintCode(
@@ -42,7 +42,7 @@ class NoRawAppSizes extends AnalysisRule {
     final visitor = _Visitor(
       this,
       config.string(name, 'type_name', 'AppSizes'),
-      config.list(name, 'allowed_members', const ['font*']),
+      config.list(name, 'allowed_members', const []),
     );
     registry.addPrefixedIdentifier(this, visitor);
   }

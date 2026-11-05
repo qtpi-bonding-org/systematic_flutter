@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'app_spacings.dart';
 import 'ui_scaler.dart';
 
-/// The spacing unit, corner radii, icon sizes, border widths and control
+/// The spacing unit, corner radii, font sizes, icon sizes, border widths and control
 /// heights as a [ThemeExtension], so a `Theme` can
 /// change them for a whole app or one subtree.
 ///
@@ -42,6 +42,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
     required double radiusSmall,
     required double radiusMedium,
     required double radiusLarge,
+    double fontMini = 12,
+    double fontSmall = 14,
+    double fontStandard = 16,
+    double fontBig = 18,
+    double fontLarge = 24,
+    double fontMassive = 36,
     double iconUnit = 4,
     double borderWidth = 1,
     double borderWidthThick = 2,
@@ -51,6 +57,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         _radiusSmall = radiusSmall,
         _radiusMedium = radiusMedium,
         _radiusLarge = radiusLarge,
+        _fontMini = fontMini,
+        _fontSmall = fontSmall,
+        _fontStandard = fontStandard,
+        _fontBig = fontBig,
+        _fontLarge = fontLarge,
+        _fontMassive = fontMassive,
         _iconUnit = iconUnit,
         _borderWidth = borderWidth,
         _borderWidthThick = borderWidthThick;
@@ -63,6 +75,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         _radiusSmall = 8,
         _radiusMedium = 16,
         _radiusLarge = 24,
+        _fontMini = 12,
+        _fontSmall = 14,
+        _fontStandard = 16,
+        _fontBig = 18,
+        _fontLarge = 24,
+        _fontMassive = 36,
         _iconUnit = 4,
         _borderWidth = 1,
         _borderWidthThick = 2;
@@ -79,6 +97,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   final double _radiusSmall;
   final double _radiusMedium;
   final double _radiusLarge;
+  final double _fontMini;
+  final double _fontSmall;
+  final double _fontStandard;
+  final double _fontBig;
+  final double _fontLarge;
+  final double _fontMassive;
   final double _iconUnit;
   final double _borderWidth;
   final double _borderWidthThick;
@@ -94,6 +118,15 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   double get radiusSmall => _scaled(_radiusSmall);
   double get radiusMedium => _scaled(_radiusMedium);
   double get radiusLarge => _scaled(_radiusLarge);
+
+  // Font sizes scale like text (sp). They feed the text theme; widgets read
+  // `context.text` and never a size.
+  double get fontMini => UiScaler.instance.sp(_fontMini);
+  double get fontSmall => UiScaler.instance.sp(_fontSmall);
+  double get fontStandard => UiScaler.instance.sp(_fontStandard);
+  double get fontBig => UiScaler.instance.sp(_fontBig);
+  double get fontLarge => UiScaler.instance.sp(_fontLarge);
+  double get fontMassive => UiScaler.instance.sp(_fontMassive);
 
   /// An icon size: [step] times the icon unit (4 before scaling), scaled like
   /// text so icons stay in proportion to labels. Like spacing, a caller picks
@@ -135,6 +168,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
     double? radiusSmall,
     double? radiusMedium,
     double? radiusLarge,
+    double? fontMini,
+    double? fontSmall,
+    double? fontStandard,
+    double? fontBig,
+    double? fontLarge,
+    double? fontMassive,
     double? iconUnit,
     double? borderWidth,
     double? borderWidthThick,
@@ -146,6 +185,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         radiusSmall: radiusSmall ?? _radiusSmall,
         radiusMedium: radiusMedium ?? _radiusMedium,
         radiusLarge: radiusLarge ?? _radiusLarge,
+        fontMini: fontMini ?? _fontMini,
+        fontSmall: fontSmall ?? _fontSmall,
+        fontStandard: fontStandard ?? _fontStandard,
+        fontBig: fontBig ?? _fontBig,
+        fontLarge: fontLarge ?? _fontLarge,
+        fontMassive: fontMassive ?? _fontMassive,
         iconUnit: iconUnit ?? _iconUnit,
         borderWidth: borderWidth ?? _borderWidth,
         borderWidthThick: borderWidthThick ?? _borderWidthThick,
@@ -162,6 +207,12 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
       radiusSmall: mix(_radiusSmall, other._radiusSmall),
       radiusMedium: mix(_radiusMedium, other._radiusMedium),
       radiusLarge: mix(_radiusLarge, other._radiusLarge),
+      fontMini: mix(_fontMini, other._fontMini),
+      fontSmall: mix(_fontSmall, other._fontSmall),
+      fontStandard: mix(_fontStandard, other._fontStandard),
+      fontBig: mix(_fontBig, other._fontBig),
+      fontLarge: mix(_fontLarge, other._fontLarge),
+      fontMassive: mix(_fontMassive, other._fontMassive),
       iconUnit: mix(_iconUnit, other._iconUnit),
       borderWidth: mix(_borderWidth, other._borderWidth),
       borderWidthThick: mix(_borderWidthThick, other._borderWidthThick),
