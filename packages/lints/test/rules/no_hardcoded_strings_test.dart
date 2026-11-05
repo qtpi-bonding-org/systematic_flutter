@@ -71,7 +71,8 @@ class MessageKey {
   Future<void> test_flags_label_and_hint_text() async {
     const hint = "'Search'";
     const label = "'Name'";
-    const source = '$_prelude\nfinal bad = Field(hintText: $hint, label: $label);\n';
+    const source =
+        '$_prelude\nfinal bad = Field(hintText: $hint, label: $label);\n';
     await assertDiagnostics(source, [
       lint(source.indexOf(hint), hint.length),
       lint(source.indexOf(label), label.length),
@@ -79,14 +80,20 @@ class MessageKey {
   }
 
   Future<void> test_allows_a_key_in_a_text_argument() async {
-    await assertNoDiagnostics('$_prelude\nfinal good = Tooltip(tooltip: MessageKey.greeting);\n');
+    await assertNoDiagnostics(
+      '$_prelude\nfinal good = Tooltip(tooltip: MessageKey.greeting);\n',
+    );
   }
 
   Future<void> test_allows_a_literal_without_letters() async {
-    await assertNoDiagnostics("$_prelude\nfinal good = Field(label: '•', hintText: '');\n");
+    await assertNoDiagnostics(
+      "$_prelude\nfinal good = Field(label: '•', hintText: '');\n",
+    );
   }
 
   Future<void> test_ignores_other_named_arguments() async {
-    await assertNoDiagnostics("$_prelude\nfinal good = Tooltip(message: 'not in the list');\n");
+    await assertNoDiagnostics(
+      "$_prelude\nfinal good = Tooltip(message: 'not in the list');\n",
+    );
   }
 }

@@ -42,7 +42,8 @@ The first analyze after setup can report nothing while the plugin builds. Run `t
 
 ## Rules
 
-Design tokens: `no_hardcoded_colors`, `no_hardcoded_font_size`, `no_hardcoded_font_family`, `no_hardcoded_padding`, `no_raw_sizedbox_spacing`.
+Design tokens: `no_hardcoded_colors`, `no_hardcoded_font_size`, `no_hardcoded_font_family`, `no_hardcoded_padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes` (a read of the static `AppSizes` scale where the theme supplies it; `allowed_members` defaults to `[font*]`, a trailing `*` allows a prefix).
+Repo choices: `no_banned_constructors` bans types a repo has decided against. The list is the repo's own and the rule does nothing without one: `banned: [RoundedRectangleBorder, BorderRadius.circular]`, where an entry is a type name (every constructor) or `Type.constructor`.
 Labels: `no_hardcoded_strings` (a literal in `Text(...)` or in `tooltip:`, `hintText:`, `label:` and similar; set `text_arguments` to change the list).
 Structure: `no_inline_widget_composition_in_pages`.
 Layering: `avoid_bloc_imports_in_widgets_dir`, `avoid_getit_in_adapters_dir`, `require_cubitfield_over_raw_bloc_apis`, `require_static_selector`, `cubit_field_selector_must_be_equatable`, `no_duplicate_cubitfield_keys`.
