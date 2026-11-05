@@ -35,6 +35,9 @@ void main() {
       expect(seen.spaceHalf, AppSizes.spaceHalf);
       expect(seen.radiusMedium, AppSizes.radiusMedium);
       expect(seen.iconSmall, AppSizes.iconSmall);
+      expect(seen.iconXSmall, AppSizes.size12);
+      expect(seen.icon(IconStep.x5), AppSizes.size20);
+      expect(seen.icon(IconStep.x14), AppSizes.size56);
       expect(seen.iconXLarge, AppSizes.iconXLarge);
       expect(seen.borderWidth, AppSizes.borderWidth);
       expect(seen.borderWidthThick, AppSizes.borderWidthThick);
@@ -57,6 +60,7 @@ void main() {
         ),
       );
       expect(seen.buttonHeight, seen.space * 6);
+      expect(seen.barHeight, seen.space * 5);
       expect(seen.inputHeight, seen.space * 7);
     });
 
@@ -72,10 +76,11 @@ void main() {
               return const SizedBox.shrink();
             },
           ),
-          sizes: compact.copyWith(iconSmall: 20, borderWidth: 3),
+          sizes: compact.copyWith(iconUnit: 5, borderWidth: 3),
         ),
       );
       expect(seen.iconSmall, UiScaler.instance.sp(20));
+      expect(seen.icon(IconStep.x2), UiScaler.instance.sp(10));
       expect(seen.borderWidth, UiScaler.instance.px(3));
     });
 

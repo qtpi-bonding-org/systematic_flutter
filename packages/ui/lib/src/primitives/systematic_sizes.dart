@@ -16,6 +16,23 @@ import 'ui_scaler.dart';
 /// [SystematicSizes.standard], the same numbers [AppSizes] uses. Put an
 /// instance in `ThemeData.extensions` to change spacing everywhere that reads
 /// it: [VSpace], [HSpace], `context.padding` and `context.sizes`.
+/// The named icon sizes, as multiples of the icon unit (4 before scaling):
+/// `x4` is 16, `x6` is 24. Mirrors the spacing scale ([VSpace.x1] and so on).
+enum IconStep {
+  x2(2),
+  x3(3),
+  x4(4),
+  x5(5),
+  x6(6),
+  x7(7),
+  x8(8),
+  x12(12),
+  x14(14);
+
+  const IconStep(this.units);
+  final double units;
+}
+
 @immutable
 class SystematicSizes extends ThemeExtension<SystematicSizes> {
   const SystematicSizes({
@@ -25,11 +42,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
     required double radiusSmall,
     required double radiusMedium,
     required double radiusLarge,
-    double iconTiny = 8,
-    double iconSmall = 16,
-    double iconMedium = 24,
-    double iconLarge = 32,
-    double iconXLarge = 48,
+    double iconUnit = 4,
     double borderWidth = 1,
     double borderWidthThick = 2,
   })  : _space = space,
@@ -38,11 +51,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         _radiusSmall = radiusSmall,
         _radiusMedium = radiusMedium,
         _radiusLarge = radiusLarge,
-        _iconTiny = iconTiny,
-        _iconSmall = iconSmall,
-        _iconMedium = iconMedium,
-        _iconLarge = iconLarge,
-        _iconXLarge = iconXLarge,
+        _iconUnit = iconUnit,
         _borderWidth = borderWidth,
         _borderWidthThick = borderWidthThick;
 
@@ -54,11 +63,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         _radiusSmall = 8,
         _radiusMedium = 16,
         _radiusLarge = 24,
-        _iconTiny = 8,
-        _iconSmall = 16,
-        _iconMedium = 24,
-        _iconLarge = 32,
-        _iconXLarge = 48,
+        _iconUnit = 4,
         _borderWidth = 1,
         _borderWidthThick = 2;
 
@@ -74,11 +79,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   final double _radiusSmall;
   final double _radiusMedium;
   final double _radiusLarge;
-  final double _iconTiny;
-  final double _iconSmall;
-  final double _iconMedium;
-  final double _iconLarge;
-  final double _iconXLarge;
+  final double _iconUnit;
   final double _borderWidth;
   final double _borderWidthThick;
 
@@ -94,12 +95,17 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   double get radiusMedium => _scaled(_radiusMedium);
   double get radiusLarge => _scaled(_radiusLarge);
 
-  // Icons scale like text (sp), so they stay in proportion to labels.
-  double get iconTiny => UiScaler.instance.sp(_iconTiny);
-  double get iconSmall => UiScaler.instance.sp(_iconSmall);
-  double get iconMedium => UiScaler.instance.sp(_iconMedium);
-  double get iconLarge => UiScaler.instance.sp(_iconLarge);
-  double get iconXLarge => UiScaler.instance.sp(_iconXLarge);
+  /// An icon size: [step] times the icon unit (4 before scaling), scaled like
+  /// text so icons stay in proportion to labels. Like spacing, a caller picks
+  /// a named step and never writes a pixel count.
+  double icon(IconStep step) => UiScaler.instance.sp(_iconUnit * step.units);
+
+  double get iconTiny => icon(IconStep.x2); // 8
+  double get iconXSmall => icon(IconStep.x3); // 12
+  double get iconSmall => icon(IconStep.x4); // 16
+  double get iconMedium => icon(IconStep.x6); // 24
+  double get iconLarge => icon(IconStep.x8); // 32
+  double get iconXLarge => icon(IconStep.x12); // 48
 
   /// Hairline stroke (1 before scaling).
   double get borderWidth => _scaled(_borderWidth);
@@ -113,6 +119,9 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
   double get inputHeight => space * 7;
   double get appBarHeight => space * 7;
 
+  /// A compact bar: the tab rail row, the top bar, a panel's tab row.
+  double get barHeight => space * 5;
+
   @override
   SystematicSizes copyWith({
     double? space,
@@ -121,11 +130,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
     double? radiusSmall,
     double? radiusMedium,
     double? radiusLarge,
-    double? iconTiny,
-    double? iconSmall,
-    double? iconMedium,
-    double? iconLarge,
-    double? iconXLarge,
+    double? iconUnit,
     double? borderWidth,
     double? borderWidthThick,
   }) =>
@@ -136,11 +141,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
         radiusSmall: radiusSmall ?? _radiusSmall,
         radiusMedium: radiusMedium ?? _radiusMedium,
         radiusLarge: radiusLarge ?? _radiusLarge,
-        iconTiny: iconTiny ?? _iconTiny,
-        iconSmall: iconSmall ?? _iconSmall,
-        iconMedium: iconMedium ?? _iconMedium,
-        iconLarge: iconLarge ?? _iconLarge,
-        iconXLarge: iconXLarge ?? _iconXLarge,
+        iconUnit: iconUnit ?? _iconUnit,
         borderWidth: borderWidth ?? _borderWidth,
         borderWidthThick: borderWidthThick ?? _borderWidthThick,
       );
@@ -156,11 +157,7 @@ class SystematicSizes extends ThemeExtension<SystematicSizes> {
       radiusSmall: mix(_radiusSmall, other._radiusSmall),
       radiusMedium: mix(_radiusMedium, other._radiusMedium),
       radiusLarge: mix(_radiusLarge, other._radiusLarge),
-      iconTiny: mix(_iconTiny, other._iconTiny),
-      iconSmall: mix(_iconSmall, other._iconSmall),
-      iconMedium: mix(_iconMedium, other._iconMedium),
-      iconLarge: mix(_iconLarge, other._iconLarge),
-      iconXLarge: mix(_iconXLarge, other._iconXLarge),
+      iconUnit: mix(_iconUnit, other._iconUnit),
       borderWidth: mix(_borderWidth, other._borderWidth),
       borderWidthThick: mix(_borderWidthThick, other._borderWidthThick),
     );
