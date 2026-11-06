@@ -7,6 +7,7 @@ export 'package:l10n_key_resolver/runtime.dart';
 
 // Utility extensions
 export 'src/utils/cubit_extensions.dart';
+export 'src/utils/try_method.dart';
 
 // Widget implementations
 export 'src/widgets/ui_flow_state_listener.dart';

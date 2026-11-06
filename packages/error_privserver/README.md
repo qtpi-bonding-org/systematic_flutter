@@ -10,6 +10,26 @@ Privacy-preserving error reporting library for Flutter apps using cubit_ui_flow.
 - **Seamless Integration**: Mixin approach works with any cubit base class
 - **Flexible UI**: Interface-based design works with any design system
 
+## Error codes that name the cause: `CauseChainErrorCodeMapper`
+
+The default `ErrorCodeMapper` keys on the exception type alone. For apps that
+wrap failures with `tryMethod`, use `CauseChainErrorCodeMapper`:
+
+```dart
+const mapper = CauseChainErrorCodeMapper(
+  codes: {'AuthException': 'AUTH_001', 'NoteException': 'NOTE_001'},
+  steps: [('login', 'LOGIN'), ('save', 'SAVE')],
+  extraCause: myHttpClientCause, // optional: name causes from your own libraries
+);
+ErrorPrivserverConfig(errorCodeMapper: mapper.mapError, /* ... */);
+```
+
+A code reads `BASE[.STEP][.CAUSE]`, for example `AUTH_001.LOGIN.DNS`. The inbox
+groups entries by type, code and source, so each step and cause is its own row.
+Nothing from a message is copied into the code: the step is a fixed token chosen
+by a keyword match on the developer's method label, and the cause comes from
+exception types in the chain (`WrappedFailure.cause`, `SafeExceptionCause`).
+
 ## Privacy Model
 
 This library ensures privacy through **what we capture**, not by scrubbing what we capture:

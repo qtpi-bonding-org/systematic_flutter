@@ -14,6 +14,7 @@ export 'src/storage/error_box_storage.dart';
 
 // Utilities
 export 'src/utils/error_code_mapper.dart';
+export 'src/utils/cause_chain_error_code_mapper.dart';
 
 // Convenience API
 export 'src/error_privserver.dart';

@@ -60,13 +60,14 @@ mixin TryOperationMixin<S extends IUiFlowState> on Cubit<S> {
     bool emitLoading = false,
   }) async {
     try {
-      if (emitLoading) {
+      if (emitLoading && !isClosed) {
         emit(createLoadingState());
       }
       final successState = await action();
-      emit(successState);
+      if (!isClosed) emit(successState);
     } catch (error, stackTrace) {
-      emit(createErrorState(error));
+      // A cubit closed mid-operation (a page popped) must not throw on emit.
+      if (!isClosed) emit(createErrorState(error));
       onOperationError(error, stackTrace);
       // Error is now in state - no need to rethrow
     }
@@ -99,13 +100,14 @@ abstract class TryOperationCubit<S extends IUiFlowState> extends Cubit<S> {
     bool emitLoading = false,
   }) async {
     try {
-      if (emitLoading) {
+      if (emitLoading && !isClosed) {
         emit(createLoadingState());
       }
       final successState = await action();
-      emit(successState);
+      if (!isClosed) emit(successState);
     } catch (error, stackTrace) {
-      emit(createErrorState(error));
+      // A cubit closed mid-operation (a page popped) must not throw on emit.
+      if (!isClosed) emit(createErrorState(error));
       onOperationError(error, stackTrace);
       // Error is now in state - no need to rethrow
     }

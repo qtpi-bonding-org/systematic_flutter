@@ -203,4 +203,24 @@ void main() {
       await cubit.close();
     });
   });
+
+  group('a cubit closed while an operation runs', () {
+    test('does not throw when the success state is emitted', () async {
+      final cubit = _FlatCubit();
+      final done = cubit.tryOperation(() async {
+        await cubit.close();
+        return const _FlatState(status: UiFlowStatus.success);
+      });
+      await expectLater(done, completes);
+    });
+
+    test('does not throw when the error state is emitted', () async {
+      final cubit = _FlatCubit();
+      final done = cubit.tryOperation(() async {
+        await cubit.close();
+        throw Exception('late failure');
+      });
+      await expectLater(done, completes);
+    });
+  });
 }
