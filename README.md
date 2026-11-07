@@ -7,6 +7,7 @@ The shared Flutter foundation for the apps (Episutra, Quanitya, Pocketcoder, Ach
 | Folder | Pub name | What it is |
 |---|---|---|
 | `packages/l10n` | `l10n_key_resolver` | build_runner generator: ARB keys to a resolver and typed key constants |
+| `packages/systematic_failure` | `systematic_failure` | pure-Dart failure classification and stable error descriptions; depends on `l10n` |
 | `packages/cubit_ui_flow` | `cubit_ui_flow` | cubit state to UI feedback: `MessageKey`, listener, exception mapping |
 | `packages/ui` | `systematic_ui` | design tokens (`AppSizes`, `VSpace`, `HSpace`, `AppPadding`, `UiScaler`), `ThemeService`, layout widgets |
 | `packages/lints` | `systematic_lints` | analyzer plugin: design-token, label and cubit/adapter rules; options and path scoping come from the app's `lint_config.yaml` |
@@ -27,12 +28,13 @@ cubit_ui_flow:
 ## Layering (dependencies point down only)
 
 1. `l10n`: no widgets, no Flutter.
-2. `cubit_ui_flow`: may use `l10n`.
-3. `ui`: may use `l10n` and `color_palette`.
-3. `error_privserver`: uses `cubit_ui_flow`.
-4. `nav_snapshot`: independent.
-5. `color_palette`: independent.
-6. `lints`: independent (an analyzer plugin; it reads source, it does not depend on the other packages).
+2. `systematic_failure`: pure Dart; may use `l10n`; `cubit_ui_flow` and `error_privserver` will later use it.
+3. `cubit_ui_flow`: may use `l10n` and `systematic_failure`.
+4. `ui`: may use `l10n` and `color_palette`.
+4. `error_privserver`: uses `cubit_ui_flow`.
+5. `nav_snapshot`: independent.
+6. `color_palette`: independent.
+7. `lints`: independent (an analyzer plugin; it reads source, it does not depend on the other packages).
 
 ## History
 
