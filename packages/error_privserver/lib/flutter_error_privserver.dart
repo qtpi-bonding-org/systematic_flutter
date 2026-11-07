@@ -6,6 +6,4 @@ export 'src/models/error_entry.dart';
 export 'src/storage/error_box_storage.dart';
 export 'src/retention_policy.dart';
 export 'src/build_info.dart';
-export 'src/utils/error_code_mapper.dart';
-export 'src/utils/cause_chain_error_code_mapper.dart';
 export 'src/error_privserver.dart';

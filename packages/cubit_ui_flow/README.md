@@ -108,32 +108,15 @@ AsyncUiListener<TrackerCubit, TrackerState>(
 )
 ```
 
-## Wrapping failures in services and repositories: `tryMethod`
+## Failures in services and repositories
 
-`tryOperation` is the cubit side. The service/repository side is `tryMethod`:
-
-```dart
-Future<Note> create(Note note) => tryMethod(
-  () async => _dao.insert(note),
-  NoteException.new,   // implements Exception, WrappedFailure
-  'create',
-);
-```
-
-A failure that is not already a `NoteException` becomes one. The original stack
-trace is kept, and the cause is a `SafeExceptionCause` whose `toString` is only
-the type name, so a message containing user data never reaches a report. A bug
-(an `Error`) is wrapped as well and stays visible in the error code as
-`OTHER_<Type>`; it is not hidden from the error inbox.
-
-Wrap where a layer owns a typed exception that a mapper or caller uses. A
-one-line pass-through does not need it. Do not wrap a call that already throws
-a different, mapped domain exception: `tryMethod` only passes through its own
-target type.
-
-Make your exception classes implement `WrappedFailure` (`message`, `cause`), so
-`flutter_error_privserver`'s `CauseChainErrorCodeMapper` can build codes such as
-`AUTH_001.LOGIN.DNS`.
+Services and repositories do not wrap failures: a raw failure propagates as
+itself, and `classify` (package `systematic_failure`) sorts it into bug, domain
+or environment where it is used. The only conversion allowed is a typed
+`on SomeType catch` that throws a `DomainException` or `EnvironmentException`.
+Stream `onError` handlers and other paths that cannot use `tryOperation` call
+`reportFailure(error, stack)`. See `docs/error-handling.md` in the repository
+root.
 
 ## Architecture
 

@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ErrorPrivserverCubit` convenience class (deprecated in favor of mixin)
 - `SharedPrefsErrorBoxStorage` implementation for local error storage
 - Automatic error deduplication based on fingerprinting
-- `ErrorCodeMapper` utility for mapping exceptions to safe error codes
 - Builder interfaces for customizable UI (`ErrorToastBuilder`, `ErrorBoxPageBuilder`, `ErrorBoxCardBuilder`)
 - `ErrorBoxPageCubit` for managing error box page state
 - Complete example app demonstrating usage

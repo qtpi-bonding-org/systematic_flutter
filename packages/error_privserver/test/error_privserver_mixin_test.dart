@@ -51,8 +51,6 @@ void main() {
     ErrorPrivserverMixin.configure(ErrorPrivserverConfig(
       storage: storage,
       reporter: (_) async => true,
-      errorCodeMapper: (_) => 'ERR',
-      exceptionMapper: (_) => null,
     ));
 
     final cubit = _Cubit();
@@ -70,8 +68,6 @@ void main() {
     ErrorPrivserverMixin.configure(ErrorPrivserverConfig(
       storage: storage,
       reporter: (_) async => true,
-      errorCodeMapper: (_) => 'ERR',
-      exceptionMapper: (_) => null,
     ));
 
     final cubit = _Cubit();
