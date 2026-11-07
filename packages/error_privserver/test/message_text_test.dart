@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('keeps the key of a localized label', () {
     expect(
-      messageText(const MessageKey.error(L10nKey.generated('error.acp.failed'))),
+      messageText(
+          const MessageKey.error(L10nKey.generated('error.acp.failed'))),
       'error.acp.failed',
     );
   });

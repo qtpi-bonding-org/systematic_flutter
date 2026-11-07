@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-
 import '../models/error_entry.dart';
 
-/// Abstract storage interface for error box entries
 abstract class ErrorBoxStorage {
   Future<void> saveError(ErrorEntry error);
+
+  /// Every stored row, sent or not (retention needs the whole inbox).
+  Future<List<ErrorBoxEntry>> getAll();
+
+  /// Removes the rows with these ids; unknown ids are ignored.
+  Future<void> deleteErrors(List<String> ids);
+
   Future<List<ErrorBoxEntry>> getUnsentErrors();
   Future<ErrorBoxEntry?> getErrorById(String id);
   Future<void> markAsSent(String id);
@@ -14,110 +19,83 @@ abstract class ErrorBoxStorage {
   Future<int> getUnsentCount();
 }
 
-/// SharedPreferences implementation of ErrorBoxStorage
-/// 
-/// Provides automatic deduplication based on error fingerprints.
-/// When the same error occurs multiple times, it increments the count
-/// instead of creating duplicate entries.
-class SharedPrefsErrorBoxStorage implements ErrorBoxStorage {
-  static const String _key = 'flutter_error_privserver_entries';
-  static const Uuid _uuid = Uuid();
-  
-  @override
-  Future<void> saveError(ErrorEntry error) async {
-    final entries = await _loadEntries();
-    
-    // Generate fingerprint for deduplication
-    final fingerprint = ErrorBoxEntry.generateFingerprint(error);
-    
-    // Check for existing error with same fingerprint
-    final existingIndex = entries.indexWhere((e) => e.fingerprint == fingerprint && !e.wasSent);
-    
-    if (existingIndex != -1) {
-      // Update existing entry - increment count and update timestamp
-      entries[existingIndex] = entries[existingIndex].incrementCount();
-    } else {
-      // Create new entry
-      final newEntry = ErrorBoxEntry(
-        id: _uuid.v4(),
+void saveDeduplicated(List<ErrorBoxEntry> entries, ErrorEntry error) {
+  final fingerprint = ErrorBoxEntry.generateFingerprint(error);
+  final index =
+      entries.indexWhere((e) => e.fingerprint == fingerprint && !e.wasSent);
+  if (index >= 0) {
+    entries[index] = entries[index].incrementCount();
+  } else {
+    final now = DateTime.now();
+    entries.add(ErrorBoxEntry(
+        id: const Uuid().v4(),
         fingerprint: fingerprint,
         errorData: error,
         occurrenceCount: 1,
-        firstOccurred: DateTime.now(),
-        lastOccurred: DateTime.now(),
-      );
-      entries.add(newEntry);
-    }
-    
-    await _saveEntries(entries);
+        firstOccurred: now,
+        lastOccurred: now));
   }
-  
-  @override
-  Future<List<ErrorBoxEntry>> getUnsentErrors() async {
-    final entries = await _loadEntries();
-    return entries
-        .where((entry) => !entry.wasSent)
-        .toList()
-      ..sort((a, b) => b.lastOccurred.compareTo(a.lastOccurred));
-  }
-  
-  @override
-  Future<ErrorBoxEntry?> getErrorById(String id) async {
-    final entries = await _loadEntries();
-    try {
-      return entries.firstWhere((e) => e.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-  
-  @override
-  Future<void> markAsSent(String id) async {
-    final entries = await _loadEntries();
-    final index = entries.indexWhere((e) => e.id == id);
-    
-    if (index != -1) {
-      entries[index] = entries[index].copyWith(
-        wasSent: true,
-        sentAt: DateTime.now(),
-      );
-      await _saveEntries(entries);
-    }
-  }
-  
-  @override
-  Future<void> deleteError(String id) async {
-    final entries = await _loadEntries();
-    entries.removeWhere((e) => e.id == id);
-    await _saveEntries(entries);
-  }
-  
-  @override
-  Future<int> getUnsentCount() async {
-    final entries = await getUnsentErrors();
-    return entries.length;
-  }
-  
-  Future<List<ErrorBoxEntry>> _loadEntries() async {
+}
+
+class SharedPrefsErrorBoxStorage implements ErrorBoxStorage {
+  static const _key = 'flutter_error_privserver_entries';
+  Future<List<ErrorBoxEntry>> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_key) ?? '[]';
-      final jsonList = jsonDecode(jsonString) as List;
-      
-      return jsonList
-          .map((json) => ErrorBoxEntry.fromJson(json as Map<String, dynamic>))
+      final list = jsonDecode(prefs.getString(_key) ?? '[]') as List;
+      return list
+          .map((e) => ErrorBoxEntry.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (e) {
-      // If there's any error loading, return empty list and clear corrupted data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_key);
+    } catch (_) {
       return [];
     }
   }
-  
-  Future<void> _saveEntries(List<ErrorBoxEntry> entries) async {
+
+  Future<void> _save(List<ErrorBoxEntry> entries) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonList = entries.map((e) => e.toJson()).toList();
-    await prefs.setString(_key, jsonEncode(jsonList));
+    await prefs.setString(
+        _key, jsonEncode(entries.map((e) => e.toJson()).toList()));
   }
+
+  @override
+  Future<void> saveError(ErrorEntry error) async {
+    final e = await _load();
+    saveDeduplicated(e, error);
+    await _save(e);
+  }
+
+  @override
+  Future<List<ErrorBoxEntry>> getAll() => _load();
+  @override
+  Future<void> deleteErrors(List<String> ids) async {
+    final e = await _load();
+    e.removeWhere((x) => ids.contains(x.id));
+    await _save(e);
+  }
+
+  @override
+  Future<List<ErrorBoxEntry>> getUnsentErrors() async =>
+      (await _load()).where((e) => !e.wasSent).toList();
+  @override
+  Future<ErrorBoxEntry?> getErrorById(String id) async {
+    for (final e in await _load()) {
+      if (e.id == id) return e;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> markAsSent(String id) async {
+    final e = await _load();
+    final i = e.indexWhere((x) => x.id == id);
+    if (i >= 0) {
+      e[i] = e[i].copyWith(wasSent: true, sentAt: DateTime.now());
+      await _save(e);
+    }
+  }
+
+  @override
+  Future<void> deleteError(String id) => deleteErrors([id]);
+  @override
+  Future<int> getUnsentCount() async => (await getUnsentErrors()).length;
 }

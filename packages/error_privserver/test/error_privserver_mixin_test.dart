@@ -13,7 +13,8 @@ class _State with UiFlowStateMixin {
       _State(status: status ?? this.status, error: error ?? this.error);
 }
 
-class _Cubit extends TryOperationCubit<_State> with ErrorPrivserverMixin<_State> {
+class _Cubit extends TryOperationCubit<_State>
+    with ErrorPrivserverMixin<_State> {
   _Cubit() : super(const _State());
 
   Future<void> fail() => tryOperation(() async => throw Exception('boom'));
@@ -27,6 +28,10 @@ class _FakeStorage implements ErrorBoxStorage {
   @override
   Future<void> saveError(ErrorEntry error) async => saved.add(error);
   @override
+  Future<List<ErrorBoxEntry>> getAll() async => [];
+  @override
+  Future<void> deleteErrors(List<String> ids) async {}
+  @override
   Future<List<ErrorBoxEntry>> getUnsentErrors() async => [];
   @override
   Future<ErrorBoxEntry?> getErrorById(String id) async => null;
@@ -39,7 +44,9 @@ class _FakeStorage implements ErrorBoxStorage {
 }
 
 void main() {
-  test('captures an operation error via the onOperationError hook, not by duplicating tryOperation', () async {
+  test(
+      'captures an operation error via the onOperationError hook, not by duplicating tryOperation',
+      () async {
     final storage = _FakeStorage();
     ErrorPrivserverMixin.configure(ErrorPrivserverConfig(
       storage: storage,

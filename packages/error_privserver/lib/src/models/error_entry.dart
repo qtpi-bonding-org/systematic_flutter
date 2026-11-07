@@ -1,160 +1,173 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:systematic_failure/systematic_failure.dart';
 
-/// Privacy-preserving error data sent to server
-/// 
-/// Privacy comes from WHAT we capture, not from scrubbing what we capture:
-/// - Only error types (safe by design)
-/// - Only cubit class names (safe by design) 
-/// - Full raw stack traces (complete debugging info)
-/// - Mapped error codes (safe by design)
-/// - No function arguments, no user input, no PII
+import '../build_info.dart';
+
 class ErrorEntry {
   const ErrorEntry({
-    required this.source,
+    required this.bin,
     required this.errorType,
-    required this.errorCode,
+    this.kind,
+    required this.source,
     required this.stackTrace,
     required this.timestamp,
-    this.userMessage,
+    this.appVersion,
+    this.commit,
   });
 
-  final String source;           // Cubit class name: "AccountCubit"
-  final String errorType;        // Exception type: "NetworkException"  
-  final String errorCode;        // Safe mapped code: "NET_001"
-  final String stackTrace;       // FULL raw stack trace - no truncation or sanitization
+  final Bin bin;
+  final String errorType;
+  final String? kind;
+  final String source;
+  final String stackTrace;
   final DateTime timestamp;
-  final String? userMessage;     // Optional: what user saw from IExceptionKeyMapper
+  final String? appVersion;
+  final String? commit;
+
+  factory ErrorEntry.fromFailure(
+    Failure failure, {
+    required String errorType,
+    required String source,
+    required String stackTrace,
+    required DateTime timestamp,
+    BuildInfo? buildInfo,
+  }) =>
+      ErrorEntry(
+        bin: failure.bin,
+        errorType: errorType,
+        kind: failure.kind,
+        source: source,
+        stackTrace: stackTrace,
+        timestamp: timestamp,
+        appVersion: buildInfo?.appVersion,
+        commit: buildInfo?.commit,
+      );
 
   factory ErrorEntry.fromJson(Map<String, dynamic> json) => ErrorEntry(
-    source: json['source'] as String,
-    errorType: json['errorType'] as String,
-    errorCode: json['errorCode'] as String,
-    stackTrace: json['stackTrace'] as String,
-    timestamp: DateTime.parse(json['timestamp'] as String),
-    userMessage: json['userMessage'] as String?,
-  );
+        bin: Bin.values.byName(json['bin'] as String),
+        errorType: json['errorType'] as String,
+        kind: json['kind'] as String?,
+        source: json['source'] as String,
+        stackTrace: json['stackTrace'] as String,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        appVersion: json['appVersion'] as String?,
+        commit: json['commit'] as String?,
+      );
 
   Map<String, dynamic> toJson() => {
-    'source': source,
-    'errorType': errorType,
-    'errorCode': errorCode,
-    'stackTrace': stackTrace,
-    'timestamp': timestamp.toIso8601String(),
-    'userMessage': userMessage,
-  };
+        'bin': bin.name,
+        'errorType': errorType,
+        'kind': kind,
+        'source': source,
+        'stackTrace': stackTrace,
+        'timestamp': timestamp.toIso8601String(),
+        'appVersion': appVersion,
+        'commit': commit,
+      };
+
+  Map<String, dynamic> toReportJson() => {
+        'schemaVersion': 1,
+        'source': source,
+        'errorType': errorType,
+        // The server still requires a non-null errorCode string.
+        'errorCode': bin.name,
+        'bin': bin.name,
+        'kind': kind,
+        'stackTrace': stackTrace,
+        'timestamp': timestamp.toIso8601String(),
+        'appVersion': appVersion,
+        'commit': commit,
+      };
 
   @override
-  String toString() => 'ErrorEntry(source: $source, errorType: $errorType, errorCode: $errorCode)';
+  String toString() =>
+      'ErrorEntry(source: $source, errorType: $errorType, bin: ${bin.name})';
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
       other is ErrorEntry &&
-          runtimeType == other.runtimeType &&
-          source == other.source &&
-          errorType == other.errorType &&
-          errorCode == other.errorCode &&
-          stackTrace == other.stackTrace &&
-          timestamp == other.timestamp &&
-          userMessage == other.userMessage;
+      bin == other.bin &&
+      errorType == other.errorType &&
+      kind == other.kind &&
+      source == other.source &&
+      stackTrace == other.stackTrace &&
+      timestamp == other.timestamp &&
+      appVersion == other.appVersion &&
+      commit == other.commit;
 
   @override
-  int get hashCode =>
-      source.hashCode ^
-      errorType.hashCode ^
-      errorCode.hashCode ^
-      stackTrace.hashCode ^
-      timestamp.hashCode ^
-      userMessage.hashCode;
+  int get hashCode => Object.hash(
+      bin, errorType, kind, source, stackTrace, timestamp, appVersion, commit);
 }
 
-/// Local storage wrapper with user metadata
 class ErrorBoxEntry {
-  const ErrorBoxEntry({
-    required this.id,
-    required this.fingerprint,
-    required this.errorData,
-    required this.occurrenceCount,
-    required this.firstOccurred,
-    required this.lastOccurred,
-    this.wasSent = false,
-    this.sentAt,
-  });
+  const ErrorBoxEntry(
+      {required this.id,
+      required this.fingerprint,
+      required this.errorData,
+      required this.occurrenceCount,
+      required this.firstOccurred,
+      required this.lastOccurred,
+      this.wasSent = false,
+      this.sentAt});
+  final String id;
+  final String fingerprint;
+  final ErrorEntry errorData;
+  final int occurrenceCount;
+  final DateTime firstOccurred;
+  final DateTime lastOccurred;
+  final bool wasSent;
+  final DateTime? sentAt;
 
-  final String id;               // UUID
-  final String fingerprint;      // Hash for deduplication
-  final ErrorEntry errorData;    // The actual error data
-  final int occurrenceCount;     // How many times this error occurred
-  final DateTime firstOccurred;  // When first seen
-  final DateTime lastOccurred;   // When last seen
-  final bool wasSent;           // User sent this error
-  final DateTime? sentAt;       // When user sent it
-
-  ErrorBoxEntry copyWith({
-    int? occurrenceCount,
-    DateTime? lastOccurred,
-    bool? wasSent,
-    DateTime? sentAt,
-  }) {
-    return ErrorBoxEntry(
-      id: id,
-      fingerprint: fingerprint,
-      errorData: errorData,
-      occurrenceCount: occurrenceCount ?? this.occurrenceCount,
-      firstOccurred: firstOccurred,
-      lastOccurred: lastOccurred ?? this.lastOccurred,
-      wasSent: wasSent ?? this.wasSent,
-      sentAt: sentAt ?? this.sentAt,
-    );
-  }
-
-  ErrorBoxEntry incrementCount() {
-    return copyWith(
-      occurrenceCount: occurrenceCount + 1,
-      lastOccurred: DateTime.now(),
-    );
-  }
+  ErrorBoxEntry copyWith(
+          {int? occurrenceCount,
+          DateTime? lastOccurred,
+          bool? wasSent,
+          DateTime? sentAt}) =>
+      ErrorBoxEntry(
+          id: id,
+          fingerprint: fingerprint,
+          errorData: errorData,
+          occurrenceCount: occurrenceCount ?? this.occurrenceCount,
+          firstOccurred: firstOccurred,
+          lastOccurred: lastOccurred ?? this.lastOccurred,
+          wasSent: wasSent ?? this.wasSent,
+          sentAt: sentAt ?? this.sentAt);
+  ErrorBoxEntry incrementCount() => copyWith(
+      occurrenceCount: occurrenceCount + 1, lastOccurred: DateTime.now());
 
   factory ErrorBoxEntry.fromJson(Map<String, dynamic> json) => ErrorBoxEntry(
-    id: json['id'] as String,
-    fingerprint: json['fingerprint'] as String,
-    errorData: ErrorEntry.fromJson(json['errorData'] as Map<String, dynamic>),
-    occurrenceCount: json['occurrenceCount'] as int,
-    firstOccurred: DateTime.parse(json['firstOccurred'] as String),
-    lastOccurred: DateTime.parse(json['lastOccurred'] as String),
-    wasSent: json['wasSent'] as bool,
-    sentAt: json['sentAt'] != null ? DateTime.parse(json['sentAt'] as String) : null,
-  );
+      id: json['id'] as String,
+      fingerprint: json['fingerprint'] as String,
+      errorData: ErrorEntry.fromJson(json['errorData'] as Map<String, dynamic>),
+      occurrenceCount: json['occurrenceCount'] as int,
+      firstOccurred: DateTime.parse(json['firstOccurred'] as String),
+      lastOccurred: DateTime.parse(json['lastOccurred'] as String),
+      wasSent: json['wasSent'] as bool,
+      sentAt: json['sentAt'] == null
+          ? null
+          : DateTime.parse(json['sentAt'] as String));
 
-  /// Generate fingerprint for deduplication based on error characteristics
-  static String generateFingerprint(ErrorEntry error) {
-    // Combine error type, code, and source for fingerprint
-    final combined = '${error.errorType}:${error.errorCode}:${error.source}';
-    return sha256.convert(utf8.encode(combined)).toString();
-  }
-
+  static String generateFingerprint(ErrorEntry error) => sha256
+      .convert(utf8.encode(
+          '${error.bin.name}:${error.errorType}:${error.kind ?? ''}:${error.source}'))
+      .toString();
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'fingerprint': fingerprint,
-    'errorData': errorData.toJson(),
-    'occurrenceCount': occurrenceCount,
-    'firstOccurred': firstOccurred.toIso8601String(),
-    'lastOccurred': lastOccurred.toIso8601String(),
-    'wasSent': wasSent,
-    'sentAt': sentAt?.toIso8601String(),
-  };
-
+        'id': id,
+        'fingerprint': fingerprint,
+        'errorData': errorData.toJson(),
+        'occurrenceCount': occurrenceCount,
+        'firstOccurred': firstOccurred.toIso8601String(),
+        'lastOccurred': lastOccurred.toIso8601String(),
+        'wasSent': wasSent,
+        'sentAt': sentAt?.toIso8601String()
+      };
   @override
-  String toString() => 'ErrorBoxEntry(id: $id, errorCode: ${errorData.errorCode}, count: $occurrenceCount, sent: $wasSent)';
-
+  String toString() =>
+      'ErrorBoxEntry(id: $id, bin: ${errorData.bin.name}, count: $occurrenceCount, sent: $wasSent)';
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ErrorBoxEntry &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
+  bool operator ==(Object other) => other is ErrorBoxEntry && id == other.id;
   @override
   int get hashCode => id.hashCode;
 }

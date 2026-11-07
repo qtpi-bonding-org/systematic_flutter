@@ -50,8 +50,7 @@ void main() {
   });
 
   test('names a DNS cause through a SafeExceptionCause', () {
-    final e = AuthException(
-        'login failed: SocketException',
+    final e = AuthException('login failed: SocketException',
         wrapped(const SocketException("Failed host lookup: 'a.example'")));
     expect(mapper.mapError(e), 'AUTH_001.LOGIN.DNS');
   });
@@ -89,8 +88,7 @@ void main() {
   test('extraCause hook lets an app name its own causes', () {
     final custom = CauseChainErrorCodeMapper(
       codes: {'AuthException': 'AUTH_001'},
-      extraCause: (error, depth) =>
-          error is FormatException ? 'FORMAT' : null,
+      extraCause: (error, depth) => error is FormatException ? 'FORMAT' : null,
     );
     expect(
         custom.mapError(AuthException('x', wrapped(const FormatException()))),

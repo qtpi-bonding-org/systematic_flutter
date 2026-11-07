@@ -1,5 +1,5 @@
 name: flutter_error_privserver
-description: Privacy-preserving error reporting library for Flutter apps using cubit_ui_flow. Captures error types and stack traces without PII.
+description: Privacy-preserving error reporting library for Flutter apps using cubit_ui_flow.
 version: 0.1.0
 homepage: https://github.com/qtpi-bonding-org/systematic_flutter
 publish_to: none
@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   cubit_ui_flow:
     path: ../cubit_ui_flow
+  systematic_failure:
+    path: ../systematic_failure
   flutter_bloc: ^8.1.0
   uuid: ^4.0.0
   crypto: ^3.0.0
