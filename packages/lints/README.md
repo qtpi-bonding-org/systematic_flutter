@@ -13,37 +13,29 @@ plugins:
       url: git@github.com:qtpi-bonding-org/systematic_flutter.git
       ref: <same ref as the other packages>
       path: packages/lints
-    diagnostics:
-      no_hardcoded_colors: true
-      no_hardcoded_font_size: true
-      no_hardcoded_padding: true
-      no_raw_sizedbox_spacing: true
-      no_hardcoded_strings: true
 ```
 
-`lint_config.yaml` at the app's root holds the options and the paths each rule looks at:
+`lint_config.yaml` at the app's root holds options and paths. Options are lists of globs or names:
 
 ```yaml
-exclude: [test/**, "**/*.g.dart", "**/*.freezed.dart", "**/*.stories.dart"]  # these are the defaults
-no_hardcoded_colors:
-  banned_types: [Colors]
-  exclude: [lib/design_system/storybook/**]   # added to the global excludes
-no_hardcoded_strings:
-  include: [lib/features/**]                  # only these paths; ignores the global excludes
-no_inline_widget_composition_in_pages:
-  page_suffix: Page
+no_string_error_in_state:
+  argument_names: [error]
+  mutators: [withError, applyFlow]
+no_error_to_text:
+  allowed_files: [lib/generated/**]
+  logger_types: [Logger, AppLogger]
 ```
-
-No generator step: the plugin reads the file when it analyzes, and re-reads it when it changes.
-
-## First run
-
-The first analyze after setup can report nothing while the plugin builds. Run `tool/smoke.sh <app dir>` (it plants a known violation and retries) before trusting a clean result in CI.
 
 ## Rules
 
-Design tokens: `no_hardcoded_colors`, `no_hardcoded_font_size`, `no_hardcoded_font_family`, `no_hardcoded_padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes` (a read of the static `AppSizes` scale where the theme supplies it; fonts too, since the text theme builds from the theme's sizes; `allowed_members` lists names to allow anyway, a trailing `*` allows a prefix).
-Repo choices: `no_banned_constructors` bans types a repo has decided against. The list is the repo's own and the rule does nothing without one: `banned: [RoundedRectangleBorder, BorderRadius.circular]`, where an entry is a type name (every constructor) or `Type.constructor`.
-Labels: `no_hardcoded_strings` (a literal in `Text(...)` or in `tooltip:`, `hintText:`, `label:` and similar; set `text_arguments` to change the list).
-Structure: `no_inline_widget_composition_in_pages`.
-Layering: `avoid_bloc_imports_in_widgets_dir`, `avoid_getit_in_adapters_dir`, `require_cubitfield_over_raw_bloc_apis`, `require_static_selector`, `cubit_field_selector_must_be_equatable`, `no_duplicate_cubitfield_keys`.
+Design tokens: `no_hardcoded_colors`, `no_hardcoded_font_size`, `no_hardcoded_font_family`, `no_hardcoded_padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes`.
+Labels: `no_hardcoded_strings`.
+Structure and layering: `no_inline_widget_composition_in_pages`, `avoid_bloc_imports_in_widgets_dir`, `avoid_getit_in_adapters_dir`, `require_cubitfield_over_raw_bloc_apis`, `require_static_selector`, `cubit_field_selector_must_be_equatable`, `no_duplicate_cubitfield_keys`.
+
+Failure discipline: `exceptions_extend_failure_base`, `throw_only_failure_types`, and `no_bare_catch_conversion` enforce failure boundaries. `no_string_error_in_state` flags a statically typed `String` passed to configured error named arguments of configured mutators. `no_error_to_text` flags `.toString()` and interpolation of statically known subtypes of `Exception` or `Error`. Its `allowed_files` and `logger_types` options suppress intentional conversions; a logger suppression applies when the conversion is an argument of a call whose receiver has that static type name. A catch variable typed only `Object?` is not flagged (the rule intentionally relies on static types).
+
+## Lint ratchet
+
+`tool/check_lints.sh` reads a small YAML config (see `tool/lint_ratchet.example.yaml`) specifying package directories, a baseline path, and a probe rule. It runs `dart analyze`, verifies the plugin probe, and compares findings with the baseline. `tool/lint_baseline.py --update` refreshes it. The dependency-free self-test is `python3 tool/test_lint_baseline.py`.
+
+First analyze after setup can report nothing while the plugin builds; use `tool/smoke.sh` before trusting a clean result.

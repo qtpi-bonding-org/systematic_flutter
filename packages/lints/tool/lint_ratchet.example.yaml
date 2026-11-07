@@ -1,0 +1,6 @@
+# Copy to tool/lint_ratchet.yaml and adjust for an application.
+# Paths are relative to the repository root.
+package_dirs: [packages/example]
+baseline: tool/lint-baseline.txt
+# A deliberately tiny probe finding proving the analyzer loaded the plugin.
+probe_rule: no_hardcoded_font_size

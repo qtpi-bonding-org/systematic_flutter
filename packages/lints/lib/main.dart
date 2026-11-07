@@ -16,6 +16,11 @@ import 'src/rules/no_raw_app_sizes.dart';
 import 'src/rules/no_raw_sizedbox_spacing.dart';
 import 'src/rules/require_cubitfield_over_raw_bloc_apis.dart';
 import 'src/rules/require_static_selector.dart';
+import 'src/rules/exceptions_extend_failure_base.dart';
+import 'src/rules/throw_only_failure_types.dart';
+import 'src/rules/no_bare_catch_conversion.dart';
+import 'src/rules/no_error_to_text.dart';
+import 'src/rules/no_string_error_in_state.dart';
 
 final plugin = SystematicLintsPlugin();
 
@@ -41,5 +46,11 @@ class SystematicLintsPlugin extends Plugin {
       ..registerLintRule(RequireStaticSelector())
       ..registerLintRule(CubitFieldSelectorMustBeEquatable())
       ..registerLintRule(NoDuplicateCubitFieldKeys());
+    registry
+      ..registerLintRule(ExceptionsExtendFailureBase())
+      ..registerLintRule(ThrowOnlyFailureTypes())
+      ..registerLintRule(NoBareCatchConversion())
+      ..registerLintRule(NoErrorToText());
+    registry.registerLintRule(NoStringErrorInState());
   }
 }
