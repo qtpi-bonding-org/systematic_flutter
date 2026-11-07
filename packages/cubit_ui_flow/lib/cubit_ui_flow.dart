@@ -18,4 +18,5 @@ export 'src/widgets/multi_cubit_adapter.dart';
 
 // Service implementations
 export 'src/impl/ui_flow_service_impl.dart';
-
+export 'src/impl/base_state_message_mapper.dart';
+export 'src/impl/classifying_exception_key_mapper.dart';

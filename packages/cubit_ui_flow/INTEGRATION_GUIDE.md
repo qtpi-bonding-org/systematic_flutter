@@ -269,9 +269,9 @@ void configureDependencies() {
     () => AppLoadingService(),
   );
   
-  // Global mappers
+  // Global classification mapper (does not inspect exception text)
   getIt.registerLazySingleton<IExceptionKeyMapper>(
-    () => AppExceptionKeyMapper(),
+    () => ClassifyingExceptionKeyMapper(generic: L10nKeys.errorGeneric),
   );
   
   // Orchestrator (use library default or your own)
@@ -409,7 +409,7 @@ class TrackerCubit extends Cubit<TrackerState> with TryOperationMixin<TrackerSta
 3. AsyncUiListener detects status change → calls mapper.map(state)
    ↓
 4. BaseStateMessageMapper checks:
-   - Has error? → IExceptionKeyMapper.map(error) → MessageKey
+   - Domain mapper first; otherwise error → IExceptionKeyMapper.map(error) → MessageKey
    - Success? → IDomainStateKeyMapper.map(state) → MessageKey or null
    ↓
 5. AsyncUiListener → uiService.handleMessage(messageKey)
@@ -419,6 +419,13 @@ class TrackerCubit extends Cubit<TrackerState> with TryOperationMixin<TrackerSta
    - Shows loading via ILoadingService
    - Shows feedback via IFeedbackService
 ```
+
+`BaseStateMessageMapper` and `ClassifyingExceptionKeyMapper` ship with the
+package. `ClassifyingExceptionKeyMapper` uses `systematic_failure` and stable
+failure classifications rather than matching `toString()` text. For stream
+`onError` handlers, call `reportFailure(error, stackTrace)` on a
+`TryOperationCubit` or `TryOperationMixin` so the failure follows the same
+state and hook path as `tryOperation`.
 
 ---
 

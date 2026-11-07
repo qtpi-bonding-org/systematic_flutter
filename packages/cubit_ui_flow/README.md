@@ -41,17 +41,10 @@ class TrackerState with _$TrackerState, AsyncStateMixin {
 ### 2. Implement Required Services
 
 ```dart
-// Exception mapper (REQUIRED - Global)
-class AppExceptionKeyMapper implements IExceptionKeyMapper {
-  @override
-  MessageKey? map(Object exception) {
-    return switch (exception) {
-      NetworkException() => const MessageKey.error(L10nKeys.errorNetwork),
-      AuthException() => const MessageKey.error(L10nKeys.errorAuth),
-      _ => null, // Falls back to generic
-    };
-  }
-}
+// Stable classification-based exception mapping (REQUIRED - Global)
+final exceptionMapper = ClassifyingExceptionKeyMapper(
+  generic: L10nKeys.errorGeneric,
+);
 
 // Label resolver (REQUIRED): the generated L10nKeyResolver from l10n_generator
 // implements LabelResolver; register it with the current AppLocalizations.
@@ -196,7 +189,8 @@ graph TD
 - ✅ `IStateMessageMapper` orchestration contracts
 - ✅ `AsyncUiListener` widget that wires everything together
 - ✅ `TryOperationCubit` and `TryOperationMixin` for automatic state management
-- ✅ Default implementations for mappers and orchestration
+- ✅ `BaseStateMessageMapper` and `ClassifyingExceptionKeyMapper`
+- ✅ `reportFailure` for stream `onError` and other non-tryOperation paths
 
 ### You Must Implement (Your UI System)
 - 🔧 `LabelResolver` - the generated `L10nKeyResolver` (package `l10n_generator`)

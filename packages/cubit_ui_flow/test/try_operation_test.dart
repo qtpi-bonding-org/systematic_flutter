@@ -32,7 +32,8 @@ class _FlatCubit extends TryOperationCubit<_FlatState> {
   _FlatCubit() : super(const _FlatState());
 
   Future<void> loadOk() => tryOperation(
-        () async => state.copyWith(status: UiFlowStatus.success, items: const ['a']),
+        () async =>
+            state.copyWith(status: UiFlowStatus.success, items: const ['a']),
         emitLoading: true,
       );
 
@@ -164,8 +165,11 @@ void main() {
     });
   });
 
-  group('tryOperation over a sealed-union state with custom withLoading/withError', () {
-    test('emits loading then loaded — does not crash on dynamic copyWith', () async {
+  group(
+      'tryOperation over a sealed-union state with custom withLoading/withError',
+      () {
+    test('emits loading then loaded — does not crash on dynamic copyWith',
+        () async {
       final cubit = _UnionCubit();
       final states = <_UnionState>[];
       final sub = cubit.stream.listen(states.add);
@@ -178,7 +182,8 @@ void main() {
       await cubit.close();
     });
 
-    test('emits loading then error variant, error captured, not rethrown', () async {
+    test('emits loading then error variant, error captured, not rethrown',
+        () async {
       final cubit = _UnionCubit();
       final states = <_UnionState>[];
       final sub = cubit.stream.listen(states.add);
@@ -193,7 +198,8 @@ void main() {
   });
 
   group('onOperationError hook', () {
-    test('fires once per failed operation, after the error state is emitted', () async {
+    test('fires once per failed operation, after the error state is emitted',
+        () async {
       final cubit = _HookedCubit();
       await cubit.loadFails();
       await pumpEventQueue();
@@ -201,6 +207,22 @@ void main() {
       expect(cubit.captured.single, isA<Exception>());
       expect(cubit.state.status, UiFlowStatus.failure);
       await cubit.close();
+    });
+
+    test('reportFailure emits and invokes the hook once', () async {
+      final cubit = _HookedCubit();
+      cubit.reportFailure(Exception('stream'), StackTrace.current);
+      expect(cubit.state.status, UiFlowStatus.failure);
+      expect(cubit.captured, hasLength(1));
+      await cubit.close();
+    });
+
+    test('reportFailure after close is harmless', () async {
+      final cubit = _HookedCubit();
+      await cubit.close();
+      expect(() => cubit.reportFailure(Exception('late'), StackTrace.current),
+          returnsNormally);
+      expect(cubit.captured, hasLength(1));
     });
   });
 

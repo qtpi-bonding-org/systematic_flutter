@@ -66,11 +66,20 @@ mixin TryOperationMixin<S extends IUiFlowState> on Cubit<S> {
       final successState = await action();
       if (!isClosed) emit(successState);
     } catch (error, stackTrace) {
-      // A cubit closed mid-operation (a page popped) must not throw on emit.
-      if (!isClosed) emit(createErrorState(error));
-      onOperationError(error, stackTrace);
+      reportFailure(error, stackTrace);
       // Error is now in state - no need to rethrow
     }
+  }
+
+  /// Records a failure exactly like [tryOperation] does: emits the error
+  /// state, then calls [onOperationError].
+  ///
+  /// Use it for stream `onError` handlers and any path that cannot go through
+  /// [tryOperation]. A cubit closed mid-operation (a page popped) must not
+  /// throw on emit, so the emit is skipped when closed.
+  void reportFailure(Object error, StackTrace stackTrace) {
+    if (!isClosed) emit(createErrorState(error));
+    onOperationError(error, stackTrace);
   }
 
   /// Creates loading state from current state.
@@ -106,11 +115,20 @@ abstract class TryOperationCubit<S extends IUiFlowState> extends Cubit<S> {
       final successState = await action();
       if (!isClosed) emit(successState);
     } catch (error, stackTrace) {
-      // A cubit closed mid-operation (a page popped) must not throw on emit.
-      if (!isClosed) emit(createErrorState(error));
-      onOperationError(error, stackTrace);
+      reportFailure(error, stackTrace);
       // Error is now in state - no need to rethrow
     }
+  }
+
+  /// Records a failure exactly like [tryOperation] does: emits the error
+  /// state, then calls [onOperationError].
+  ///
+  /// Use it for stream `onError` handlers and any path that cannot go through
+  /// [tryOperation]. A cubit closed mid-operation (a page popped) must not
+  /// throw on emit, so the emit is skipped when closed.
+  void reportFailure(Object error, StackTrace stackTrace) {
+    if (!isClosed) emit(createErrorState(error));
+    onOperationError(error, stackTrace);
   }
 
   /// Creates loading state from current state.

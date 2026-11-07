@@ -4,12 +4,12 @@ import 'example_implementations.dart';
 
 void main() {
   print('=== cubit_ui_flow Library Test ===');
-  
+
   // Test UiFlowStatus
   print('UiFlowStatus.idle.isIdle: ${UiFlowStatus.idle.isIdle}');
   print('UiFlowStatus.loading.isLoading: ${UiFlowStatus.loading.isLoading}');
   print('UiFlowStatus.success.isSuccess: ${UiFlowStatus.success.isSuccess}');
-  
+
   // Test MessageKey and the resolver
   const resolver = FallbackLabelResolver();
   const errorKey = MessageKey.error(ExampleKeys.genericError);
@@ -19,10 +19,12 @@ void main() {
   print('Error: ${resolver.resolve(errorKey.label)} (${errorKey.type})');
   print('Success: ${resolver.resolve(successKey.label)} (${successKey.type})');
 
-  // Test DefaultExceptionKeyMapper
-  const exceptionMapper = DefaultExceptionKeyMapper();
+  // Test the classification-based mapper.
+  const exceptionMapper =
+      ClassifyingExceptionKeyMapper(generic: ExampleKeys.genericError);
   final networkKey = exceptionMapper.map(Exception('Network error'));
-  print('Exception mapped: ${networkKey == null ? 'null' : resolver.resolve(networkKey.label)}');
-  
+  print(
+      'Exception mapped: ${networkKey == null ? 'null' : resolver.resolve(networkKey.label)}');
+
   print('✅ All basic functionality works!');
 }

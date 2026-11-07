@@ -41,7 +41,7 @@ class ExampleCubit extends TryOperationCubit<ExampleState> {
       // Simulate network call
       await Future.delayed(const Duration(seconds: 1));
       final items = ['Item 1', 'Item 2', 'Item 3'];
-      
+
       return state.copyWith(
         status: UiFlowStatus.success,
         items: items,
@@ -65,23 +65,12 @@ class ExampleCubit extends TryOperationCubit<ExampleState> {
       if (DateTime.now().millisecond % 2 == 0) {
         throw Exception('Random failure');
       }
-      
+
       return state.copyWith(
         status: UiFlowStatus.success,
         items: [...state.items, 'New Item'],
       );
     });
-  }
-}
-
-// Example exception mapper
-class ExampleExceptionMapper implements IExceptionKeyMapper {
-  @override
-  MessageKey? map(Object exception) {
-    if (exception is Exception) {
-      return const MessageKey.error(ExampleKeys.genericError);
-    }
-    return null;
   }
 }
 
@@ -101,9 +90,10 @@ class ExampleDomainMapper implements IDomainStateKeyMapper<ExampleState> {
 void main() {
   // Example of how the library would be used
   final cubit = ExampleCubit();
-  final exceptionMapper = ExampleExceptionMapper();
+  const exceptionMapper =
+      ClassifyingExceptionKeyMapper(generic: ExampleKeys.genericError);
   final domainMapper = ExampleDomainMapper();
-  
+
   final stateMapper = BaseStateMessageMapper<ExampleState>(
     exceptionMapper: exceptionMapper,
     domainMapper: domainMapper,
