@@ -4,6 +4,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import '../ast_helpers.dart';
 import '../lint_config.dart';
 
 class RequireStaticSelector extends AnalysisRule {
@@ -16,8 +17,8 @@ class RequireStaticSelector extends AnalysisRule {
     : super(
         name: 'require_static_selector',
         description:
-            'Flags a cubitField(...) selector that is an inline '
-            'closure.',
+            'Flags a cubitField(...) or Connect(select: ...) selector that is '
+            'an inline closure.',
       );
 
   @override
@@ -30,7 +31,9 @@ class RequireStaticSelector extends AnalysisRule {
   ) {
     if (!LintConfig.applies(context, name)) return;
     final visitor = _Visitor(this);
-    registry.addMethodInvocation(this, visitor);
+    registry
+      ..addMethodInvocation(this, visitor)
+      ..addInstanceCreationExpression(this, visitor);
   }
 }
 
@@ -44,7 +47,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.methodName.name != 'cubitField') return;
     final arguments = node.argumentList.arguments;
     if (arguments.isEmpty) return;
-    final argument = arguments.first;
+    _checkSelector(arguments.first);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (!isConnectCreation(node)) return;
+    final select = namedArgumentValue(node.argumentList, 'select');
+    if (select != null) _checkSelector(select);
+  }
+
+  void _checkSelector(Argument argument) {
     if (argument is FunctionExpression || argument is FunctionReference) {
       rule.reportAtNode(argument);
     }

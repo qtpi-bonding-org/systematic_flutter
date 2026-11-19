@@ -12,3 +12,6 @@ no_inline_widget_composition_in_pages:
     Card, Scaffold, AppBar]
 no_hardcoded_strings:
   allowed_types: [MessageKey]
+backend_access_only_in_adapters:
+  composition_root_paths: [lib/bootstrap.dart, lib/router/**]
+  data_paths: [/lib/data/, /lib/infrastructure/]
