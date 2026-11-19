@@ -7,7 +7,7 @@ import '../scopes.dart';
 import '../views/note_tile.dart';
 import '../views/tag_chip.dart';
 import 'rename_dialog_adapter.dart';
-import 'ui_notes_actions.dart';
+import 'confirm_and_delete.dart';
 
 class NoteTileAdapter extends AdapterWidget {
   const NoteTileAdapter({super.key, required this.tabId, required this.id});
@@ -25,7 +25,7 @@ class NoteTileAdapter extends AdapterWidget {
         if (data == null) return const SizedBox.shrink();
         return assemble(
           data,
-          UiNotesActions(ctx, cubit),
+          cubit,
           onRename: () => showDialog<void>(
             context: ctx,
             builder: (_) => RenameDialogAdapter(
@@ -33,6 +33,7 @@ class NoteTileAdapter extends AdapterWidget {
               onSubmit: (t) => cubit.rename(id, t),
             ),
           ),
+          onDelete: () => confirmAndDelete(ctx, cubit, id),
         );
       },
     );
@@ -42,6 +43,7 @@ class NoteTileAdapter extends AdapterWidget {
     NoteTileData data,
     NotesActions actions, {
     required VoidCallback onRename,
+    required VoidCallback onDelete,
   }) {
     return probe(
       'tile:${data.id}',
@@ -54,7 +56,7 @@ class NoteTileAdapter extends AdapterWidget {
           onTap: () => actions.cycleTag(data.id),
         ),
         onSelect: () => actions.select(data.id),
-        onDelete: () => actions.delete(data.id),
+        onDelete: onDelete,
         onRename: onRename,
       ),
     );

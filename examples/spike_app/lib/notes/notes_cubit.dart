@@ -128,8 +128,6 @@ String _nextTag(String tag) {
 
 abstract class NotesActions {
   Future<void> select(String id);
-  Future<void> delete(String id);
-  Future<void> deleteSelected();
   Future<void> rename(String id, String title);
   void cycleTag(String id);
 }
@@ -146,7 +144,6 @@ class NotesCubit extends Cubit<NotesState> implements NotesActions {
     emit(state.copyWith(selectedId: id));
   }
 
-  @override
   Future<void> delete(String id) async {
     if (!_has(id)) return;
     emit(NotesState(
@@ -158,7 +155,6 @@ class NotesCubit extends Cubit<NotesState> implements NotesActions {
     ));
   }
 
-  @override
   Future<void> deleteSelected() async {
     final id = state.selectedId;
     if (id == null) return;

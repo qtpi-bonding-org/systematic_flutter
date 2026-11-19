@@ -19,58 +19,21 @@ import 'views/tag_chip.dart';
 import 'workspace/workspace_cubit.dart';
 
 /// Catalog-only actions: plain no-op implementations, no cubits or scopes.
-class _NoopNotes implements NotesActions {
-  const _NoopNotes();
+class _NoopNotes extends NoOpActions implements NotesActions {}
 
-  @override
-  Future<void> select(String id) => Future<void>.value();
+class _NoopSearch extends NoOpActions implements SearchActions {}
 
-  @override
-  Future<void> delete(String id) => Future<void>.value();
+class _NoopWorkspace extends NoOpActions implements WorkspaceActions {}
 
-  @override
-  Future<void> deleteSelected() => Future<void>.value();
+class _NoopRename extends NoOpActions implements RenameFormActions {}
 
-  @override
-  Future<void> rename(String id, String title) => Future<void>.value();
+class _NoopFlow extends NoOpActions implements FlowActions {}
 
-  @override
-  void cycleTag(String id) {}
-}
-
-class _NoopSearch implements SearchActions {
-  const _NoopSearch();
-
-  @override
-  void setQuery(String query) {}
-}
-
-class _NoopWorkspace implements WorkspaceActions {
-  const _NoopWorkspace();
-
-  @override
-  void switchTo(String id) {}
-}
-
-class _NoopRename implements RenameFormActions {
-  const _NoopRename();
-
-  @override
-  void edit(String text) {}
-}
-
-class _NoopFlow implements FlowActions {
-  const _NoopFlow();
-
-  @override
-  void setName(String name) {}
-}
-
-const _notes = _NoopNotes();
-const _search = _NoopSearch();
-const _workspace = _NoopWorkspace();
-const _rename = _NoopRename();
-const _flow = _NoopFlow();
+final _notes = _NoopNotes();
+final _search = _NoopSearch();
+final _workspace = _NoopWorkspace();
+final _rename = _NoopRename();
+final _flow = _NoopFlow();
 
 /// Label above a widget entry. Also gives each entry a visible exact name.
 Widget _labelled(String name, Widget child) => Column(
@@ -97,13 +60,14 @@ Widget _catalogTile(String id) => NoteTileAdapter.assemble(
       ),
       _notes,
       onRename: () {},
+      onDelete: () {},
     );
 
 Widget _notesList(String tabId, List<String> ids) => NotesAdapter.assemble(
       tabId,
       NoteListData(ids),
-      _notes,
       _catalogTile,
+      onDeleteSelected: () {},
     );
 
 Widget _home({required bool online, required bool hasQuery}) => HomeView(
@@ -153,6 +117,7 @@ List<CatalogEntry> catalogEntries() => [
                   ),
                   _notes,
                   onRename: () {},
+                  onDelete: () {},
                 ),
               ),
           'selected': (_) => _labelled(
@@ -166,6 +131,7 @@ List<CatalogEntry> catalogEntries() => [
                   ),
                   _notes,
                   onRename: () {},
+                  onDelete: () {},
                 ),
               ),
         },

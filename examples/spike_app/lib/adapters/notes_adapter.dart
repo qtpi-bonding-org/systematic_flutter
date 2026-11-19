@@ -6,7 +6,7 @@ import '../probe.dart';
 import '../scopes.dart';
 import '../views/note_list_view.dart';
 import 'note_tile_adapter.dart';
-import 'ui_notes_actions.dart';
+import 'confirm_and_delete.dart';
 
 class NotesAdapter extends AdapterWidget {
   const NotesAdapter({super.key, required this.tabId});
@@ -21,8 +21,11 @@ class NotesAdapter extends AdapterWidget {
       builder: (ctx, data, cubit) => assemble(
         tabId,
         data,
-        UiNotesActions(ctx, cubit),
         (id) => NoteTileAdapter(key: ValueKey(id), tabId: tabId, id: id),
+        onDeleteSelected: () {
+          final id = cubit.state.selectedId;
+          if (id != null) confirmAndDelete(ctx, cubit, id);
+        },
       ),
     );
   }
@@ -30,14 +33,14 @@ class NotesAdapter extends AdapterWidget {
   static Widget assemble(
     String tabId,
     NoteListData data,
-    NotesActions actions,
-    Widget Function(String id) itemBuilder,
-  ) {
+    Widget Function(String id) itemBuilder, {
+    required VoidCallback onDeleteSelected,
+  }) {
     return Actions(
       actions: <Type, Action<Intent>>{
         DeleteSelectedIntent: CallbackAction<DeleteSelectedIntent>(
           onInvoke: (_) {
-            actions.deleteSelected();
+            onDeleteSelected();
             return null;
           },
         ),
