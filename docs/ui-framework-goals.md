@@ -11,6 +11,7 @@ The goals behind `docs/plans/2026-11-19-boundary-spike.md` and `2026-11-19-bound
 5. **Widgets take fake data.** Every widget, and every screen, renders from plain data I can make up, with no backend, no fake repositories, no cubit wiring. The UI is fully decoupled from the data layer.
 6. **A screen is a real type** (nice to have). A screen is a complete thing built from widgets. Routing can only go to a screen. Tooling tells screens from widgets by type, not by name or folder.
 7. **No argument chains.** Data never passes through a widget on its way somewhere else. Each widget's arguments describe only itself.
+7b. **Cheap changes for agents.** A typical change (show one more field on a tile, add a button that does something, restyle a widget) touches one or two obvious files. An agent finds where to make it without digging through many files, and never threads an argument through widgets that do not use it. Reading and editing cost is the real price of a change.
 8. **Enforced by structure, not habit.** Types and lints make the wrong way fail a check, so the design survives agents and time. A convention that relies on remembering is not enough.
 9. **Solved once.** It lives in `systematic_flutter`, so every app (Episutra first) gets it and I never fight this again.
 10. **Names say the role.** One name per kind of thing (`*Screen`, `*Adapter`, `*View`, primitives); a name never lies about what the class does.
