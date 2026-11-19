@@ -128,6 +128,8 @@ class VAdapter extends CubitAdapter<FooCubit> {
       flagged(view('Connect();'), ['Connect()']);
   Future<void> test_Connect2_flagged() =>
       flagged(view('Connect2();'), ['Connect2()']);
+  Future<void> test_ConnectFor_flagged() =>
+      flagged(view('ConnectFor();'), ['ConnectFor()']);
 
   Future<void> test_plain_widget_creation_clean() => clean(view('Leaf();'));
 
