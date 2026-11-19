@@ -2,11 +2,13 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 
 import 'src/rules/actions_avoid_bloc_names.dart';
+import 'src/rules/actions_return_void.dart';
 import 'src/rules/adapter_naming.dart';
 import 'src/rules/avoid_bloc_imports_in_widgets_dir.dart';
 import 'src/rules/backend_access_only_in_adapters.dart';
 import 'src/rules/avoid_getit_in_adapters_dir.dart';
 import 'src/rules/cubit_field_selector_must_be_equatable.dart';
+import 'src/rules/no_build_context_fields.dart';
 import 'src/rules/no_duplicate_cubitfield_keys.dart';
 import 'src/rules/no_banned_constructors.dart';
 import 'src/rules/no_hardcoded_colors.dart';
@@ -51,7 +53,9 @@ class SystematicLintsPlugin extends Plugin {
       ..registerLintRule(NoDuplicateCubitFieldKeys())
       ..registerLintRule(BackendAccessOnlyInAdapters())
       ..registerLintRule(AdapterNaming())
-      ..registerLintRule(ActionsAvoidBlocNames());
+      ..registerLintRule(ActionsAvoidBlocNames())
+      ..registerLintRule(ActionsReturnVoid())
+      ..registerLintRule(NoBuildContextFields());
     registry
       ..registerLintRule(ExceptionsExtendFailureBase())
       ..registerLintRule(ThrowOnlyFailureTypes())

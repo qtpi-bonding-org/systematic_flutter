@@ -3,6 +3,7 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -55,16 +56,16 @@ class BackendAccessOnlyInAdapters extends AnalysisRule {
     registry
       ..addMethodInvocation(this, visitor)
       ..addInstanceCreationExpression(this, visitor)
-      ..addFieldDeclaration(this, visitor)
-      ..addRegularFormalParameter(this, visitor)
-      ..addFieldFormalParameter(this, visitor)
-      ..addAsExpression(this, visitor)
       ..addNamedType(this, visitor)
-      ..addSimpleIdentifier(this, visitor);
+      ..addSimpleIdentifier(this, visitor)
+      ..addTopLevelVariableDeclaration(this, visitor);
   }
 }
 
-enum _Scope { unchecked, view, adapter }
+/// [adapter] and [unchecked] are exempt from the view rules. [view] flags
+/// everything. [plain] (a non-widget, non-adapter, non-backend class) flags
+/// only bloc and scope types in its field declarations.
+enum _Scope { unchecked, plain, view, adapter }
 
 class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, {required this.dataPaths, required this.compositionRoot});
@@ -75,6 +76,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the file is a composition root: its top-level widget functions
   /// are exempt, GetIt included.
   final bool compositionRoot;
+
+  /// Offsets of the NamedTypes already reported, so a type that is both a
+  /// GetIt type and a banned site is reported once.
+  final Set<int> _reportedTypes = {};
 
   static const _contextMethods = {'read', 'watch', 'select'};
   static const _scopeLookups = {
@@ -99,6 +104,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     'ConnectFor',
   };
   static const _bannedSupertypes = ['BlocBase', 'Cubit', 'Bloc', 'AppScope'];
+  static const _adapterHelperNames = {'adapterHelper', 'AdapterHelper'};
+  static const _getItNames = {'GetIt', 'getIt'};
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -109,8 +116,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         (isBuildContextType(node.realTarget?.staticType) ||
             (target == null && _isInBuildContextExtension(node)));
     final isLookup =
-        target is SimpleIdentifier &&
-        _scopeLookups.contains('${target.name}.$name');
+        target != null &&
+        _scopeLookups.contains('${_targetClassName(target)}.$name');
     if (!isContextCall && !isLookup) return;
     if (_scopeOf(node) == _Scope.view) rule.reportAtNode(node);
   }
@@ -124,44 +131,73 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    final type = node.fields.type;
-    if (type is NamedType) _checkDeclaredType(type, node);
-  }
-
-  @override
-  void visitRegularFormalParameter(RegularFormalParameter node) {
-    _checkParameter(node);
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _checkParameter(node);
-  }
-
-  void _checkParameter(FormalParameter node) {
-    final type = node.type;
-    if (type is NamedType) _checkDeclaredType(type, node);
-  }
-
-  @override
-  void visitAsExpression(AsExpression node) {
-    final type = node.type;
-    if (type is NamedType) _checkDeclaredType(type, node);
-  }
-
-  @override
   void visitNamedType(NamedType node) {
-    if (node.name.lexeme != 'GetIt') return;
-    if (_scopeOf(node) != _Scope.unchecked) rule.reportAtToken(node.name);
+    final scope = _scopeOf(node);
+    final isGetIt =
+        node.name.lexeme == 'GetIt' || node.type?.element?.name == 'GetIt';
+    if (isGetIt) {
+      if (_isGetItScope(scope) && _reportedTypes.add(node.offset)) {
+        rule.reportAtToken(node.name);
+      }
+      return;
+    }
+    if (scope == _Scope.view) {
+      if (_isTypeSite(node) && _isBannedType(node.type)) _reportType(node);
+    } else if (scope == _Scope.plain) {
+      if (_isInFieldType(node) && _isSupertypeBanned(node.type)) {
+        _reportType(node);
+      }
+    }
+  }
+
+  void _reportType(NamedType node) {
+    if (_reportedTypes.add(node.offset)) rule.reportAtNode(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final name = node.name;
-    if (name != 'GetIt' && name != 'getIt') return;
+    if (!_isGetItIdentifier(node)) return;
     if (node.inDeclarationContext()) return;
-    if (_scopeOf(node) != _Scope.unchecked) rule.reportAtNode(node);
+    if (_isGetItScope(_scopeOf(node))) rule.reportAtNode(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (compositionRoot) return;
+    for (final variable in node.variables.variables) {
+      final type = variable.declaredFragment?.element.type;
+      if (_containsType(type, _isSupertypeBanned)) {
+        rule.reportAtToken(variable.name);
+      }
+    }
+  }
+
+  static bool _isGetItScope(_Scope scope) =>
+      scope == _Scope.view || scope == _Scope.adapter;
+
+  /// The class name a lookup target refers to. A typedef resolves to the
+  /// class it aliases; otherwise the syntactic name is used.
+  static String _targetClassName(Expression target) {
+    final identifier = switch (target) {
+      SimpleIdentifier() => target,
+      PrefixedIdentifier() => target.identifier,
+      _ => null,
+    };
+    if (identifier == null) return '';
+    final element = identifier.element;
+    if (element is TypeAliasElement) {
+      return element.aliasedType.element?.name ?? identifier.name;
+    }
+    return identifier.name;
+  }
+
+  /// True for `GetIt` and `getIt` by name, or for a typedef whose aliased
+  /// class is GetIt.
+  static bool _isGetItIdentifier(SimpleIdentifier node) {
+    if (_getItNames.contains(node.name)) return true;
+    final element = node.element;
+    return element is TypeAliasElement &&
+        element.aliasedType.element?.name == 'GetIt';
   }
 
   /// Whether [node] sits directly inside an extension on BuildContext, so an
@@ -178,21 +214,86 @@ class _Visitor extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Reports [type] when [site] is inside a view and the type is a banned
-  /// backend type.
-  void _checkDeclaredType(NamedType type, AstNode site) {
-    if (_scopeOf(site) != _Scope.view) return;
-    if (_isBannedType(type.type)) rule.reportAtNode(type);
+  /// Whether [node] is a part of a type annotation that a type site can
+  /// contain. Formal parameters count only when [parameters] is true (field
+  /// types that hold a function type).
+  static bool _isTypePart(AstNode node, {required bool parameters}) =>
+      node is TypeArgumentList ||
+      node is NamedType ||
+      node is GenericFunctionType ||
+      node is RecordTypeAnnotation ||
+      node is RecordTypeAnnotationPositionalField ||
+      node is RecordTypeAnnotationNamedField ||
+      node is RecordTypeAnnotationNamedFields ||
+      (parameters && (node is FormalParameterList || node is FormalParameter));
+
+  /// Whether [node] is the type of a declaration or expression that counts
+  /// as a site: a field, a parameter, a return type, a cast, an `is` test or
+  /// a pattern. Constructor names, method type arguments and local variable
+  /// types are not sites.
+  static bool _isTypeSite(NamedType node) {
+    AstNode child = node;
+    AstNode? parent = node.parent;
+    while (parent != null && _isTypePart(parent, parameters: false)) {
+      child = parent;
+      parent = parent.parent;
+    }
+    if (parent == null) return false;
+    if (parent is VariableDeclarationList) {
+      return parent.parent is FieldDeclaration;
+    }
+    if (parent is FormalParameter) return true;
+    if (parent is MethodDeclaration) return parent.returnType == child;
+    if (parent is FunctionDeclaration) return parent.returnType == child;
+    return parent is AsExpression ||
+        parent is IsExpression ||
+        parent is DeclaredVariablePattern ||
+        parent is ObjectPattern ||
+        parent is CastPattern;
   }
 
-  bool _isBannedType(DartType? type) {
-    if (type == null) return false;
-    if (_bannedSupertypes.any((name) => hasNamedSupertype(type, name))) {
-      return true;
+  /// Whether [node] is part of a field's declared type, through any function
+  /// or record type pieces.
+  static bool _isInFieldType(NamedType node) {
+    AstNode? parent = node.parent;
+    while (parent != null && _isTypePart(parent, parameters: true)) {
+      parent = parent.parent;
     }
+    return parent is VariableDeclarationList &&
+        parent.parent is FieldDeclaration;
+  }
+
+  /// Whether [type] is a banned backend type: a bloc, cubit or scope, or a
+  /// type declared under a data path.
+  bool _isBannedType(DartType? type) {
+    if (_isSupertypeBanned(type)) return true;
+    if (type == null) return false;
     final path = type.element?.library?.firstFragment.source.fullName;
     if (path == null) return false;
     return dataPaths.any(path.contains);
+  }
+
+  static bool _isSupertypeBanned(DartType? type) =>
+      type != null &&
+      _bannedSupertypes.any((name) => hasNamedSupertype(type, name));
+
+  /// Whether [type], or any type nested in it (type arguments, function
+  /// parameter and return types, record fields), satisfies [test].
+  static bool _containsType(DartType? type, bool Function(DartType) test) {
+    if (type == null) return false;
+    if (test(type)) return true;
+    if (type is InterfaceType) {
+      return type.typeArguments.any((t) => _containsType(t, test));
+    }
+    if (type is FunctionType) {
+      return _containsType(type.returnType, test) ||
+          type.formalParameters.any((p) => _containsType(p.type, test));
+    }
+    if (type is RecordType) {
+      return type.positionalFields.any((f) => _containsType(f.type, test)) ||
+          type.namedFields.any((f) => _containsType(f.type, test));
+    }
+    return false;
   }
 
   /// The scope of the nearest enclosing class, extension or top-level
@@ -206,13 +307,25 @@ class _Visitor extends SimpleAstVisitor<void> {
             : _Scope.unchecked;
       }
       if (n is FunctionDeclaration && n.parent is CompilationUnit) {
-        if (compositionRoot || !isWidgetType(n.returnType?.type)) {
-          return _Scope.unchecked;
-        }
-        return _Scope.view;
+        return _topLevelFunctionScope(n);
       }
     }
     return _Scope.unchecked;
+  }
+
+  _Scope _topLevelFunctionScope(FunctionDeclaration node) {
+    final isHelper = node.metadata.any(
+      (a) => _adapterHelperNames.contains(_lastName(a.name)),
+    );
+    if (isHelper) return _Scope.adapter;
+    if (compositionRoot) return _Scope.unchecked;
+    if (isWidgetType(node.returnType?.type)) return _Scope.view;
+    final parameters =
+        node.functionExpression.parameters?.parameters ?? const [];
+    final takesContext = parameters.any(
+      (p) => isBuildContextType(p.declaredFragment?.element.type),
+    );
+    return takesContext ? _Scope.view : _Scope.unchecked;
   }
 
   _Scope _classScope(ClassDeclaration node) {
@@ -226,6 +339,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           ? _Scope.adapter
           : _Scope.view;
     }
-    return isWidgetType(type) ? _Scope.view : _Scope.unchecked;
+    if (isWidgetType(type)) return _Scope.view;
+    if (_isSupertypeBanned(type)) return _Scope.unchecked;
+    return _Scope.plain;
   }
+
+  static String _lastName(Identifier id) =>
+      id is PrefixedIdentifier ? id.identifier.name : id.name;
 }

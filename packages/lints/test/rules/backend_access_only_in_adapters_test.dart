@@ -244,10 +244,21 @@ Widget build2(BuildContext context) {
 ''',
     ['context.read<Foo>()'],
   );
-  Future<void> test_top_level_non_widget_function_clean() => clean('''
+  Future<void> test_top_level_context_function_any_return_flagged() => flagged(
+    '''
 Foo load(BuildContext context) {
   return context.read<Foo>();
 }
+''',
+    ['context.read<Foo>()'],
+  );
+  Future<void> test_top_level_void_context_arrow_function_flagged() => flagged(
+    'void del(BuildContext c) => c.read<Foo>();',
+    ['c.read<Foo>()'],
+  );
+  Future<void> test_top_level_function_without_context_clean() => clean('''
+Foo make() => getIt<Foo>();
+void useCubit(FooCubit c) {}
 ''');
   Future<void> test_top_level_widget_function_closure_flagged() => flagged(
     '''
@@ -336,4 +347,246 @@ class V extends StatelessWidget {
 }
 ''', imports: "import 'package:test/ui/thing.dart';\n");
   }
+
+  // is checks and patterns
+
+  Future<void> test_is_cubit_flagged() =>
+      flagged(view('final b = Object() is FooCubit;'), ['FooCubit']);
+  Future<void> test_is_not_bloc_flagged() =>
+      flagged(view('final b = Object() is! FooBloc;'), ['FooBloc']);
+  Future<void> test_is_scope_flagged() =>
+      flagged(view('final b = Object() is MyScope;'), ['MyScope']);
+  Future<void> test_is_plain_clean() =>
+      clean(view('final b = Object() is Foo;'));
+  Future<void> test_is_cubit_in_adapter_clean() =>
+      clean(adapter('final b = Object() is FooCubit;'));
+  Future<void> test_declared_variable_pattern_flagged() => flagged(
+    view('final o = Object(); switch (o) { case FooCubit c: break; default: }'),
+    ['FooCubit'],
+  );
+  Future<void> test_if_case_object_pattern_flagged() => flagged(
+    view('final o = Object(); if (o case FooCubit()) {}'),
+    ['FooCubit'],
+  );
+  Future<void> test_pattern_in_adapter_clean() =>
+      clean(adapter('final o = Object(); if (o case FooCubit()) {}'));
+  Future<void> test_pattern_plain_type_clean() =>
+      clean(view('final o = Object(); if (o case Foo()) {}'));
+
+  // type arguments and function types
+
+  static String viewField(String decl) =>
+      '''
+class V extends StatelessWidget {
+  const V(this.f);
+  $decl
+  Widget build(BuildContext context) => Leaf();
+}
+''';
+
+  Future<void> test_list_of_cubit_field_flagged() =>
+      flagged(viewField('final List<FooCubit> f;'), ['FooCubit']);
+  Future<void> test_map_of_cubit_field_flagged() =>
+      flagged(viewField('final Map<String, FooCubit> f;'), ['FooCubit']);
+  Future<void> test_future_of_cubit_field_flagged() =>
+      flagged(viewField('final Future<FooCubit> f;'), ['FooCubit']);
+  Future<void> test_nested_generic_field_flagged() => flagged(
+    viewField('final List<Map<int, FooCubit>> f;'),
+    ['FooCubit'],
+  );
+  Future<void> test_function_type_parameter_field_flagged() =>
+      flagged(viewField('final void Function(FooCubit) f;'), ['FooCubit']);
+  Future<void> test_function_type_return_field_flagged() =>
+      flagged(viewField('final FooCubit Function() f;'), ['FooCubit']);
+  Future<void> test_list_of_scope_field_flagged() =>
+      flagged(viewField('final List<MyScope> f;'), ['MyScope']);
+  Future<void> test_list_of_plain_field_clean() =>
+      clean(viewField('final List<Foo> f;'));
+  Future<void> test_function_type_plain_field_clean() =>
+      clean(viewField('final void Function(Foo) f;'));
+  Future<void> test_generic_parameter_flagged() => flagged(
+    '''
+class V extends StatelessWidget {
+  const V();
+  void use(List<FooCubit> cubits) {}
+  Widget build(BuildContext context) => Leaf();
+}
+''',
+    ['FooCubit'],
+  );
+  Future<void> test_future_return_type_flagged() => flagged(
+    '''
+class V extends StatelessWidget {
+  const V();
+  Future<FooCubit> load() async => throw 0;
+  Widget build(BuildContext context) => Leaf();
+}
+''',
+    ['FooCubit'],
+  );
+  Future<void> test_cast_to_generic_cubit_flagged() =>
+      flagged(view('final c = (Object() as List<FooCubit>);'), ['FooCubit']);
+  Future<void> test_generic_data_path_field_flagged() {
+    newFile('$testPackageLibPath/data/repo.dart', 'class Repo {}');
+    return flagged(
+      viewField('final List<Repo> f;'),
+      ['Repo'],
+      imports: "import 'package:test/data/repo.dart';\n",
+    );
+  }
+
+  Future<void> test_generic_cubit_in_adapter_clean() => clean('''
+class VAdapter extends AdapterWidget {
+  const VAdapter(this.f);
+  final List<FooCubit> f;
+  Widget build(BuildContext context) => Leaf();
+}
+''');
+
+  // non-widget classes holding cubits or scopes
+
+  Future<void> test_view_data_with_cubit_flagged() => flagged(
+    'class ViewData { const ViewData(this.cubit); final FooCubit cubit; }',
+    ['FooCubit'],
+  );
+  Future<void> test_plain_class_generic_scope_field_flagged() => flagged(
+    'class Holder { final List<MyScope> scopes = []; }',
+    ['MyScope'],
+  );
+  Future<void> test_plain_class_function_type_cubit_flagged() => flagged(
+    'class Holder { Holder(this.f); final void Function(FooBloc) f; }',
+    ['FooBloc'],
+  );
+  Future<void> test_plain_class_plain_field_clean() =>
+      clean('class Vd { const Vd(this.foo); final Foo foo; }');
+  Future<void> test_plain_class_data_path_field_clean() {
+    newFile('$testPackageLibPath/data/repo.dart', 'class Repo {}');
+    return clean(
+      'class Service { const Service(this.repo); final Repo repo; }',
+      imports: "import 'package:test/data/repo.dart';\n",
+    );
+  }
+
+  Future<void> test_service_with_getit_clean() => clean(
+    'class Service { final GetIt g = GetIt.I; Foo load() => getIt<Foo>(); }',
+  );
+  Future<void> test_cubit_with_cubit_field_clean() => clean(
+    'class BarCubit extends Cubit<int> { BarCubit(this.other); final FooCubit other; }',
+  );
+  Future<void> test_bloc_with_scope_field_clean() => clean(
+    'class BarBloc extends Bloc<int, int> { final MyScope scope = MyScope(); }',
+  );
+  Future<void> test_scope_with_cubit_field_clean() => clean(
+    'class OtherScope extends AppScope { final FooCubit c = FooCubit(); }',
+  );
+  Future<void> test_scope_with_list_of_cubits_clean() => clean(
+    'class OtherScope extends AppScope { final List<FooCubit> c = []; }',
+  );
+
+  // top-level functions with a BuildContext parameter
+
+  Future<void> test_context_function_cubit_parameter_flagged() => flagged(
+    'void confirm(BuildContext context, FooCubit cubit) {}',
+    ['FooCubit'],
+  );
+  Future<void> test_adapter_helper_annotation_exempts_function() => clean('''
+const adapterHelper = Object();
+@adapterHelper
+Future<void> confirmAndDelete(
+  BuildContext context,
+  FooCubit cubit,
+  String id,
+) async {
+  context.read<Foo>();
+}
+''');
+  Future<void> test_adapter_helper_class_annotation_exempts_function() =>
+      clean('''
+class AdapterHelper { const AdapterHelper(); }
+@AdapterHelper()
+void confirm(BuildContext context, FooCubit cubit) {
+  context.watch<Foo>();
+}
+''');
+  Future<void> test_adapter_helper_exempts_widget_function() => clean('''
+const adapterHelper = Object();
+@adapterHelper
+Widget w(BuildContext context) {
+  context.read<Foo>();
+  return Leaf();
+}
+''');
+  Future<void> test_adapter_helper_still_bans_getit() => flagged('''
+const adapterHelper = Object();
+@adapterHelper
+void f(BuildContext context) {
+  GetIt.I;
+}
+''', ['GetIt']);
+  Future<void> test_other_annotation_does_not_exempt() => flagged('''
+const keep = Object();
+@keep
+void f(BuildContext context) => context.read<Foo>();
+''', ['context.read<Foo>()']);
+
+  // prefixed and aliased calls
+
+  static String prefixedView(String statement) =>
+      '''
+import 'package:test/stubs.dart' as p;
+class V extends p.StatelessWidget {
+  const V();
+  p.Widget build(p.BuildContext context) {
+    $statement
+    return p.Leaf();
+  }
+}
+''';
+
+  Future<void> prefixed(String statement, String needle) async {
+    newFile('$testPackageLibPath/stubs.dart', boundaryStubs);
+    final source = prefixedView(statement);
+    await assertDiagnostics(source, [
+      lint(source.indexOf(needle), needle.length),
+    ]);
+  }
+
+  Future<void> test_prefixed_provider_of_flagged() => prefixed(
+    'p.Provider.of<p.Foo>(context);',
+    'p.Provider.of<p.Foo>(context)',
+  );
+  Future<void> test_prefixed_bloc_provider_of_flagged() => prefixed(
+    'p.BlocProvider.of<p.FooCubit>(context);',
+    'p.BlocProvider.of<p.FooCubit>(context)',
+  );
+  Future<void> test_prefixed_scope_provider_maybe_of_flagged() => prefixed(
+    'p.ScopeProvider.maybeOf<p.MyScope>(context);',
+    'p.ScopeProvider.maybeOf<p.MyScope>(context)',
+  );
+  Future<void> test_prefixed_getit_flagged() =>
+      prefixed('p.GetIt.I;', 'GetIt');
+  Future<void> test_prefixed_getit_function_flagged() =>
+      prefixed('p.getIt<p.Foo>();', 'getIt');
+  Future<void> test_aliased_provider_of_flagged() => flagged(
+    'typedef Prov = Provider;\n${view('Prov.of<Foo>(context);')}',
+    ['Prov.of<Foo>(context)'],
+  );
+  Future<void> test_aliased_getit_flagged() => flagged(
+    view('Locator.I;'),
+    ['Locator'],
+    imports: 'typedef Locator = GetIt;\n',
+  );
+
+  // top-level variables
+
+  Future<void> test_top_level_cubit_variable_flagged() =>
+      flagged('final appCubit = FooCubit();', ['appCubit']);
+  Future<void> test_top_level_late_cubit_variable_flagged() =>
+      flagged('late FooCubit lateCubit;', ['lateCubit']);
+  Future<void> test_top_level_scope_variable_flagged() =>
+      flagged('final appScope = MyScope();', ['appScope']);
+  Future<void> test_top_level_list_of_cubits_flagged() =>
+      flagged('final List<FooCubit> cubits = [];', ['cubits']);
+  Future<void> test_top_level_plain_variable_clean() =>
+      clean('final foo = Foo();');
 }
