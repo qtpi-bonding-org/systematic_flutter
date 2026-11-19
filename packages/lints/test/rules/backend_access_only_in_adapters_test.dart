@@ -596,6 +596,65 @@ class V extends p.StatelessWidget {
       flagged('final List<FooCubit> cubits = [];', ['cubits']);
   Future<void> test_top_level_plain_variable_clean() =>
       clean('final foo = Foo();');
+
+  // backend objects obtained without a BuildContext
+
+  static const _notes = '''
+class NotesCubit extends Cubit<int> { void rename(String s) {} int get size => 0; }
+class NotesScope extends AppScope { final NotesCubit notes = NotesCubit(); }
+''';
+  static const _helpers = '''
+const adapterHelper = Object();
+@adapterHelper NotesCubit notesCubit() => NotesCubit();
+@adapterHelper NotesScope get appScope => NotesScope();
+''';
+
+  Future<void> test_local_from_top_level_function_flagged() => flagged(
+    view('final cub = notesCubit(); cub.rename("x");') + _notes + _helpers,
+    ['notesCubit()', 'cub'],
+  );
+  Future<void> test_scope_getter_chain_flagged() => flagged(
+    view('appScope.notes.rename("x");') + _notes + _helpers,
+    ['appScope'],
+  );
+  Future<void> test_property_access_on_function_result_flagged() =>
+      flagged(view('notesCubit().size;') + _notes + _helpers, ['notesCubit()']);
+  Future<void> test_method_target_function_result_flagged() => flagged(
+    view('notesCubit().rename("x");') + _notes + _helpers,
+    ['notesCubit()'],
+  );
+  Future<void> test_same_code_in_adapter_clean() => clean(
+    adapter(
+          'final cub = notesCubit(); cub.rename("x"); appScope.notes.rename("x");',
+        ) +
+        _notes +
+        _helpers,
+  );
+  Future<void> test_cubit_method_returning_cubit_in_cubit_clean() => clean(
+    _notes +
+        '''
+class OwnerCubit extends Cubit<int> {
+  NotesCubit other() => NotesCubit();
+  void f() { final c = other(); c.rename("x"); other().size; }
+}
+''',
+  );
+  Future<void> test_top_level_function_returning_cubit_flagged() => flagged(
+    _notes + 'NotesCubit notesCubit() => NotesCubit();',
+    ['notesCubit'],
+  );
+  Future<void> test_top_level_getter_returning_scope_flagged() => flagged(
+    _notes + 'NotesScope get appScope => NotesScope();',
+    ['appScope'],
+  );
+  Future<void> test_top_level_function_returning_future_cubit_flagged() =>
+      flagged(_notes + 'Future<NotesCubit> load() async => NotesCubit();', [
+        'load',
+      ]);
+  Future<void> test_top_level_helper_annotated_clean() =>
+      clean(_notes + _helpers);
+  Future<void> test_top_level_function_returning_plain_clean() =>
+      clean('Foo make() => Foo();\nFoo get foo => Foo();');
 }
 
 @reflectiveTest
@@ -622,6 +681,14 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> test_widget_and_state_in_composition_root_clean() =>
       assertNoDiagnostics(withStubs(_app).source);
+  Future<void> test_top_level_backend_getters_in_composition_root_clean() =>
+      assertNoDiagnostics(
+        withStubs(
+          BackendAccessOnlyInAdaptersTest._notes +
+              'NotesCubit notesCubit() => NotesCubit();\n'
+                  'NotesScope get appScope => NotesScope();',
+        ).source,
+      );
 }
 
 @reflectiveTest

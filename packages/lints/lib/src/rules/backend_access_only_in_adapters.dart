@@ -28,8 +28,10 @@ class BackendAccessOnlyInAdapters extends AnalysisRule {
         name: 'backend_access_only_in_adapters',
         description:
             'Flags context.read/watch/select, scope lookups, bloc widgets, '
-            'cubit, scope and data-layer types in views, and GetIt anywhere '
-            'in widgets.',
+            'cubit, scope and data-layer types in views, GetIt anywhere in '
+            'widgets, and cubit/scope values a view gets without a '
+            'BuildContext (locals, call or property targets) plus top-level '
+            'functions and getters returning them outside adapter helpers.',
       );
 
   final List<String>? _compositionRootPaths;
@@ -64,6 +66,10 @@ class BackendAccessOnlyInAdapters extends AnalysisRule {
       ..addInstanceCreationExpression(this, visitor)
       ..addNamedType(this, visitor)
       ..addSimpleIdentifier(this, visitor)
+      ..addPropertyAccess(this, visitor)
+      ..addPrefixedIdentifier(this, visitor)
+      ..addVariableDeclaration(this, visitor)
+      ..addFunctionDeclaration(this, visitor)
       ..addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -86,6 +92,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Offsets of the NamedTypes already reported, so a type that is both a
   /// GetIt type and a banned site is reported once.
   final Set<int> _reportedTypes = {};
+
+  /// `offset:length` of every node already reported, so one node reached
+  /// from two checks (a context call that is also a banned-typed target) is
+  /// reported once.
+  final Set<String> _reportedNodes = {};
 
   static const _contextMethods = {'read', 'watch', 'select'};
   static const _scopeLookups = {
@@ -124,8 +135,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     final isLookup =
         target != null &&
         _scopeLookups.contains('${_targetClassName(target)}.$name');
-    if (!isContextCall && !isLookup) return;
-    if (_scopeOf(node) == _Scope.view) rule.reportAtNode(node);
+    if (isContextCall || isLookup) _flagInView(node);
+    _checkBackendValue(node.realTarget);
   }
 
   @override
@@ -133,7 +144,80 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_bannedCreations.contains(node.constructorName.type.name.lexeme)) {
       return;
     }
-    if (_scopeOf(node) == _Scope.view) rule.reportAtNode(node);
+    _flagInView(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkBackendValue(node.realTarget);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _checkBackendValue(node.prefix);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final init = node.initializer;
+    if (init is MethodInvocation ||
+        init is FunctionExpressionInvocation ||
+        init is PropertyAccess ||
+        init is PrefixedIdentifier ||
+        init is SimpleIdentifier) {
+      _checkBackendValue(init);
+    }
+  }
+
+  /// Reports [node] once, whichever check reached it first.
+  void _report(AstNode node) {
+    if (_reportedNodes.add('${node.offset}:${node.length}')) {
+      rule.reportAtNode(node);
+    }
+  }
+
+  /// Reports [node] when it sits in a view.
+  void _flagInView(AstNode node) {
+    if (_scopeOf(node) == _Scope.view) _report(node);
+  }
+
+  /// Flags [expr] when it is a banned-typed backend value used in a view
+  /// without a BuildContext. Only the innermost banned value is reported: if
+  /// its own target or prefix is banned too, that one gets reported instead
+  /// (`appScope.notes.rename()` reports `appScope`).
+  void _checkBackendValue(Expression? expr) {
+    if (expr == null) return;
+    if (!_containsType(expr.staticType, _isSupertypeBanned)) return;
+    final inner = _innerValue(expr);
+    if (inner != null && _containsType(inner.staticType, _isSupertypeBanned)) {
+      return;
+    }
+    _flagInView(expr);
+  }
+
+  /// The expression [expr] reads its value from, when it has one.
+  static Expression? _innerValue(Expression expr) => switch (expr) {
+    MethodInvocation() => expr.realTarget,
+    PropertyAccess() => expr.realTarget,
+    PrefixedIdentifier() => expr.prefix,
+    _ => null,
+  };
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (compositionRoot || node.parent is! CompilationUnit) return;
+    final isHelper = node.metadata.any(
+      (a) => _adapterHelperNames.contains(_lastName(a.name)),
+    );
+    if (isHelper) return;
+    final returnType = node.declaredFragment?.element.returnType;
+    if (!_containsType(returnType, _isSupertypeBanned)) return;
+    // A declared return type in a view is already reported by visitNamedType.
+    if (node.returnType != null &&
+        _topLevelFunctionScope(node) == _Scope.view) {
+      return;
+    }
+    rule.reportAtToken(node.name);
   }
 
   @override
@@ -148,23 +232,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (scope == _Scope.view) {
-      if (_isTypeSite(node) && _isBannedType(node.type)) _reportType(node);
+      if (_isTypeSite(node) && _isBannedType(node.type)) _report(node);
     } else if (scope == _Scope.plain) {
-      if (_isInFieldType(node) && _isSupertypeBanned(node.type)) {
-        _reportType(node);
-      }
+      if (_isInFieldType(node) && _isSupertypeBanned(node.type)) _report(node);
     }
-  }
-
-  void _reportType(NamedType node) {
-    if (_reportedTypes.add(node.offset)) rule.reportAtNode(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isGetItIdentifier(node)) return;
     if (node.inDeclarationContext()) return;
-    if (_isGetItScope(_scopeOf(node))) rule.reportAtNode(node);
+    if (_isGetItScope(_scopeOf(node))) _report(node);
   }
 
   @override
