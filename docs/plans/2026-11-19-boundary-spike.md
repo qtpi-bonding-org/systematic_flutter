@@ -109,6 +109,40 @@ Built on branch `spike-app`: ConnectFor and two lint fixes (step 1), `examples/s
 
 Not tested here, as stated above: cross-cubit coordination with no UI, toasts, the Widgetbook adapter, coexistence with old lint rules, `AppScreen`/`ScreenRoute`, localisation.
 
+### Integration results (2026-11-19)
+
+Commits on `spike-app`: Part 1 344963f, Part 2 1e9f48d, Part 3 9e0139b, Part 4 3c7f1ff. Tests: spike_app 57, packages/catalog 19, packages/cubit_ui_flow 108, packages/lints 247. `dart analyze` in the app: no issues, with all 25 rules listed plus `backend_access_only_in_adapters`. Tests were written first; Haiku wrote production code, I read every diff.
+
+Added success criteria:
+
+1. **Held.** Catalog lists each widget once per `samples()` entry, light and dark, no state listed by hand: `catalog_test.dart` (every sample appears, both themes) and `samples_test.dart`.
+2. **Held.** Sealed union `NoteListData`: `samples_test.dart` variant-coverage test (exhaustive switch; fails if a variant has no sample).
+3. **Held.** Three toggles on every tile: `packages/catalog/test/catalog_toggles_test.dart` and `catalog_test.dart` "every tile survives large text, narrow width and right-to-left".
+4. **Held.** Loading and error shown in the catalog (`NoteListData` samples) and through the real app: `loading_error_test.dart` (gated source shows loading then list; flaky source shows error, classified, captured in-memory by error_privserver).
+5. **Held.** `toast_test.dart`: a failed or successful action shows a snackbar via `UiFlowStateListener` and `NotesMessageMapper` inside `NotesAdapter`.
+6. **Held.** `theme_test.dart` and `catalog_test.dart`: the spacing control changes a tile's padding; the colour control edits palette tokens in the real theme.
+7. **Held, after two fixes.** `tool/check_lints.sh`: probe `tool/lint_probe.dart` (violates `no_hardcoded_font_size`) is reported by `dart analyze tool/lint_probe.dart`; the probe path is excluded from the app analysis. Fixes: the shared script filtered probe output on the text `systematic_lints`, which the analyzer does not print (it never passed), and `package_dirs: [.]` needs `probe_file: ./tool/...` because it matches by prefix.
+
+Change cost, re-measured (a) by adding the field and reading analyzer errors, then reverting; (b), (c), (d) from the code as it stands:
+
+| Change | Production files | Other files forced | Pass-through args |
+|---|---|---|---|
+| (a) date on tile | 2: `notes_cubit.dart` (Note, NoteTileData, selectNote, its samples), `views/note_tile.dart` | `catalog_main.dart` (1 literal), `test/select_test.dart` (1) | none; the adapter is untouched |
+| (b) pin button | 3: `notes_cubit.dart`, `note_tile.dart`, `note_tile_adapter.dart` (`assemble`) | `app_en.arb` (tooltip key; resolver regenerated) | none |
+| (c) restyle chip | 1: `tag_chip.dart` | none | none |
+| (d) new named state "pinned" | 2: `notes_cubit.dart` (field plus one `samples()` entry), `note_tile.dart` | none; the catalog shows it automatically | none |
+
+Samples next to the data class cut (a) from 3 core files to 2, and a new state costs one map entry.
+
+Friction per package:
+- cubit_ui_flow: the listener is `UiFlowStateListener`, not `UiFlowListener`, and needs `UiFlowService`, `IFeedbackService`, `ILoadingService` registered or passed; a `NoLoading` stub was needed because the app has no loading overlay. A message mapper needs three pieces (`BaseStateMessageMapper`, `ClassifyingExceptionKeyMapper`, `MessageKey`) for one toast. Events must be compared by identity or the toast repeats.
+- flutter_error_privserver: `ErrorInbox` makes its queue in the zone where `configure` runs, so test and app zones need a `startErrorCapture` wrapper; testing storage lives in a separate library.
+- l10n: two generators (`flutter gen-l10n` and build_runner `l10n_generator`) with `build.yaml` and `l10n.yaml` to keep aligned.
+- systematic_ui: `ThemeService` needs the `SystematicSizes` extension added by hand to every theme (app and catalog); the catalog needs a `themeBuilder` for it.
+- flutter_color_palette: a palette gives colours, not a ThemeData; the app maps it to a theme itself.
+- lints: `backend_access_only_in_adapters` forced the notes source interface out of `lib/data/` into `lib/notes/`; the ratchet script bugs above.
+- catalog: gap between tiles is now constant at 16; seed row appears only without palette colours.
+
 ## Integration step (after the review of the spike, 2026-11-19)
 
 The example app becomes the full-stack reference: each systematic_flutter package Episutra uses is wired in once, at the smallest useful size, after the framework v1 fixes land.
