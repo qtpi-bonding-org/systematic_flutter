@@ -34,3 +34,21 @@ String? enclosingClassName(AstNode node) {
       .typeName
       .lexeme;
 }
+
+/// True for `Connect(...)` / `Connect2(...)`, the bloc-select widgets whose
+/// `select:` argument follows the cubitField selector rules.
+bool isConnectCreation(InstanceCreationExpression node) {
+  final name = node.constructorName.type.name.lexeme;
+  return name == 'Connect' || name == 'Connect2';
+}
+
+/// The value of the named argument [name] in [list], or null when absent.
+Expression? namedArgumentValue(ArgumentList list, String name) {
+  for (final argument in list.arguments) {
+    if (argument is NamedArgument && argument.name.lexeme == name) {
+      // ignore: experimental_member_use
+      return argument.argumentExpression2;
+    }
+  }
+  return null;
+}

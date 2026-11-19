@@ -29,4 +29,39 @@ final b = cubitField(() => 1);
       [lint(146, 7)],
     );
   }
+
+  static const _connect = r"""
+class Connect {
+  Connect({Object? select});
+}
+class Connect2 {
+  Connect2({Object? select});
+}
+int topLevelSelector() => 1;
+""";
+
+  Future<void> test_flags_inline_closure_in_connect() async {
+    const src = '$_connect\nfinal a = Connect(select: () => 1);\n';
+    await assertDiagnostics(src, [
+      lint(src.indexOf('Connect(select: () => 1)') + 16, 7),
+    ]);
+  }
+
+  Future<void> test_flags_inline_closure_in_connect2() async {
+    const src = '$_connect\nfinal a = Connect2(select: () => 1);\n';
+    await assertDiagnostics(src, [
+      lint(src.indexOf('Connect2(select: () => 1)') + 17, 7),
+    ]);
+  }
+
+  Future<void> test_allows_tearoff_in_connect() async {
+    await assertNoDiagnostics(
+      '$_connect\nfinal a = Connect(select: topLevelSelector);\n'
+      'final b = Connect2(select: topLevelSelector);\n',
+    );
+  }
+
+  Future<void> test_ignores_connect_without_select() async {
+    await assertNoDiagnostics('$_connect\nfinal a = Connect();\n');
+  }
 }
