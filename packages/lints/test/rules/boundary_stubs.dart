@@ -68,6 +68,7 @@ class FooBloc extends Bloc<int, int> {}
 abstract class AppScope {}
 class MyScope extends AppScope {}
 class Foo {}
+abstract class Action<T> {}
 class GetIt {
   static final GetIt I = GetIt();
   T call<T>() => throw 0;

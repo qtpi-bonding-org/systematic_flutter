@@ -20,14 +20,19 @@ class BackendAccessOnlyInAdapters extends AnalysisRule {
     'Views must reach backend state only through an adapter.',
   );
 
-  BackendAccessOnlyInAdapters()
-    : super(
+  /// [compositionRootPaths], when given, replaces the `composition_root_paths`
+  /// option (a seam for tests, which cannot read `lint_config.yaml`).
+  BackendAccessOnlyInAdapters({List<String>? compositionRootPaths})
+    : _compositionRootPaths = compositionRootPaths,
+      super(
         name: 'backend_access_only_in_adapters',
         description:
             'Flags context.read/watch/select, scope lookups, bloc widgets, '
             'cubit, scope and data-layer types in views, and GetIt anywhere '
             'in widgets.',
       );
+
+  final List<String>? _compositionRootPaths;
 
   @override
   LintCode get diagnosticCode => code;
@@ -48,7 +53,8 @@ class BackendAccessOnlyInAdapters extends AnalysisRule {
         '/lib/infrastructure/',
       ]),
       compositionRoot: pathMatchesAny(
-        config.list(name, 'composition_root_paths', const []),
+        _compositionRootPaths ??
+            config.list(name, 'composition_root_paths', const []),
         path,
         context.package?.root.path,
       ),
@@ -73,8 +79,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final List<String> dataPaths;
 
-  /// Whether the file is a composition root: its top-level widget functions
-  /// are exempt, GetIt included.
+  /// Whether the file is a composition root: everything declared in it is
+  /// exempt (widgets, States, closures, top-level functions), GetIt included.
   final bool compositionRoot;
 
   /// Offsets of the NamedTypes already reported, so a type that is both a
@@ -299,6 +305,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// The scope of the nearest enclosing class, extension or top-level
   /// function, or [_Scope.unchecked] when none of them is a checked context.
   _Scope _scopeOf(AstNode node) {
+    if (compositionRoot) return _Scope.unchecked;
     for (AstNode? n = node.parent; n != null; n = n.parent) {
       if (n is ClassDeclaration) return _classScope(n);
       if (n is ExtensionDeclaration) {
@@ -318,7 +325,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       (a) => _adapterHelperNames.contains(_lastName(a.name)),
     );
     if (isHelper) return _Scope.adapter;
-    if (compositionRoot) return _Scope.unchecked;
     if (isWidgetType(node.returnType?.type)) return _Scope.view;
     final parameters =
         node.functionExpression.parameters?.parameters ?? const [];
@@ -328,7 +334,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     return takesContext ? _Scope.view : _Scope.unchecked;
   }
 
-  _Scope _classScope(ClassDeclaration node) {
+  final Map<ClassDeclaration, _Scope> _classScopes = {};
+
+  _Scope _classScope(ClassDeclaration node) =>
+      _classScopes.putIfAbsent(node, () => _computeClassScope(node));
+
+  _Scope _computeClassScope(ClassDeclaration node) {
     final type = node.declaredFragment?.element.thisType;
     if (type == null) return _Scope.unchecked;
     if (isAdapterType(type)) return _Scope.adapter;
@@ -341,6 +352,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (isWidgetType(type)) return _Scope.view;
     if (_isSupertypeBanned(type)) return _Scope.unchecked;
+    // Adapter-side helpers: an `@adapterHelper` class, or a keybinding
+    // `Action` that adapters provide. Services stay plain.
+    final isHelper = node.metadata.any(
+      (a) => _adapterHelperNames.contains(_lastName(a.name)),
+    );
+    if (isHelper || hasNamedSupertype(type, 'Action')) return _Scope.adapter;
     return _Scope.plain;
   }
 

@@ -32,6 +32,24 @@ with tempfile.TemporaryDirectory() as d:
     finally:
         sys.stdin = old
     assert updated.read_text().splitlines() == mod.findings(sample)
+
+# Dart 3.13 format: no systematic_lints prefix, ' - ' separators, rule id last.
+NEW = ('   info - lint_probe.dart:9:25 - There is one text size, and AppSizes '
+       'owns it. - no_hardcoded_font_size')
+new_sample = 'Analyzing lint_probe.dart...\n\n' + NEW + '\n\n1 issue found.\n'
+assert mod.findings(new_sample) == [NEW]
+assert mod.findings('Analyzing x...\nNo issues found.\n') == []
+with tempfile.TemporaryDirectory() as d:
+    base = Path(d) / 'b.txt'
+    out = Path(d) / 'out.txt'
+    out.write_text(new_sample)
+    # New finding against an empty baseline fails.
+    base.write_text('')
+    assert mod.main(['--baseline', str(base), str(out)]) == 1
+    assert mod.main(['--baseline', str(Path(d) / 'missing.txt'), str(out)]) == 1
+    # A baselined finding passes.
+    base.write_text(NEW + '\n')
+    assert mod.main(['--baseline', str(base), str(out)]) == 0
 print('lint_baseline self-test passed')
 
 # --- ratchet and smoke scripts, run against a stub `dart` on PATH ---
@@ -93,6 +111,17 @@ assert r.returncode != 0 and 'probe' in r.stderr, r.stderr + r.stdout
 other = FINDING.replace('no_hardcoded_font_size', 'no_error_to_text')
 r = ratchet('probe_file: pkg/lib/probe.dart\n', 'No issues found.\n', other + '\n')
 assert r.returncode != 0, r.stderr + r.stdout
+# The 3.13 line format (no systematic_lints prefix) is what the stub prints.
+FINDING_313 = ('   info - lib/probe.dart:2:20 - Use a token - '
+               'no_hardcoded_font_size')
+r = ratchet('probe_file: pkg/lib/probe.dart\n', FINDING_313 + '\n', FINDING_313 + '\n')
+assert r.returncode != 0, 'a new 3.13 finding vs empty baseline must fail: ' + r.stdout
+r = ratchet('probe_file: pkg/lib/probe.dart\n', 'No issues found.\n', FINDING_313 + '\n')
+assert r.returncode == 0, r.stderr + r.stdout
+# The probe reports its rule in a format the parser does not recognise: fail loudly.
+r = ratchet('probe_file: pkg/lib/probe.dart\n', 'No issues found.\n',
+            'WARN some future format mentions no_hardcoded_font_size here\n')
+assert r.returncode != 0 and 'format' in r.stderr, r.stderr + r.stdout
 # probe_file is required.
 r = ratchet('', 'No issues found.\n', FINDING + '\n')
 assert r.returncode != 0 and 'probe_file' in r.stderr, r.stderr + r.stdout
@@ -114,6 +143,8 @@ LISTED = ('plugins:\n  systematic_lints:\n    path: ../x\n    diagnostics:\n'
 UNLISTED = ('plugins:\n  systematic_lints:\n    path: ../x\n    diagnostics:\n'
             '      no_error_to_text: true\n')
 r = smoke(LISTED, FINDING + '\n')
+assert r.returncode == 0, r.stderr + r.stdout
+r = smoke(LISTED, FINDING_313 + '\n')
 assert r.returncode == 0, r.stderr + r.stdout
 # A rule missing from diagnostics is silent; smoke must say so and fail.
 r = smoke(UNLISTED, FINDING + '\n')

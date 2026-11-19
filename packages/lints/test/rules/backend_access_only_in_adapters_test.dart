@@ -7,6 +7,8 @@ import 'boundary_stubs.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BackendAccessOnlyInAdaptersTest);
+    defineReflectiveTests(BackendAccessCompositionRootTest);
+    defineReflectiveTests(BackendAccessOutsideCompositionRootTest);
   });
 }
 
@@ -252,10 +254,8 @@ Foo load(BuildContext context) {
 ''',
     ['context.read<Foo>()'],
   );
-  Future<void> test_top_level_void_context_arrow_function_flagged() => flagged(
-    'void del(BuildContext c) => c.read<Foo>();',
-    ['c.read<Foo>()'],
-  );
+  Future<void> test_top_level_void_context_arrow_function_flagged() =>
+      flagged('void del(BuildContext c) => c.read<Foo>();', ['c.read<Foo>()']);
   Future<void> test_top_level_function_without_context_clean() => clean('''
 Foo make() => getIt<Foo>();
 void useCubit(FooCubit c) {}
@@ -390,10 +390,8 @@ class V extends StatelessWidget {
       flagged(viewField('final Map<String, FooCubit> f;'), ['FooCubit']);
   Future<void> test_future_of_cubit_field_flagged() =>
       flagged(viewField('final Future<FooCubit> f;'), ['FooCubit']);
-  Future<void> test_nested_generic_field_flagged() => flagged(
-    viewField('final List<Map<int, FooCubit>> f;'),
-    ['FooCubit'],
-  );
+  Future<void> test_nested_generic_field_flagged() =>
+      flagged(viewField('final List<Map<int, FooCubit>> f;'), ['FooCubit']);
   Future<void> test_function_type_parameter_field_flagged() =>
       flagged(viewField('final void Function(FooCubit) f;'), ['FooCubit']);
   Future<void> test_function_type_return_field_flagged() =>
@@ -428,11 +426,9 @@ class V extends StatelessWidget {
       flagged(view('final c = (Object() as List<FooCubit>);'), ['FooCubit']);
   Future<void> test_generic_data_path_field_flagged() {
     newFile('$testPackageLibPath/data/repo.dart', 'class Repo {}');
-    return flagged(
-      viewField('final List<Repo> f;'),
-      ['Repo'],
-      imports: "import 'package:test/data/repo.dart';\n",
-    );
+    return flagged(viewField('final List<Repo> f;'), [
+      'Repo',
+    ], imports: "import 'package:test/data/repo.dart';\n");
   }
 
   Future<void> test_generic_cubit_in_adapter_clean() => clean('''
@@ -449,10 +445,8 @@ class VAdapter extends AdapterWidget {
     'class ViewData { const ViewData(this.cubit); final FooCubit cubit; }',
     ['FooCubit'],
   );
-  Future<void> test_plain_class_generic_scope_field_flagged() => flagged(
-    'class Holder { final List<MyScope> scopes = []; }',
-    ['MyScope'],
-  );
+  Future<void> test_plain_class_generic_scope_field_flagged() =>
+      flagged('class Holder { final List<MyScope> scopes = []; }', ['MyScope']);
   Future<void> test_plain_class_function_type_cubit_flagged() => flagged(
     'class Holder { Holder(this.f); final void Function(FooBloc) f; }',
     ['FooBloc'],
@@ -467,6 +461,16 @@ class VAdapter extends AdapterWidget {
     );
   }
 
+  Future<void> test_unannotated_service_holding_cubit_flagged() => flagged(
+    'class Service { Service(this.c); final FooCubit c; }',
+    ['FooCubit'],
+  );
+  Future<void> test_adapter_helper_class_holding_cubit_clean() => clean(
+    'const adapterHelper = Object(); @adapterHelper class Helper { Helper(this.c); final FooCubit c; }',
+  );
+  Future<void> test_action_subclass_holding_cubit_clean() => clean(
+    'class OpenAction extends Action<int> { OpenAction(this.c); final FooCubit c; }',
+  );
   Future<void> test_service_with_getit_clean() => clean(
     'class Service { final GetIt g = GetIt.I; Foo load() => getIt<Foo>(); }',
   );
@@ -516,18 +520,24 @@ Widget w(BuildContext context) {
   return Leaf();
 }
 ''');
-  Future<void> test_adapter_helper_still_bans_getit() => flagged('''
+  Future<void> test_adapter_helper_still_bans_getit() => flagged(
+    '''
 const adapterHelper = Object();
 @adapterHelper
 void f(BuildContext context) {
   GetIt.I;
 }
-''', ['GetIt']);
-  Future<void> test_other_annotation_does_not_exempt() => flagged('''
+''',
+    ['GetIt'],
+  );
+  Future<void> test_other_annotation_does_not_exempt() => flagged(
+    '''
 const keep = Object();
 @keep
 void f(BuildContext context) => context.read<Foo>();
-''', ['context.read<Foo>()']);
+''',
+    ['context.read<Foo>()'],
+  );
 
   // prefixed and aliased calls
 
@@ -563,19 +573,16 @@ class V extends p.StatelessWidget {
     'p.ScopeProvider.maybeOf<p.MyScope>(context);',
     'p.ScopeProvider.maybeOf<p.MyScope>(context)',
   );
-  Future<void> test_prefixed_getit_flagged() =>
-      prefixed('p.GetIt.I;', 'GetIt');
+  Future<void> test_prefixed_getit_flagged() => prefixed('p.GetIt.I;', 'GetIt');
   Future<void> test_prefixed_getit_function_flagged() =>
       prefixed('p.getIt<p.Foo>();', 'getIt');
   Future<void> test_aliased_provider_of_flagged() => flagged(
     'typedef Prov = Provider;\n${view('Prov.of<Foo>(context);')}',
     ['Prov.of<Foo>(context)'],
   );
-  Future<void> test_aliased_getit_flagged() => flagged(
-    view('Locator.I;'),
-    ['Locator'],
-    imports: 'typedef Locator = GetIt;\n',
-  );
+  Future<void> test_aliased_getit_flagged() => flagged(view('Locator.I;'), [
+    'Locator',
+  ], imports: 'typedef Locator = GetIt;\n');
 
   // top-level variables
 
@@ -589,4 +596,56 @@ class V extends p.StatelessWidget {
       flagged('final List<FooCubit> cubits = [];', ['cubits']);
   Future<void> test_top_level_plain_variable_clean() =>
       clean('final foo = Foo();');
+}
+
+@reflectiveTest
+class BackendAccessCompositionRootTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    rule = BackendAccessOnlyInAdapters(compositionRootPaths: const ['lib/']);
+    super.setUp();
+  }
+
+  static const _app = '''
+class MyApp extends StatefulWidget {
+  const MyApp();
+}
+class _MyAppState extends State<MyApp> {
+  Widget build(BuildContext context) {
+    getIt<Foo>();
+    ScopeProvider.of<MyScope>(context);
+    final f = () { context.read<Foo>(); return Leaf(); };
+    return f();
+  }
+}
+''';
+
+  Future<void> test_widget_and_state_in_composition_root_clean() =>
+      assertNoDiagnostics(withStubs(_app).source);
+}
+
+@reflectiveTest
+class BackendAccessOutsideCompositionRootTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    rule = BackendAccessOnlyInAdapters(
+      compositionRootPaths: const ['lib/elsewhere/'],
+    );
+    super.setUp();
+  }
+
+  Future<void> test_same_widget_outside_is_flagged() async {
+    final s = withStubs(BackendAccessCompositionRootTest._app);
+    await assertDiagnostics(s.source, [
+      lint(s.source.indexOf('getIt<Foo>', s.bodyStart), 'getIt'.length),
+      lint(
+        s.source.indexOf('ScopeProvider.of<MyScope>(context)'),
+        'ScopeProvider.of<MyScope>(context)'.length,
+      ),
+      lint(
+        s.source.indexOf('context.read<Foo>()'),
+        'context.read<Foo>()'.length,
+      ),
+    ]);
+  }
 }

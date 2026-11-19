@@ -25,15 +25,24 @@ abstract class AppScope {
   }
 
   /// Releases every owned value in reverse order. Calling it again is a
-  /// no-op. Subclasses that override this must call `super.dispose()`.
+  /// no-op. If a release throws, the remaining values are still released and
+  /// the first error is rethrown. Subclasses that override this must call `super.dispose()`.
   @mustCallSuper
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    Object? firstError;
+    StackTrace? firstStack;
     for (final value in _owned.reversed) {
-      _release(value);
+      try {
+        _release(value);
+      } catch (e, st) {
+        firstError ??= e;
+        firstStack ??= st;
+      }
     }
     _owned.clear();
+    if (firstError != null) Error.throwWithStackTrace(firstError, firstStack!);
   }
 
   static void _release(Object value) {

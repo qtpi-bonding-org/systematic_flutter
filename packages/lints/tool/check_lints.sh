@@ -19,7 +19,8 @@ reports_rule() { printf '%s\n' "$1" | grep -w -- "$2" >/dev/null; }
 
 output="$(mktemp)"; probe_out="$(mktemp)"; trap 'rm -f "$output" "$probe_out"' EXIT
 for package in "${packages[@]}"; do
-  (cd "$root/$package" && dart analyze 2>&1) | tee -a "$output"
+  # dart analyze exits non-zero when it reports findings; the baseline decides.
+  (cd "$root/$package" && dart analyze 2>&1 || true) | tee -a "$output"
 done
 
 # The probe runs in the package that contains probe_file (longest matching prefix wins).
@@ -41,6 +42,13 @@ for (( attempt = 1; attempt <= attempts; attempt++ )); do
 done
 if [[ "$hit" != 1 ]]; then
   echo "probe did not fire: systematic_lints rule $probe reported nothing for $probe_file after $attempts attempt(s) (is $probe listed under plugins: systematic_lints: diagnostics:?)" >&2
+  exit 1
+fi
+
+# Guard against analyzer format changes: the probe reports its rule, so the
+# baseline parser must recognise at least one finding line in that output.
+if ! python3 "$root/tool/lint_baseline.py" --require-any "$probe_out"; then
+  echo "probe rule $probe was reported but the baseline parser recognises no finding line; update FINDING_RE in tool/lint_baseline.py for the new dart analyze format" >&2
   exit 1
 fi
 

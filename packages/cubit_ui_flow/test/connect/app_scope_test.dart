@@ -41,7 +41,35 @@ class TestScope extends AppScope {
 
 class OtherScope extends AppScope {}
 
+class ThrowingNotifier extends ChangeNotifier {
+  ThrowingNotifier(this.log, this.name);
+  final List<String> log;
+  final String name;
+  @override
+  void dispose() {
+    log.add(name);
+    super.dispose();
+    throw StateError(name);
+  }
+}
+
 void main() {
+  test('dispose keeps releasing after a throw, then rethrows the first error',
+      () {
+    final log = <String>[];
+    final s = OtherScope();
+    s.own(Notifier(log));
+    s.own(ThrowingNotifier(log, 'b'));
+    s.own(ThrowingNotifier(log, 'a'));
+    // Reverse order: 'a' throws first, 'b' second, then the plain notifier.
+    expect(
+      s.dispose,
+      throwsA(isA<StateError>().having((e) => e.message, 'message', 'a')),
+    );
+    expect(log, ['a', 'b', 'notifier']);
+    expect(s.isDisposed, isTrue);
+  });
+
   test('own disposes in reverse order and sets isDisposed', () {
     final log = <String>[];
     final s = TestScope(log);

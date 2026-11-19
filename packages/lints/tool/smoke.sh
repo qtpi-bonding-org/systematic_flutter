@@ -15,8 +15,9 @@ if [[ ! -f "$options" ]] || ! grep -qE '^[[:space:]]+diagnostics:' "$options" \
   exit 1
 fi
 
-# True when analyzer output $1 has a systematic_lints line naming rule $2 as a whole word.
-reports_rule() { printf '%s\n' "$1" | grep systematic_lints | grep -w -- "$2" >/dev/null; }
+# True when analyzer output $1 has a finding line naming rule $2 as a whole word.
+# (Dart 3.13 prints no systematic_lints prefix, so the plugin cannot be filtered on.)
+reports_rule() { printf '%s\n' "$1" | grep -E '^[[:space:]]*(error|warning|info)' | grep -w -- "$2" >/dev/null; }
 
 mkdir -p "$(dirname "$probe")"
 trap 'rm -f "$probe"' EXIT

@@ -29,7 +29,7 @@ glue:  Connect(select, builder)          framework widget; builder calls the ada
 | Adapter | Subclass of `AdapterWidget` or `StatefulAdapterWidget`, named `*Adapter` | Use `Connect*`, `BlocProvider`, `ScopeProvider.of`, `UiFlowStateListener`; own controllers; open dialogs; navigate; provide `Action`s for `Intent`s | Use `GetIt` |
 | View | Any other widget (including small ones like `TagChip`), `BuildContext` extensions, top-level functions returning `Widget` | Take data, callbacks, finished children, controllers/listenables; read `Theme`, `MediaQuery`, `Directionality`, `Localizations`, `DefaultTextStyle`, `FocusScope`; use `Shortcuts` (dispatch `Intent`s); local UI state | `context.read/watch/select`, `Provider.of`, bloc widgets, `UiFlowStateListener`, `ScopeProvider.of`, `Connect*`, `GetIt`; fields, parameters or casts of a cubit type, an `AppScope` type, or a type declared under the app's `data_paths` |
 | Scope | Subclass of `AppScope` (plain class, not a widget) | Own long-lived cubits with `own(...)`; expose factories for local cubits; use `GetIt` | Be a widget |
-| Composition root | Top-level functions and route closures in files listed as `composition_root_paths` (bootstrap, router) | `GetIt`; build scopes; fill top-level children with adapters | |
+| Composition root | Everything declared in files listed as `composition_root_paths` (bootstrap, router: `MyApp` and its State, top-level functions, route closures) | `GetIt`; build scopes; fill top-level children with adapters | |
 
 Data and services are never ambient. Only theme-like context is.
 
@@ -263,14 +263,14 @@ Boundary rules:
 
 | Rule | Says |
 |---|---|
-| `backend_access_only_in_adapters` | Views may not read backend (see section 2); `GetIt` banned in every widget; option `composition_root_paths` exempts top-level functions in bootstrap/router files; `data_paths` names the types views may not hold; `@adapterHelper` exempts a helper function |
+| `backend_access_only_in_adapters` | Views may not read backend (see section 2); `GetIt` banned in every widget; option `composition_root_paths` exempts everything declared in bootstrap/router files, `GetIt` included; `data_paths` names the types views may not hold; a plain class holding a cubit or scope is flagged too (no wrapper classes), except a class or top-level function marked `@adapterHelper` and a class extending Flutter's `Action` (keybinding actions provided by adapters). Other services are untouched unless they hold a cubit or scope |
 | `adapter_naming` | Subclasses of `AdapterWidget`, `StatefulAdapterWidget`, `CubitAdapter`, `MultiCubitAdapter` end in `Adapter`; no other widget does |
 | `actions_avoid_bloc_names` | `*Actions` types declare no member named like `BlocBase` API |
 | `actions_return_void` | `*Actions` members return `void` or `Future<void>`; no fields |
 | `no_build_context_fields` | No `BuildContext` field outside a `State` |
-| `require_static_selector`, `cubit_field_selector_must_be_equatable` | Also check `select:` of `Connect` and `Connect2` |
+| `require_static_selector`, `cubit_field_selector_must_be_equatable` | Also check `select:` of `Connect`, `Connect2` and `ConnectFor` |
 
-Other rules: design tokens (`no_hardcoded_colors`, `..._font_size`, `..._font_family`, `..._padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes`), labels (`no_hardcoded_strings`), failure discipline (`exceptions_extend_failure_base`, `throw_only_failure_types`, `no_bare_catch_conversion`, `no_string_error_in_state`, `no_error_to_text`), and the older structure rules. Apps that opt in disable `avoid_bloc_imports_in_widgets_dir`; `avoid_getit_in_adapters_dir` is covered by the boundary rule. Types are matched by name, and rules apply to widgets and their `State`s only, so cubits, services and scopes are untouched. `*View` naming is deliberately not enforced.
+Other rules: design tokens (`no_hardcoded_colors`, `..._font_size`, `..._font_family`, `..._padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes`), labels (`no_hardcoded_strings`), failure discipline (`exceptions_extend_failure_base`, `throw_only_failure_types`, `no_bare_catch_conversion`, `no_string_error_in_state`, `no_error_to_text`), and the older structure rules. Apps that opt in disable `avoid_bloc_imports_in_widgets_dir`; `avoid_getit_in_adapters_dir` is covered by the boundary rule. Types are matched by name, and rules apply to widgets and their `State`s only, so cubits and scopes are untouched, and a plain class is checked only for holding a cubit or scope (see the table). `*View` naming is deliberately not enforced.
 
 **Probe check.** Because a missing entry is silent, two scripts prove the plugin works:
 - `packages/lints/tool/smoke.sh <app> [rule]` fails if the rule is not listed under `diagnostics:` or the probe reports nothing.
