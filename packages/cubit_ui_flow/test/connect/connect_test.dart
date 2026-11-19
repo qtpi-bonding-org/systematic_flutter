@@ -21,17 +21,6 @@ bool selectEven(int s) => s.isEven;
 int sumAB(Two s, int b) => s.a + b;
 bool bothEven(Two s, int b) => s.a.isEven && b.isEven;
 
-class ResolveAdapter extends CubitAdapter<IntCubit, int> {
-  const ResolveAdapter(this.other, {super.key});
-  final IntCubit other;
-  @override
-  IntCubit resolveCubit(BuildContext context) => other;
-  @override
-  Widget buildAdapter(BuildContext context, CubitAdapterState<IntCubit, int> a) {
-    return Text('v${a.cubit.state}', textDirection: TextDirection.ltr);
-  }
-}
-
 class PlainAdapter extends CubitAdapter<IntCubit, int> {
   const PlainAdapter({super.key});
   @override
@@ -124,12 +113,6 @@ void main() {
     c1.emit(const Two(4, 0));
     await t.pump(); await t.pump(); // stream delivery is a microtask
     expect(find.text('s7'), findsOneWidget);
-  });
-
-  testWidgets('CubitAdapter resolveCubit override is used', (t) async {
-    final other = IntCubit(7);
-    await t.pumpWidget(ResolveAdapter(other));
-    expect(find.text('v7'), findsOneWidget);
   });
 
   testWidgets('CubitAdapter default resolves via context.read', (t) async {

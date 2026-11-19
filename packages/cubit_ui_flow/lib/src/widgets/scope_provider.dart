@@ -41,8 +41,16 @@ class ScopeProvider<T extends AppScope> extends StatefulWidget {
   }
 
   /// Returns the nearest [T] scope, or null if none is provided.
-  static T? maybeOf<T extends AppScope>(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_ScopeInherited<T>>()?.scope;
+  ///
+  /// Non-subscribing: the caller is not rebuilt when the scope changes, so it
+  /// is safe in [State.initState] and in `BlocProvider(create:)`. To swap
+  /// scopes, key the ScopeProvider (or use `.value` with a new scope) so the
+  /// subtree is rebuilt or re-created.
+  static T? maybeOf<T extends AppScope>(BuildContext context) {
+    final element =
+        context.getElementForInheritedWidgetOfExactType<_ScopeInherited<T>>();
+    return (element?.widget as _ScopeInherited<T>?)?.scope;
+  }
 
   @override
   State<ScopeProvider<T>> createState() => _ScopeProviderState<T>();

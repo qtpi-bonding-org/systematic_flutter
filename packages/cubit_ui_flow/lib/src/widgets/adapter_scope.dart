@@ -282,6 +282,29 @@ class AdapterScopeImpl implements AdapterScope {
     };
   }
 
+  /// Releases one memoized entry: a field keyed `(cubit, selector)` or a
+  /// combine keyed `(a, b, combine)` / `(a, b, c, combine)`. A field's
+  /// subscription is cancelled and its notifier disposed; a combine is
+  /// removed and its combinator disposed. An unknown key, or a call after
+  /// [dispose], is a no-op.
+  void release(Object key) {
+    if (_disposed) return;
+
+    final field = _fields.remove(key);
+    if (field != null) {
+      field.subscription.cancel();
+      field.notifier.dispose();
+      return;
+    }
+
+    final combined = _combines.remove(key);
+    if (combined != null) {
+      final combinator = combined as ChangeNotifier;
+      _combinators.remove(combinator);
+      combinator.dispose();
+    }
+  }
+
   /// Cancel Cubit subscriptions -> remove ValueListenable listeners ->
   /// dispose combinators -> dispose kept objects -> dispose notifiers. A
   /// later step must never touch something an earlier step disposed.
