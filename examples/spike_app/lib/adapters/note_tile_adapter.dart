@@ -5,8 +5,8 @@ import '../notes/notes_cubit.dart';
 import '../scopes.dart';
 import '../views/note_tile.dart';
 import '../views/tag_chip.dart';
-import 'rename_dialog_adapter.dart';
 import 'confirm_and_delete.dart';
+import 'rename_dialog_adapter.dart';
 
 class NoteTileAdapter extends AdapterWidget {
   const NoteTileAdapter({super.key, required this.tabId, required this.id});
@@ -46,11 +46,9 @@ class NoteTileAdapter extends AdapterWidget {
     required VoidCallback onDelete,
   }) {
     return NoteTile(
-      id: data.id,
-      title: data.title,
-      selected: data.selected,
+      data: data,
       trailing: TagChip(
-        label: data.tag,
+        data: TagChipData(label: data.tag),
         onTap: () => actions.cycleTag(data.id),
       ),
       onSelect: () => actions.select(data.id),

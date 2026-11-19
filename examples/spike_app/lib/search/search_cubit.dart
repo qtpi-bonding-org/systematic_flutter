@@ -35,6 +35,11 @@ class SearchPanelData {
   final bool hasQuery;
   final bool online;
 
+  static Map<String, SearchPanelData> samples() => const {
+        'empty-online': SearchPanelData(hasQuery: false, online: true),
+        'typing-offline': SearchPanelData(hasQuery: true, online: false),
+      };
+
   @override
   bool operator ==(Object other) =>
       other is SearchPanelData &&

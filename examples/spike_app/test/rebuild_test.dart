@@ -12,11 +12,12 @@ void main() {
   });
   tearDown(() => ConnectObserver.instance = null);
 
-  testWidgets('every probed widget builds once at start', (t) async {
+  testWidgets('every widget builds once at start (the list twice: loading, loaded)', (t) async {
     await pumpApp(t);
     expect(n('search-panel'), 1);
     expect(n('status-view'), 1);
-    expect(n('note-list:tab1'), 1);
+    // The list builds twice: loading, then loaded.
+    expect(n('note-list:tab1'), 2);
     expect(n('tile:tab1-1'), 1);
     expect(n('tile:tab1-3'), 1);
     await unmountApp(t);

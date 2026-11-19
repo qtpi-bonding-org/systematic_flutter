@@ -33,6 +33,11 @@ class RenameFormData {
 
   final bool valid;
 
+  static Map<String, RenameFormData> samples() => const {
+        'valid': RenameFormData(valid: true),
+        'invalid': RenameFormData(valid: false),
+      };
+
   @override
   bool operator ==(Object other) =>
       other is RenameFormData && other.valid == valid;

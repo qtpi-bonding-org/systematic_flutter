@@ -12,11 +12,11 @@ class FlowStartAdapter extends AdapterWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Connect<FlowCubit, FlowState, String>(
+    return Connect<FlowCubit, FlowState, FlowNameData>(
       select: selectFlowName,
       resolve: (c) => ScopeProvider.of<FlowScope>(c).flow,
-      builder: (ctx, name, cubit) => assemble(
-        name,
+      builder: (ctx, data, cubit) => assemble(
+        data,
         cubit,
         onNext: () => GoRouter.of(ctx).go('/start/confirm'),
       ),
@@ -24,12 +24,12 @@ class FlowStartAdapter extends AdapterWidget {
   }
 
   static Widget assemble(
-    String name,
+    FlowNameData data,
     FlowActions actions, {
     required VoidCallback onNext,
   }) {
     return StartView(
-      name: name,
+      data: data,
       onNameChanged: actions.setName,
       onNext: onNext,
     );
@@ -41,17 +41,17 @@ class FlowConfirmAdapter extends AdapterWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Connect<FlowCubit, FlowState, String>(
+    return Connect<FlowCubit, FlowState, FlowNameData>(
       select: selectFlowName,
       resolve: (c) => ScopeProvider.of<FlowScope>(c).flow,
-      builder: (ctx, name, _) => assemble(
-        name,
+      builder: (ctx, data, _) => assemble(
+        data,
         onBack: () => GoRouter.of(ctx).go('/start'),
       ),
     );
   }
 
-  static Widget assemble(String name, {required VoidCallback onBack}) {
-    return ConfirmView(name: name, onBack: onBack);
+  static Widget assemble(FlowNameData data, {required VoidCallback onBack}) {
+    return ConfirmView(data: data, onBack: onBack);
   }
 }

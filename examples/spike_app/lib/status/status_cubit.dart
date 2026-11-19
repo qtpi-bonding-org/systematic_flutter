@@ -39,4 +39,25 @@ class StatusCubit extends Cubit<StatusState> {
   }
 }
 
+/// What the status line shows.
+@immutable
+class StatusData {
+  const StatusData({required this.tick});
+
+  final int tick;
+
+  static Map<String, StatusData> samples() => const {
+        'tick 0': StatusData(tick: 0),
+        'tick 42': StatusData(tick: 42),
+        'tick big': StatusData(tick: 1234),
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is StatusData && other.tick == tick;
+
+  @override
+  int get hashCode => tick.hashCode;
+}
+
 int selectTick(StatusState s) => s.tick;

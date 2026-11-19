@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_color_palette/flutter_color_palette.dart'
+    show AppColorPalette;
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:systematic_catalog/systematic_catalog.dart';
+import 'package:systematic_ui/systematic_ui.dart';
 
 import 'adapters/flow_adapters.dart';
 import 'adapters/note_tile_adapter.dart';
@@ -10,13 +14,18 @@ import 'adapters/status_adapter.dart';
 import 'adapters/tabs_adapter.dart';
 import 'adapters/workspace_switch_adapter.dart';
 import 'flow/flow_cubit.dart';
+import 'infrastructure/ui_flow.dart';
+import 'l10n/app_localizations.dart';
 import 'notes/notes_cubit.dart';
 import 'rename/rename_form_cubit.dart';
 import 'search/search_cubit.dart';
+import 'status/status_cubit.dart';
 import 'tabs/tabs_cubit.dart';
+import 'theme/app_theme.dart';
 import 'views/confirm_dialog_view.dart';
 import 'views/home_view.dart';
 import 'views/tag_chip.dart';
+import 'views/workspace_switch_view.dart';
 import 'workspace/workspace_cubit.dart';
 
 /// Catalog-only actions: plain no-op implementations, no cubits or scopes.
@@ -96,275 +105,198 @@ Widget _catalogTile(String id) => NoteTileAdapter.assemble(
       onDelete: () {},
     );
 
-Widget _notesList(String tabId, List<String> ids) => NotesAdapter.assemble(
+Widget _notesList(String tabId, NoteListData data) => NotesAdapter.assemble(
       tabId,
-      NoteListData(ids),
+      data,
       _catalogTile,
       onDeleteSelected: () {},
+      onRetry: () {},
     );
 
-Widget _home({required bool online, required bool hasQuery}) => HomeView(
-      header: WorkspaceSwitchAdapter.assemble('A', _workspace),
+Widget _home(SearchPanelData data) => HomeView(
+      header: WorkspaceSwitchAdapter.assemble(
+        const WorkspaceSwitchData(current: 'A', options: ['A', 'B']),
+        _workspace,
+      ),
       tabs: TabsAdapter.assemble(
         TabStripData(tabs: kTabs, active: 'tab1'),
         _tabs,
-        _notesList('tab1', const ['tab1-1', 'tab1-2']),
+        const Text('Body'),
       ),
       search: _WithController(
-        text: hasQuery ? 'alpha' : '',
-        builder: (c) => SearchAdapter.assemble(
-          SearchPanelData(hasQuery: hasQuery, online: online),
-          _search,
-          c,
-        ),
+        text: data.hasQuery ? 'alpha' : '',
+        builder: (c) => SearchAdapter.assemble(data, _search, c),
       ),
-      status: StatusAdapter.assemble(3),
+      status: StatusAdapter.assemble(const StatusData(tick: 3)),
       onStartFlow: () {},
     );
 
 List<CatalogEntry> catalogEntries() => [
-      CatalogEntry(
+      CatalogEntry.fromSamples<TagChipData>(
         name: 'TagChip',
         kind: CatalogKind.widget,
-        states: {
-          'tag1': (_) => _labelled(
-                'TagChip',
-                TagChip(label: 'tag1', onTap: () {}),
-              ),
-          'tag2': (_) => _labelled(
-                'TagChip',
-                TagChip(label: 'tag2', onTap: () {}),
-              ),
-        },
+        samples: TagChipData.samples(),
+        build: (data) => _labelled(
+          'TagChip',
+          TagChip(data: data, onTap: () {}),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<NoteTileData>(
         name: 'NoteTile',
         kind: CatalogKind.widget,
-        states: {
-          'default': (_) => _labelled(
-                'NoteTile',
-                NoteTileAdapter.assemble(
-                  const NoteTileData(
-                    id: 'a',
-                    title: 'Alpha',
-                    tag: 'tag1',
-                    selected: false,
-                  ),
-                  _notes,
-                  onRename: () {},
-                  onDelete: () {},
-                ),
-              ),
-          'selected': (_) => _labelled(
-                'NoteTile',
-                NoteTileAdapter.assemble(
-                  const NoteTileData(
-                    id: 'a',
-                    title: 'Alpha',
-                    tag: 'tag1',
-                    selected: true,
-                  ),
-                  _notes,
-                  onRename: () {},
-                  onDelete: () {},
-                ),
-              ),
-        },
+        samples: NoteTileData.samples(),
+        build: (data) => _labelled(
+          'NoteTile',
+          NoteTileAdapter.assemble(data, _notes, onRename: () {}, onDelete: () {}),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<NoteListData>(
         name: 'NoteListView',
         kind: CatalogKind.widget,
-        states: {
-          'empty': (_) => _labelled('NoteListView', _notesList('tab1', const [])),
-          'full': (_) => _labelled(
-                'NoteListView',
-                _notesList('tab1', const ['a', 'b', 'c']),
-              ),
-        },
+        samples: NoteListData.samples(),
+        build: (data) => _labelled('NoteListView', _notesList('tab1', data)),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<TabStripData>(
         name: 'TabStripView',
         kind: CatalogKind.widget,
-        states: {
-          'tab1': (_) => _labelled(
-                'TabStripView',
-                TabsAdapter.assemble(
-                  TabStripData(tabs: kTabs, active: 'tab1'),
-                  _tabs,
-                  const Text('Body'),
-                ),
-              ),
-          'tab2': (_) => _labelled(
-                'TabStripView',
-                TabsAdapter.assemble(
-                  TabStripData(tabs: kTabs, active: 'tab2'),
-                  _tabs,
-                  const Text('Body'),
-                ),
-              ),
-        },
+        samples: TabStripData.samples(),
+        build: (data) => _labelled(
+          'TabStripView',
+          TabsAdapter.assemble(
+            data,
+            _tabs,
+            const Text('Body'),
+          ),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<SearchPanelData>(
         name: 'SearchPanelView',
         kind: CatalogKind.widget,
-        states: {
-          'empty-online': (_) => _labelled(
-                'SearchPanelView',
-                _WithController(
-                  text: '',
-                  builder: (c) => SearchAdapter.assemble(
-                    const SearchPanelData(hasQuery: false, online: true),
-                    _search,
-                    c,
-                  ),
-                ),
-              ),
-          'typing-offline': (_) => _labelled(
-                'SearchPanelView',
-                _WithController(
-                  text: 'abc',
-                  builder: (c) => SearchAdapter.assemble(
-                    const SearchPanelData(hasQuery: true, online: false),
-                    _search,
-                    c,
-                  ),
-                ),
-              ),
-        },
+        samples: SearchPanelData.samples(),
+        build: (data) => _labelled(
+          'SearchPanelView',
+          _WithController(
+            text: data.hasQuery ? 'abc' : '',
+            builder: (c) => SearchAdapter.assemble(data, _search, c),
+          ),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<StatusData>(
         name: 'StatusView',
         kind: CatalogKind.widget,
-        states: {
-          'tick 0': (_) => _labelled('StatusView', StatusAdapter.assemble(0)),
-          'tick 42': (_) => _labelled('StatusView', StatusAdapter.assemble(42)),
-        },
+        samples: StatusData.samples(),
+        build: (data) =>
+            _labelled('StatusView', StatusAdapter.assemble(data)),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<WorkspaceSwitchData>(
         name: 'WorkspaceSwitchView',
         kind: CatalogKind.widget,
-        states: {
-          'A': (_) => _labelled(
-                'WorkspaceSwitchView',
-                WorkspaceSwitchAdapter.assemble('A', _workspace),
-              ),
-          'B': (_) => _labelled(
-                'WorkspaceSwitchView',
-                WorkspaceSwitchAdapter.assemble('B', _workspace),
-              ),
-        },
+        samples: WorkspaceSwitchData.samples(),
+        build: (data) => _labelled(
+          'WorkspaceSwitchView',
+          WorkspaceSwitchAdapter.assemble(data, _workspace),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<ConfirmDialogData>(
         name: 'ConfirmDialogView',
         kind: CatalogKind.widget,
-        states: {
-          'short': (_) => _labelled(
-                'ConfirmDialogView',
-                ConfirmDialogView(
-                  message: 'Delete "Alpha"?',
-                  onConfirm: () {},
-                  onCancel: () {},
-                ),
-              ),
-          'long': (_) => _labelled(
-                'ConfirmDialogView',
-                ConfirmDialogView(
-                  message:
-                      'Delete "A very long note title that wraps onto more than one line"?',
-                  onConfirm: () {},
-                  onCancel: () {},
-                ),
-              ),
-        },
+        samples: ConfirmDialogData.samples(),
+        build: (data) => _labelled(
+          'ConfirmDialogView',
+          ConfirmDialogView(data: data, onConfirm: () {}, onCancel: () {}),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<RenameFormData>(
         name: 'RenameDialogView',
         kind: CatalogKind.widget,
-        states: {
-          'valid': (_) => _labelled(
-                'RenameDialogView',
-                _WithController(
-                  text: 'Alpha',
-                  builder: (c) => RenameDialogAdapter.assemble(
-                    const RenameFormData(valid: true),
-                    _rename,
-                    c,
-                    onSave: () {},
-                    onCancel: () {},
-                  ),
-                ),
-              ),
-          'invalid': (_) => _labelled(
-                'RenameDialogView',
-                _WithController(
-                  text: '',
-                  builder: (c) => RenameDialogAdapter.assemble(
-                    const RenameFormData(valid: false),
-                    _rename,
-                    c,
-                    onSave: () {},
-                    onCancel: () {},
-                  ),
-                ),
-              ),
-        },
+        samples: RenameFormData.samples(),
+        build: (data) => _labelled(
+          'RenameDialogView',
+          _WithController(
+            text: data.valid ? 'Alpha' : '',
+            builder: (c) => RenameDialogAdapter.assemble(
+              data,
+              _rename,
+              c,
+              onSave: () {},
+              onCancel: () {},
+            ),
+          ),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<SearchPanelData>(
         name: 'HomeView',
         kind: CatalogKind.screen,
-        states: {
-          'default': (_) => _labelledScreen(
-                'HomeView',
-                _home(online: true, hasQuery: false),
-              ),
-          'offline-searching': (_) => _labelledScreen(
-                'HomeView',
-                _home(online: false, hasQuery: true),
-              ),
-        },
+        samples: SearchPanelData.samples(),
+        build: (data) => _labelledScreen('HomeView', _home(data)),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<FlowNameData>(
         name: 'StartView',
         kind: CatalogKind.screen,
-        states: {
-          'empty': (_) => _labelledScreen(
-                'StartView',
-                FlowStartAdapter.assemble('', _flow, onNext: () {}),
-              ),
-          'filled': (_) => _labelledScreen(
-                'StartView',
-                FlowStartAdapter.assemble('Ann', _flow, onNext: () {}),
-              ),
-        },
+        samples: FlowNameData.samples(),
+        build: (data) => _labelledScreen(
+          'StartView',
+          FlowStartAdapter.assemble(data, _flow, onNext: () {}),
+        ),
       ),
-      CatalogEntry(
+      CatalogEntry.fromSamples<FlowNameData>(
         name: 'ConfirmView',
         kind: CatalogKind.screen,
-        states: {
-          'short name': (_) => _labelledScreen(
-                'ConfirmView',
-                FlowConfirmAdapter.assemble('Ann', onBack: () {}),
-              ),
-          'long name': (_) => _labelledScreen(
-                'ConfirmView',
-                FlowConfirmAdapter.assemble(
-                  'Maximilian Alexander the Third',
-                  onBack: () {},
-                ),
-              ),
-        },
+        samples: FlowNameData.samples(),
+        build: (data) => _labelledScreen(
+          'ConfirmView',
+          FlowConfirmAdapter.assemble(data, onBack: () {}),
+        ),
       ),
     ];
 
-Widget catalogApp() => MaterialApp(
-      home: CatalogPage(
-        entries: catalogEntries(),
-        themeBuilder: (tokens, brightness) => ThemeData(
-          colorSchemeSeed: tokens.seed,
-          brightness: brightness,
-          fontFamily: tokens.fontFamily,
-        ),
-      ),
-    );
+/// The catalog's theme: the palette with the side panel's colour overrides,
+/// and the spacing, size and brightness controls applied to the sizes.
+ThemeData _catalogTheme(CatalogTokens tokens, Brightness brightness) {
+  final palette = AppColorPalette(
+    colors: {...kPalette.colors, ...tokens.colorOverrides},
+  );
+  final service = ThemeService(
+    lightPalette: palette,
+    darkPalette: palette.symmetricPalette,
+  )..setDarkMode(brightness == Brightness.dark);
+  const radii = (tiny: 2.0, small: 8.0, medium: 16.0, large: 24.0);
+  final sizes = const SystematicSizes.standard().copyWith(
+    space: 8 * tokens.spacingScale,
+    spaceHalf: 4 * tokens.spacingScale,
+    radiusTiny: radii.tiny * tokens.sizeScale,
+    radiusSmall: radii.small * tokens.sizeScale,
+    radiusMedium: radii.medium * tokens.sizeScale,
+    radiusLarge: radii.large * tokens.sizeScale,
+  );
+  return AppTheme.build(
+    palette: service.currentPalette,
+    sizes: sizes,
+    brightness: brightness,
+    fontFamily: tokens.fontFamily,
+  );
+}
+
+Widget catalogApp() {
+  final labels = AppLabelResolver();
+  return MaterialApp(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const [Locale('en')],
+    builder: (context, child) => LabelScope(
+      resolver: labels.update(AppLocalizations.of(context)!),
+      child: child ?? const SizedBox.shrink(),
+    ),
+    home: CatalogPage(
+      entries: catalogEntries(),
+      themeBuilder: _catalogTheme,
+      paletteColors: kPalette.colors,
+    ),
+  );
+}
 
 void main() => runApp(catalogApp());

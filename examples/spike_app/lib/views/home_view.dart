@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:systematic_ui/systematic_ui.dart';
+
+import '../l10n/l10n_key_resolver.g.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({
@@ -28,7 +31,7 @@ class HomeView extends StatelessWidget {
             status,
             TextButton(
               onPressed: onStartFlow,
-              child: const Text('Start flow'),
+              child: Text(context.resolveLabel(L10nKeys.startFlow)),
             ),
           ],
         ),

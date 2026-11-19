@@ -1,36 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:systematic_ui/systematic_ui.dart';
+
+import '../flow/flow_cubit.dart';
+import '../l10n/l10n_key_resolver.g.dart';
 
 class StartView extends StatelessWidget {
   const StartView({
     super.key,
-    required this.name,
+    required this.data,
     required this.onNameChanged,
     required this.onNext,
   });
 
-  final String name;
+  final FlowNameData data;
   final ValueChanged<String> onNameChanged;
   final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Start')),
+      appBar: AppBar(title: Text(context.resolveLabel(L10nKeys.startTitle))),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: context.padding.page,
         child: Column(
           children: [
             TextFormField(
               key: const ValueKey('name-field'),
-              initialValue: name,
+              initialValue: data.name,
               onChanged: onNameChanged,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(
+                labelText: context.resolveLabel(L10nKeys.nameLabel),
+              ),
             ),
-            const SizedBox(height: 16),
+            VSpace.x2,
             ElevatedButton(
               key: const ValueKey('next-button'),
               onPressed: onNext,
-              child: const Text('Next'),
+              child: Text(context.resolveLabel(L10nKeys.actionNext)),
             ),
           ],
         ),

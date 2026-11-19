@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
 
 import 'app.dart';
+import 'infrastructure/error_capture.dart';
 
-void main() => runApp(const SpikeApp());
+void main() {
+  configureErrorCapture();
+  runApp(const SpikeApp());
+}

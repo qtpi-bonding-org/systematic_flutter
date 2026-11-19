@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:l10n_key_resolver/runtime.dart';
 
-const kTabs = <({String id, String label})>[
-  (id: 'tab1', label: 'Tab 1'),
-  (id: 'tab2', label: 'Tab 2'),
+import '../l10n/l10n_key_resolver.g.dart';
+
+const kTabs = <({String id, Label label})>[
+  (id: 'tab1', label: L10nKeys.tabOne),
+  (id: 'tab2', label: L10nKeys.tabTwo),
 ];
 
 abstract class TabsActions {
@@ -22,8 +25,13 @@ class TabsCubit extends Cubit<String> implements TabsActions {
 class TabStripData {
   const TabStripData({required this.tabs, required this.active});
 
-  final List<({String id, String label})> tabs;
+  final List<({String id, Label label})> tabs;
   final String active;
+
+  static Map<String, TabStripData> samples() => {
+        'tab1': TabStripData(tabs: kTabs, active: 'tab1'),
+        'tab2': TabStripData(tabs: kTabs, active: 'tab2'),
+      };
 
   @override
   bool operator ==(Object other) =>

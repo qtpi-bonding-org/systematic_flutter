@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:systematic_ui/systematic_ui.dart';
 
 class TabStripView extends StatelessWidget {
   const TabStripView({
@@ -9,7 +10,7 @@ class TabStripView extends StatelessWidget {
     required this.body,
   });
 
-  final List<({String id, String label})> tabs;
+  final List<({String id, Label label})> tabs;
   final String active;
   final ValueChanged<String> onSelect;
   final Widget body;
@@ -32,7 +33,7 @@ class TabStripView extends StatelessWidget {
                         foregroundColor: theme.colorScheme.primary,
                       )
                     : null,
-                child: Text(tab.label),
+                child: Text(context.resolveLabel(tab.label)),
               ),
           ],
         ),

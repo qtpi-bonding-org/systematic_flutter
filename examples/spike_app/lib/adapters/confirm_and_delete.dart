@@ -1,6 +1,7 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n_key_resolver.g.dart';
 import '../notes/notes_cubit.dart';
 import '../views/confirm_dialog_view.dart';
 
@@ -18,7 +19,9 @@ Future<void> confirmAndDelete(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dc) => ConfirmDialogView(
-      message: 'Delete "$title"?',
+      data: ConfirmDialogData(
+        question: L10nKeys.confirmDeleteNote(title: title),
+      ),
       onConfirm: () => Navigator.of(dc).pop(true),
       onCancel: () => Navigator.of(dc).pop(false),
     ),

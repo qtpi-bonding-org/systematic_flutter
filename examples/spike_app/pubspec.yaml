@@ -17,11 +17,26 @@ dependencies:
     path: ../../packages/catalog
   systematic_ui:
     path: ../../packages/ui
+  flutter_color_palette:
+    path: ../../packages/color_palette
+  l10n_key_resolver:
+    path: ../../packages/l10n
+  systematic_failure:
+    path: ../../packages/systematic_failure
+  flutter_error_privserver:
+    path: ../../packages/error_privserver
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  build_runner: ^2.5.0
+  l10n_generator:
+    path: ../../packages/l10n_generator
 
 flutter:
   uses-material-design: true
+  generate: true

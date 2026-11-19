@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:systematic_ui/systematic_ui.dart';
 
+import '../l10n/l10n_key_resolver.g.dart';
 import '../rename/rename_form_cubit.dart';
 
 class RenameDialogView extends StatelessWidget {
@@ -21,7 +23,7 @@ class RenameDialogView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Rename note'),
+      title: Text(context.resolveLabel(L10nKeys.noteRenameTitle)),
       content: TextField(
         key: const ValueKey('rename-field'),
         controller: controller,
@@ -32,12 +34,12 @@ class RenameDialogView extends StatelessWidget {
         TextButton(
           key: const ValueKey('rename-cancel'),
           onPressed: onCancel,
-          child: const Text('Cancel'),
+          child: Text(context.resolveLabel(L10nKeys.actionCancel)),
         ),
         TextButton(
           key: const ValueKey('rename-save'),
           onPressed: data.valid ? onSave : null,
-          child: const Text('Save'),
+          child: Text(context.resolveLabel(L10nKeys.actionSave)),
         ),
       ],
     );

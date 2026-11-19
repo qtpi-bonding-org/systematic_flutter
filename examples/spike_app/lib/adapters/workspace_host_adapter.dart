@@ -18,11 +18,14 @@ class WorkspaceHostAdapter extends AdapterWidget {
     return Connect<WorkspaceCubit, String, String>(
       select: selectWorkspaceId,
       resolve: (c) => ScopeProvider.of<SessionScope>(c).workspace,
-      builder: (ctx, id, _) => ScopeProvider<WorkspaceScope>(
-        key: ValueKey(id),
-        create: () => WorkspaceScope(id),
-        child: child,
-      ),
+      builder: (ctx, id, _) {
+        final notesSource = ScopeProvider.of<SessionScope>(ctx).notesSource;
+        return ScopeProvider<WorkspaceScope>(
+          key: ValueKey(id),
+          create: () => WorkspaceScope(id, notesSource),
+          child: child,
+        );
+      },
     );
   }
 }

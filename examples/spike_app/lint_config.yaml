@@ -1,20 +1,18 @@
 # Composition roots: top-level functions and route closures here may use GetIt
 # and build scopes.
+exclude: [test/**, "**/*.g.dart"]
 backend_access_only_in_adapters:
   composition_root_paths: [lib/main.dart, lib/app.dart]
   data_paths: [/lib/data/]
-# The spike uses literal strings and sizes on purpose (no l10n, no tokens).
-no_hardcoded_strings:
-  exclude: [lib/**]
-no_hardcoded_padding:
-  exclude: [lib/**]
-no_raw_sizedbox_spacing:
-  exclude: [lib/**]
-no_raw_app_sizes:
-  exclude: [lib/**]
-no_hardcoded_font_size:
-  exclude: [lib/**]
+# The palette is the one place colour literals are defined; every other
+# colour comes from the theme.
 no_hardcoded_colors:
-  exclude: [lib/**]
-no_inline_widget_composition_in_pages:
-  exclude: [lib/**]
+  exclude: [lib/theme/app_theme.dart]
+# The spike has no font token. The font family is a pass-through: the theme
+# takes it, and the catalog's side panel chooses it.
+no_hardcoded_font_family:
+  exclude: [lib/theme/app_theme.dart, lib/catalog_main.dart]
+# TagChip's catalog samples are fixture tag names (data, not wording). The
+# catalog's 'Body' placeholder is a dev-only literal.
+no_hardcoded_strings:
+  exclude: [lib/views/tag_chip.dart, lib/catalog_main.dart]

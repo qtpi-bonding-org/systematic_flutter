@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:systematic_ui/systematic_ui.dart';
 
+import '../l10n/l10n_key_resolver.g.dart';
 import '../search/search_cubit.dart';
 
 class SearchPanelView extends StatelessWidget {
@@ -26,10 +28,18 @@ class SearchPanelView extends StatelessWidget {
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.search),
-            hintText: data.hasQuery ? 'Searching notes' : 'Type to search',
+            hintText: context.resolveLabel(
+              data.hasQuery
+                  ? L10nKeys.searchHintActive
+                  : L10nKeys.searchHintEmpty,
+            ),
           ),
         ),
-        Text(data.online ? 'Online' : 'Offline'),
+        Text(
+          context.resolveLabel(
+            data.online ? L10nKeys.statusOnline : L10nKeys.statusOffline,
+          ),
+        ),
       ],
     );
   }

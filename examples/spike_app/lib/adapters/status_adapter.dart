@@ -14,9 +14,9 @@ class StatusAdapter extends AdapterWidget {
       select: selectTick,
       resolve: (c) => ScopeProvider.of<SessionScope>(c).status,
       debugLabel: 'status-view',
-      builder: (ctx, tick, _) => assemble(tick),
+      builder: (ctx, tick, _) => assemble(StatusData(tick: tick)),
     );
   }
 
-  static Widget assemble(int tick) => StatusView(tick: tick);
+  static Widget assemble(StatusData data) => StatusView(data: data);
 }

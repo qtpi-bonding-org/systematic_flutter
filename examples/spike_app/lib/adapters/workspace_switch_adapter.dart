@@ -13,15 +13,14 @@ class WorkspaceSwitchAdapter extends AdapterWidget {
     return Connect<WorkspaceCubit, String, String>(
       select: selectWorkspaceId,
       resolve: (c) => ScopeProvider.of<SessionScope>(c).workspace,
-      builder: (ctx, id, cubit) => assemble(id, cubit),
+      builder: (ctx, id, cubit) => assemble(
+        WorkspaceSwitchData(current: id, options: const ['A', 'B']),
+        cubit,
+      ),
     );
   }
 
-  static Widget assemble(String current, WorkspaceActions actions) {
-    return WorkspaceSwitchView(
-      current: current,
-      options: const ['A', 'B'],
-      onSelect: actions.switchTo,
-    );
+  static Widget assemble(WorkspaceSwitchData data, WorkspaceActions actions) {
+    return WorkspaceSwitchView(data: data, onSelect: actions.switchTo);
   }
 }
