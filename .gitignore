@@ -6,3 +6,5 @@ pubspec.lock
 *.iml
 .DS_Store
 .worktrees/
+__pycache__/
+*.pyc

@@ -12,3 +12,12 @@ abstract class AdapterWidget extends StatelessWidget {
 abstract class StatefulAdapterWidget extends StatefulWidget {
   const StatefulAdapterWidget({super.key});
 }
+
+/// Marks a top-level function that builds UI around a backend call (e.g. a
+/// confirm dialog then a cubit call); exempt from backend_access_only_in_adapters.
+class AdapterHelper {
+  const AdapterHelper();
+}
+
+/// Annotation for [AdapterHelper] functions.
+const adapterHelper = AdapterHelper();
