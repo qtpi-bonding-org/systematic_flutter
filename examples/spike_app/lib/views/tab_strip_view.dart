@@ -7,12 +7,14 @@ class TabStripView extends StatelessWidget {
     required this.tabs,
     required this.active,
     required this.onSelect,
+    required this.onClose,
     required this.body,
   });
 
   final List<({String id, Label label})> tabs;
   final String active;
   final ValueChanged<String> onSelect;
+  final ValueChanged<String> onClose;
   final Widget body;
 
   @override
@@ -21,20 +23,27 @@ class TabStripView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
           children: [
             for (final tab in tabs)
-              TextButton(
-                key: ValueKey('tab-${tab.id}'),
-                onPressed: () => onSelect(tab.id),
-                style: tab.id == active
-                    ? TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                      )
-                    : null,
-                child: Text(context.resolveLabel(tab.label)),
-              ),
+              ...[
+                TextButton(
+                  key: ValueKey('tab-${tab.id}'),
+                  onPressed: () => onSelect(tab.id),
+                  style: tab.id == active
+                      ? TextButton.styleFrom(
+                          foregroundColor: theme.colorScheme.primary,
+                        )
+                      : null,
+                  child: Text(context.resolveLabel(tab.label)),
+                ),
+                IconButton(
+                  key: ValueKey('close-tab-${tab.id}'),
+                  onPressed: () => onClose(tab.id),
+                  iconSize: 16,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
           ],
         ),
         body,

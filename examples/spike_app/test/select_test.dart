@@ -63,7 +63,7 @@ void main() {
   });
 
   test('TabsCubit selects a tab; selectTabStrip lists both tabs', () async {
-    final c = TabsCubit();
+    final c = TabsCubit(onClose: (_) {});
     expect(c.state, 'tab1');
     c.select('tab2');
     expect(c.state, 'tab2');
