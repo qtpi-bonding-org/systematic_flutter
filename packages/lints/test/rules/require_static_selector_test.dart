@@ -37,6 +37,9 @@ class Connect {
 class Connect2 {
   Connect2({Object? select});
 }
+class ConnectFor {
+  ConnectFor({Object? select});
+}
 int topLevelSelector() => 1;
 """;
 
@@ -63,5 +66,18 @@ int topLevelSelector() => 1;
 
   Future<void> test_ignores_connect_without_select() async {
     await assertNoDiagnostics('$_connect\nfinal a = Connect();\n');
+  }
+
+  Future<void> test_flags_inline_closure_in_connect_for() async {
+    const src = '$_connect\nfinal a = ConnectFor(select: () => 1);\n';
+    await assertDiagnostics(src, [
+      lint(src.indexOf('ConnectFor(select: () => 1)') + 19, 7),
+    ]);
+  }
+
+  Future<void> test_allows_tearoff_in_connect_for() async {
+    await assertNoDiagnostics(
+      '$_connect\nfinal a = ConnectFor(select: topLevelSelector);\n',
+    );
   }
 }

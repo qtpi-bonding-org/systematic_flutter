@@ -96,6 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     'UiFlowStateListener',
     'Connect',
     'Connect2',
+    'ConnectFor',
   };
   static const _bannedSupertypes = ['BlocBase', 'Cubit', 'Bloc', 'AppScope'];
 
@@ -105,7 +106,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     final target = node.target;
     final isContextCall =
         _contextMethods.contains(name) &&
-        isBuildContextType(node.realTarget?.staticType);
+        (isBuildContextType(node.realTarget?.staticType) ||
+            (target == null && _isInBuildContextExtension(node)));
     final isLookup =
         target is SimpleIdentifier &&
         _scopeLookups.contains('${target.name}.$name');
@@ -160,6 +162,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name != 'GetIt' && name != 'getIt') return;
     if (node.inDeclarationContext()) return;
     if (_scopeOf(node) != _Scope.unchecked) rule.reportAtNode(node);
+  }
+
+  /// Whether [node] sits directly inside an extension on BuildContext, so an
+  /// implicit-this `read`/`watch`/`select` call there is a context call. The
+  /// nearest enclosing extension or class decides; a class in between breaks
+  /// the match.
+  bool _isInBuildContextExtension(AstNode node) {
+    for (AstNode? n = node.parent; n != null; n = n.parent) {
+      if (n is ExtensionDeclaration) {
+        return isBuildContextType(n.onClause?.extendedType.type);
+      }
+      if (n is ClassDeclaration) return false;
+    }
+    return false;
   }
 
   /// Reports [type] when [site] is inside a view and the type is a banned

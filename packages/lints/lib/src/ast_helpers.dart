@@ -35,11 +35,12 @@ String? enclosingClassName(AstNode node) {
       .lexeme;
 }
 
-/// True for `Connect(...)` / `Connect2(...)`, the bloc-select widgets whose
-/// `select:` argument follows the cubitField selector rules.
+/// True for `Connect(...)`, `Connect2(...)` and `ConnectFor(...)`, the
+/// bloc-select widgets whose `select:` argument follows the cubitField
+/// selector rules.
 bool isConnectCreation(InstanceCreationExpression node) {
   final name = node.constructorName.type.name.lexeme;
-  return name == 'Connect' || name == 'Connect2';
+  return name == 'Connect' || name == 'Connect2' || name == 'ConnectFor';
 }
 
 /// The value of the named argument [name] in [list], or null when absent.

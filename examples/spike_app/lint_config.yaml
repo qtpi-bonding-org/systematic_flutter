@@ -1,0 +1,20 @@
+# Composition roots: top-level functions and route closures here may use GetIt
+# and build scopes.
+backend_access_only_in_adapters:
+  composition_root_paths: [lib/main.dart, lib/app.dart]
+  data_paths: [/lib/data/]
+# The spike uses literal strings and sizes on purpose (no l10n, no tokens).
+no_hardcoded_strings:
+  exclude: [lib/**]
+no_hardcoded_padding:
+  exclude: [lib/**]
+no_raw_sizedbox_spacing:
+  exclude: [lib/**]
+no_raw_app_sizes:
+  exclude: [lib/**]
+no_hardcoded_font_size:
+  exclude: [lib/**]
+no_hardcoded_colors:
+  exclude: [lib/**]
+no_inline_widget_composition_in_pages:
+  exclude: [lib/**]

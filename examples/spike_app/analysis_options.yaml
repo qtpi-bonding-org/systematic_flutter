@@ -1,0 +1,18 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - macos/**
+
+plugins:
+  systematic_lints:
+    path: ../../packages/lints
+    diagnostics:
+      backend_access_only_in_adapters: true
+      adapter_naming: true
+      actions_avoid_bloc_names: true
+      require_static_selector: true
+      cubit_field_selector_must_be_equatable: true
+      no_duplicate_cubitfield_keys: true
+      no_hardcoded_font_size: true
