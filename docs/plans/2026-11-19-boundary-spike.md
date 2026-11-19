@@ -108,3 +108,22 @@ Built on branch `spike-app`: ConnectFor and two lint fixes (step 1), `examples/s
 7. Mention in the pattern doc that scope reads belong in `build`, not `initState`.
 
 Not tested here, as stated above: cross-cubit coordination with no UI, toasts, the Widgetbook adapter, coexistence with old lint rules, `AppScreen`/`ScreenRoute`, localisation.
+
+## Integration step (after the review of the spike, 2026-11-19)
+
+The example app becomes the full-stack reference: each systematic_flutter package Episutra uses is wired in once, at the smallest useful size, after the framework v1 fixes land.
+
+| Package | In the example | Proves |
+|---|---|---|
+| `systematic_ui` tokens and `ThemeService` | views use `AppSizes`/spacing tokens; the catalog's spacing and size controls drive them | spacing and sizes reach real widgets (goal 2) |
+| `flutter_color_palette` | the app theme comes from a palette; the catalog's colour panel edits palette tokens | live colour on real tokens (goal 2) |
+| `l10n_key_resolver` + `l10n_generator` | views take typed `L10nKey`s; one ARB file | no raw strings; hardcoded-strings lint clean |
+| `cubit_ui_flow` feedback | one toast through `UiFlowListener` + a message mapper, inside an adapter | feedback fits the adapter pattern |
+| `systematic_failure` + `flutter_error_privserver` | notes load with a loading and an error state; the error is classified and captured | loading and error states flow through select and show in the catalog (goal 1) |
+| all Episutra lint rules | `analysis_options.yaml` lists every rule Episutra enables | no rule conflicts before adoption |
+
+Not wired: `nav_snapshot` (Episutra does not use it).
+
+Example cleanup at the same time (from the review): remove `probe` (observer hook replaces it), remove `SessionScope.issuedRenameForms`, rename `TabsAdapter` (it has no backend), key `NoteTileAdapter` by tab and id, keep the search controller in sync with the query, dispose catalog controllers, document that a dialog route only sees scopes above the Navigator, add `sample()` factories to every `ViewData` and use them in the catalog.
+
+Added success criteria: the catalog shows loading and error states; a toast test passes; changing the spacing control changes a real widget's padding (test); every listed lint rule is active (probe check) and the app analyzes clean.
