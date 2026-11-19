@@ -10,6 +10,7 @@ The shared Flutter foundation for the apps (Episutra, Quanitya, Pocketcoder, Ach
 | `packages/systematic_failure` | `systematic_failure` | pure-Dart failure classification and stable error descriptions; depends on `l10n` |
 | `packages/cubit_ui_flow` | `cubit_ui_flow` | cubit state to UI feedback: `MessageKey`, listener, exception mapping |
 | `packages/ui` | `systematic_ui` | design tokens (`AppSizes`, `VSpace`, `HSpace`, `AppPadding`, `UiScaler`), `ThemeService`, layout widgets |
+| `packages/catalog` | `systematic_catalog` | dev catalog page: every widget and screen state in light and dark, with live colour, font and scale tokens |
 | `packages/lints` | `systematic_lints` | analyzer plugin: design-token, label and cubit/adapter rules; options and path scoping come from the app's `lint_config.yaml` |
 | `packages/color_palette` | `flutter_color_palette` | color system with generated themes and colorblind simulation |
 | `packages/error_privserver` | `flutter_error_privserver` | privacy-preserving error capture for cubits; stores keys only, never user text |
@@ -34,7 +35,8 @@ cubit_ui_flow:
 4. `error_privserver`: uses `cubit_ui_flow`.
 5. `nav_snapshot`: independent.
 6. `color_palette`: independent.
-7. `lints`: independent (an analyzer plugin; it reads source, it does not depend on the other packages).
+7. `catalog`: independent (takes entries and a theme builder from the app; no other package needed).
+8. `lints`: independent (an analyzer plugin; it reads source, it does not depend on the other packages).
 
 ## History
 
