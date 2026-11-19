@@ -1,0 +1,51 @@
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:flutter/material.dart';
+
+import '../notes/notes_cubit.dart';
+import '../probe.dart';
+import '../scopes.dart';
+import '../views/note_list_view.dart';
+import 'note_tile_adapter.dart';
+import 'ui_notes_actions.dart';
+
+class NotesAdapter extends AdapterWidget {
+  const NotesAdapter({super.key, required this.tabId});
+
+  final String tabId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Connect<NotesCubit, NotesState, NoteListData>(
+      select: selectNoteIds,
+      resolve: (c) => ScopeProvider.of<WorkspaceScope>(c).notesFor(tabId),
+      builder: (ctx, data, cubit) => assemble(
+        tabId,
+        data,
+        UiNotesActions(ctx, cubit),
+        (id) => NoteTileAdapter(key: ValueKey(id), tabId: tabId, id: id),
+      ),
+    );
+  }
+
+  static Widget assemble(
+    String tabId,
+    NoteListData data,
+    NotesActions actions,
+    Widget Function(String id) itemBuilder,
+  ) {
+    return Actions(
+      actions: <Type, Action<Intent>>{
+        DeleteSelectedIntent: CallbackAction<DeleteSelectedIntent>(
+          onInvoke: (_) {
+            actions.deleteSelected();
+            return null;
+          },
+        ),
+      },
+      child: probe(
+        'note-list:$tabId',
+        NoteListView(ids: data.ids, itemBuilder: itemBuilder),
+      ),
+    );
+  }
+}
