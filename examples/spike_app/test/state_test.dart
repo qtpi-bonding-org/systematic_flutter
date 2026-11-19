@@ -76,6 +76,45 @@ void main() {
     await unmountApp(t);
   });
 
+  testWidgets('closing a tab closes its cubit; other tabs keep their state',
+      (t) async {
+    await pumpApp(t);
+    final tab1 = notes(t, 'tab1');
+    await tab1.delete('tab1-1');
+    await t.tap(key('tab-tab2'));
+    await settle(t);
+    final tab2 = notes(t, 'tab2');
+    expect(tab2.isClosed, isFalse);
+
+    await t.tap(key('tab-tab1'));
+    await settle(t);
+    await t.tap(key('close-tab-tab2'));
+    await settle(t);
+    expect(tab2.isClosed, isTrue);
+    expect(tab1.isClosed, isFalse);
+    expect(identical(notes(t, 'tab1'), tab1), isTrue);
+    expect(find.text('A tab1 note 1'), findsNothing);
+    expect(find.text('A tab1 note 2'), findsOneWidget);
+
+    await t.tap(key('tab-tab2'));
+    await settle(t);
+    final reopened = notes(t, 'tab2');
+    expect(identical(reopened, tab2), isFalse);
+    expect(reopened.isClosed, isFalse);
+    expect(find.text('A tab2 note 1'), findsOneWidget);
+    await unmountApp(t);
+  });
+
+  testWidgets('closing the active tab moves to another tab', (t) async {
+    await pumpApp(t);
+    final tab1 = notes(t, 'tab1');
+    await t.tap(key('close-tab-tab1'));
+    await settle(t);
+    expect(tab1.isClosed, isTrue);
+    expect(find.text('A tab2 note 1'), findsOneWidget);
+    await unmountApp(t);
+  });
+
   testWidgets('both flow steps see the same cubit instance', (t) async {
     await pumpApp(t, initialLocation: '/start');
     final startScope =

@@ -147,4 +147,44 @@ void main() {
     expect(s.isDisposed, isFalse);
     s.dispose();
   });
+
+  test('release closes one owned cubit now and leaves the rest', () {
+    final log = <String>[];
+    final s = TestScope(log);
+    s.release(s.cubit);
+    expect(s.cubit.isClosed, isTrue);
+    expect(log, ['cubit']);
+    s.dispose();
+    expect(log, ['cubit', 'notifier']);
+  });
+
+  test('release disposes a ChangeNotifier once', () {
+    final log = <String>[];
+    final s = TestScope(log);
+    s.release(s.notifier);
+    s.dispose();
+    expect(log, ['notifier', 'cubit']);
+  });
+
+  test('release of an unknown value is a no-op', () {
+    final log = <String>[];
+    final s = TestScope(log);
+    final stranger = LoggedCubit(log);
+    s.release(stranger);
+    s.release(s.cubit);
+    s.release(s.cubit);
+    expect(stranger.isClosed, isFalse);
+    expect(log, ['cubit']);
+    stranger.close();
+    s.dispose();
+  });
+
+  test('release after dispose is a no-op', () {
+    final log = <String>[];
+    final s = TestScope(log);
+    s.dispose();
+    log.clear();
+    s.release(s.cubit);
+    expect(log, isEmpty);
+  });
 }

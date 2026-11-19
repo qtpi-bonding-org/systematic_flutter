@@ -25,6 +25,7 @@ class TabsAdapter extends AdapterWidget {
       tabs: data.tabs,
       active: data.active,
       onSelect: actions.select,
+      onClose: actions.closeTab,
       body: body,
     );
   }

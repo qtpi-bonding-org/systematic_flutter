@@ -37,7 +37,7 @@ class SessionScope extends AppScope {
 /// are per workspace.
 class WorkspaceScope extends AppScope {
   WorkspaceScope(this.id, this.notesSource) {
-    tabs = own(TabsCubit());
+    tabs = own(TabsCubit(onClose: closeNotes));
   }
 
   final String id;
@@ -50,6 +50,12 @@ class WorkspaceScope extends AppScope {
         tabId,
         () => own(NotesCubit(notesSource, id, tabId)..load()),
       );
+
+  /// Releases the notes of a closed tab. A tab never opened has none.
+  void closeNotes(String tabId) {
+    final c = _notes.remove(tabId);
+    if (c != null) release(c);
+  }
 }
 
 /// Lives while the start/confirm flow is on screen.

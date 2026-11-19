@@ -11,14 +11,27 @@ const kTabs = <({String id, Label label})>[
 
 abstract class TabsActions {
   void select(String id);
+  void closeTab(String id);
 }
 
 /// The active tab id. Lives in the workspace scope.
 class TabsCubit extends Cubit<String> implements TabsActions {
-  TabsCubit() : super('tab1');
+  TabsCubit({required this.onClose}) : super('tab1');
+
+  /// Called with the id of a closed tab, so its notes cubit can be released.
+  final void Function(String id) onClose;
 
   @override
   void select(String id) => emit(id);
+
+  /// Closes [id]. If it is the active tab, first moves to another tab.
+  @override
+  void closeTab(String id) {
+    if (id == state) {
+      emit(kTabs.firstWhere((t) => t.id != id).id);
+    }
+    onClose(id);
+  }
 }
 
 @immutable

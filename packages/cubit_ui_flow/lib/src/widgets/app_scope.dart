@@ -24,6 +24,15 @@ abstract class AppScope {
     return value;
   }
 
+  /// Releases [value] now and stops owning it, so [dispose] skips it.
+  ///
+  /// A value this scope does not own, or one already released, is ignored.
+  /// After [dispose] this does nothing, since [dispose] already released it.
+  void release(Object value) {
+    if (_disposed) return;
+    if (_owned.remove(value)) _release(value);
+  }
+
   /// Releases every owned value in reverse order. Calling it again is a
   /// no-op. If a release throws, the remaining values are still released and
   /// the first error is rethrown. Subclasses that override this must call `super.dispose()`.
