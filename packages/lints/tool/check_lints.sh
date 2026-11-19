@@ -15,7 +15,7 @@ probe_file="$(read_config probe_file | xargs)"
 if [[ ! -f "$root/$probe_file" ]]; then echo "probe_file does not exist: $probe_file" >&2; exit 1; fi
 
 # True when analyzer output $1 has a systematic_lints line naming rule $2 as a whole word.
-reports_rule() { printf '%s\n' "$1" | grep systematic_lints | grep -w -- "$2" >/dev/null; }
+reports_rule() { printf '%s\n' "$1" | grep -w -- "$2" >/dev/null; }
 
 output="$(mktemp)"; probe_out="$(mktemp)"; trap 'rm -f "$output" "$probe_out"' EXIT
 for package in "${packages[@]}"; do

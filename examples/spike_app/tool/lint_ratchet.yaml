@@ -1,0 +1,5 @@
+# Config for packages/lints/tool/check_lints.sh. Paths are relative to this app.
+package_dirs: [.]
+baseline: tool/lint_baseline.txt
+probe_rule: no_hardcoded_font_size
+probe_file: ./tool/lint_probe.dart
