@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import importlib.util
+import io
+import sys
 import tempfile
 from pathlib import Path
 
@@ -7,31 +9,12 @@ spec = importlib.util.spec_from_file_location('baseline', Path(__file__).with_na
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
-sample = '''Analyzing lib/a.dart...
-  info • message • systematic_lints.no_error_to_text • lib/a.dart:3:4 • ...
-  warning • message • systematic_lints.no_string_error_in_state • lib/a.dart:4:4 • ...
-2 issues found.
-'''
+OLD_A = '  info • message • systematic_lints.no_error_to_text • lib/a.dart:3:4 • ...'
+OLD_B = '  warning • message • systematic_lints.no_string_error_in_state • lib/a.dart:4:4 • ...'
+sample = f'Analyzing lib/a.dart...\n{OLD_A}\n{OLD_B}\n2 issues found.\n'
 assert len(mod.findings(sample)) == 2
-with tempfile.TemporaryDirectory() as d:
-    baseline = Path(d) / 'baseline.txt'
-    baseline.write_text(mod.findings(sample)[0] + '\n')
-    assert mod.main(['--baseline', str(baseline),]) != 0 if False else True
-    # A new finding fails; removing one is allowed.
-    assert [x for x in mod.findings(sample) if x not in baseline.read_text()]  # new finding
-    fewer = mod.findings(sample)[:1]
-    baseline.write_text('\n'.join(mod.findings(sample)) + '\n')
-    assert not [x for x in fewer if x not in baseline.read_text()]
-    updated = Path(d) / 'updated.txt'
-    import sys
-    old = sys.stdin
-    try:
-        import io
-        sys.stdin = io.StringIO(sample)
-        assert mod.main(['--baseline', str(updated), '--update']) == 0
-    finally:
-        sys.stdin = old
-    assert updated.read_text().splitlines() == mod.findings(sample)
+assert mod.parse_findings(sample) == {
+    'lib/a.dart|no_error_to_text': 1, 'lib/a.dart|no_string_error_in_state': 1}
 
 # Dart 3.13 format: no systematic_lints prefix, ' - ' separators, rule id last.
 NEW = ('   info - lint_probe.dart:9:25 - There is one text size, and AppSizes '
@@ -39,17 +22,72 @@ NEW = ('   info - lint_probe.dart:9:25 - There is one text size, and AppSizes '
 new_sample = 'Analyzing lint_probe.dart...\n\n' + NEW + '\n\n1 issue found.\n'
 assert mod.findings(new_sample) == [NEW]
 assert mod.findings('Analyzing x...\nNo issues found.\n') == []
-with tempfile.TemporaryDirectory() as d:
-    base = Path(d) / 'b.txt'
-    out = Path(d) / 'out.txt'
-    out.write_text(new_sample)
-    # New finding against an empty baseline fails.
-    base.write_text('')
-    assert mod.main(['--baseline', str(base), str(out)]) == 1
-    assert mod.main(['--baseline', str(Path(d) / 'missing.txt'), str(out)]) == 1
-    # A baselined finding passes.
-    base.write_text(NEW + '\n')
-    assert mod.main(['--baseline', str(base), str(out)]) == 0
+assert mod.parse_findings(new_sample) == {'lint_probe.dart|no_hardcoded_font_size': 1}
+
+
+def f(path, line, rule='no_hardcoded_colors', msg='Use a token'):
+    return f'   info - {path}:{line}:5 - {msg} - {rule}\n'
+
+
+def check(baseline_text, out_text, *extra):
+    """Run main() in --baseline mode; returns (code, stdout, stderr, baseline_path text)."""
+    with tempfile.TemporaryDirectory() as d:
+        base = Path(d) / 'b.txt'
+        out = Path(d) / 'out.txt'
+        if baseline_text is not None:
+            base.write_text(baseline_text)
+        out.write_text(out_text)
+        o, e = io.StringIO(), io.StringIO()
+        so, se = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = o, e
+        try:
+            code = mod.main(['--baseline', str(base), *extra, str(out)])
+        finally:
+            sys.stdout, sys.stderr = so, se
+        return code, o.getvalue(), e.getvalue(), (base.read_text() if base.exists() else None)
+
+
+BASE = 'lib/a.dart|no_hardcoded_colors=1\n'
+# Missing or empty baseline: a finding fails.
+assert check(None, f('lib/a.dart', 3))[0] == 1
+assert check('', f('lib/a.dart', 3))[0] == 1
+# Moving a baselined finding to another line passes.
+assert check(BASE, f('lib/a.dart', 3))[0] == 0
+assert check(BASE, f('lib/a.dart', 40, msg='different words'))[0] == 0
+# A second finding of the same rule in the same file fails.
+code, out, err, _ = check(BASE, f('lib/a.dart', 3) + f('lib/a.dart', 9))
+assert code == 1 and 'lib/a.dart' in err + out, err + out
+# A finding in a new file fails.
+assert check(BASE, f('lib/a.dart', 3) + f('lib/b.dart', 1))[0] == 1
+# Same file, new rule fails.
+assert check(BASE, f('lib/a.dart', 3) + f('lib/a.dart', 4, rule='no_error_to_text'))[0] == 1
+# A removed finding passes and is reported as an improvement.
+code, out, err, _ = check(BASE + 'lib/b.dart|no_hardcoded_colors=2\n', f('lib/a.dart', 3) + f('lib/b.dart', 1))
+assert code == 0 and 'improvement' in (out + err).lower() and 'lib/b.dart' in out + err, out + err
+code, out, err, _ = check(BASE, '')
+assert code == 0 and 'improvement' in (out + err).lower(), out + err
+# --update rewrites the baseline as file|rule=count, sorted, with counts.
+code, _, _, text = check(None, f('lib/b.dart', 1) + f('lib/a.dart', 3) + f('lib/a.dart', 8), '--update')
+assert code == 0
+assert [l for l in text.splitlines() if not l.startswith('#')] == [
+    'lib/a.dart|no_hardcoded_colors=2', 'lib/b.dart|no_hardcoded_colors=1'], text
+# Old whole-line baselines are migrated on read: line numbers no longer matter.
+old_baseline = OLD_A + '\n' + OLD_A.replace(':3:4', ':9:4') + '\n'
+assert check(old_baseline, sample.replace(':3:4', ':30:4').replace(OLD_B, ''))[0] == 0
+assert check(old_baseline, sample)[0] == 1  # OLD_B is new; the old baseline never had it
+assert mod.read_baseline(old_baseline) == {'lib/a.dart|no_error_to_text': 2}
+# --require-any is unchanged.
+assert check(None, 'No issues found.\n', '--require-any')[0] == 1
+assert check(None, NEW + '\n', '--require-any')[0] == 0
+# stdin input is still accepted.
+old = sys.stdin
+try:
+    sys.stdin = io.StringIO(sample)
+    with tempfile.TemporaryDirectory() as d:
+        assert mod.main(['--baseline', str(Path(d) / 'u.txt'), '--update']) == 0
+        assert mod.read_baseline((Path(d) / 'u.txt').read_text()) == mod.parse_findings(sample)
+finally:
+    sys.stdin = old
 print('lint_baseline self-test passed')
 
 # --- ratchet and smoke scripts, run against a stub `dart` on PATH ---
