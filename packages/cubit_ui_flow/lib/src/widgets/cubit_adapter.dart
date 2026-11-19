@@ -11,6 +11,12 @@ abstract class CubitAdapter<C extends Cubit<S>, S> extends StatefulWidget {
   @override
   State<CubitAdapter<C, S>> createState() => _CubitAdapterState<C, S>();
   Widget buildAdapter(BuildContext context, CubitAdapterState<C, S> adapter);
+
+  /// Resolves the primary Cubit. Called once, on first use. Override to supply
+  /// a Cubit that is not on the tree. The default reads it from the nearest
+  /// provider.
+  C resolveCubit(BuildContext context) => context.read<C>();
+
   @mustCallSuper
   void disposeAdapter() {}
 }
@@ -36,7 +42,7 @@ class _CubitAdapterState<C extends Cubit<S>, S>
   C? _primary;
 
   @override
-  C get cubit => _primary ??= context.read<C>();
+  C get cubit => _primary ??= widget.resolveCubit(context);
 
   @override
   AdapterScope get sources => _scope;
