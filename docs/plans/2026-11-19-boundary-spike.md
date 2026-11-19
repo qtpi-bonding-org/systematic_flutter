@@ -105,7 +105,7 @@ Built on branch `spike-app`: ConnectFor and two lint fixes (step 1), `examples/s
 4. Decide the build-observation seam: either keep a `probe` hook in `assemble` (documented as test-only) or give `Connect` an optional counter hook in `cubit_ui_flow`.
 5. Lint to consider: a non-widget class holding a `BuildContext`.
 6. The tree in this plan omitted the workspace switcher and the status view; the real `HomeView` takes four finished children (header, tabs, search, status) plus `onStartFlow`. Keep the plan's tree in sync.
-7. Mention in the pattern doc that scope reads belong in `build`, not `initState`.
+7. Mention in the pattern doc that scope reads belong in `build`, not `initState`. (Superseded: `ScopeProvider.of` is now non-subscribing and works in `initState`.)
 
 Not tested here, as stated above: cross-cubit coordination with no UI, toasts, the Widgetbook adapter, coexistence with old lint rules, `AppScreen`/`ScreenRoute`, localisation.
 
