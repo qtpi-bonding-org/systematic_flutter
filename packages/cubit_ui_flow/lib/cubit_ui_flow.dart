@@ -14,6 +14,10 @@ export 'src/widgets/cubit_adapter.dart';
 export 'src/widgets/combine_latest.dart';
 export 'src/widgets/adapter_scope.dart';
 export 'src/widgets/multi_cubit_adapter.dart';
+export 'src/widgets/connect.dart';
+export 'src/widgets/adapter_markers.dart';
+export 'src/widgets/app_scope.dart';
+export 'src/widgets/scope_provider.dart';
 
 // Service implementations
 export 'src/impl/ui_flow_service_impl.dart';
