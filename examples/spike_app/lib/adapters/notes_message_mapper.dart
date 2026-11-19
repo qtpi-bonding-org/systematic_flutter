@@ -10,8 +10,9 @@ class NotesMessageMapper {
 
   static IStateMessageMapper<NotesState> create() =>
       BaseStateMessageMapper<NotesState>(
-        exceptionMapper:
-            ClassifyingExceptionKeyMapper(generic: L10nKeys.errorGeneric),
+        exceptionMapper: ClassifyingExceptionKeyMapper(
+          generic: L10nKeys.errorGeneric,
+        ),
         domainMapper: _NotesDomainMapper(),
       );
 }
@@ -19,12 +20,11 @@ class NotesMessageMapper {
 class _NotesDomainMapper implements IDomainStateKeyMapper<NotesState> {
   @override
   MessageKey? map(NotesState state) {
-    final event = state.event;
-    if (event == null || !state.status.isSuccess) return null;
-    return switch (event.kind) {
-      NotesEventKind.renamed => const MessageKey.success(L10nKeys.noteRenamed),
-      NotesEventKind.deleted => const MessageKey.success(L10nKeys.noteDeleted),
-      NotesEventKind.loaded => null,
+    if (!state.status.isSuccess) return null;
+    return switch (state.lastOperation) {
+      NotesOperation.rename => const MessageKey.success(L10nKeys.noteRenamed),
+      NotesOperation.delete => const MessageKey.success(L10nKeys.noteDeleted),
+      NotesOperation.load || null => null,
     };
   }
 }

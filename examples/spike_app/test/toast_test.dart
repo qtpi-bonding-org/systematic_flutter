@@ -9,6 +9,7 @@ import 'helpers.dart';
 
 void main() {
   useErrorCapture();
+  final mapper = NotesMessageMapper.create();
 
   testWidgets('renaming a note shows a toast through the listener',
       (t) async {
@@ -44,21 +45,44 @@ void main() {
     await unmountApp(t);
   });
 
-  group('NotesMessageMapper', () {
-    final mapper = NotesMessageMapper.create();
+  testWidgets('renaming twice shows the toast twice', (t) async {
+    await pumpApp(t);
+    for (final title in ['One', 'Two']) {
+      await t.tap(key('rename-tab1-1'));
+      await t.pumpAndSettle();
+      await t.enterText(key('rename-field'), title);
+      await settle(t);
+      await t.tap(key('rename-save'));
+      await t.pumpAndSettle();
+      expect(find.text('Note renamed'), findsOneWidget);
+      ScaffoldMessenger.of(t.element(find.byType(Scaffold).first))
+          .clearSnackBars();
+      await t.pumpAndSettle();
+    }
+    await unmountApp(t);
+  });
 
-    test('maps events to success keys', () {
+  test('a success state with no operation maps to nothing', () {
+    expect(
+      mapper.map(const NotesState(status: UiFlowStatus.success)),
+      isNull,
+    );
+  });
+
+  group('NotesMessageMapper', () {
+
+    test('maps the last operation to success keys', () {
       expect(
         mapper.map(NotesState(
           status: UiFlowStatus.success,
-          event: NotesEvent.renamed(),
+          lastOperation: NotesOperation.rename,
         )),
         const MessageKey.success(L10nKeys.noteRenamed),
       );
       expect(
         mapper.map(NotesState(
           status: UiFlowStatus.success,
-          event: NotesEvent.deleted(),
+          lastOperation: NotesOperation.delete,
         )),
         const MessageKey.success(L10nKeys.noteDeleted),
       );
@@ -69,7 +93,7 @@ void main() {
       expect(
         mapper.map(NotesState(
           status: UiFlowStatus.success,
-          event: NotesEvent.loaded(),
+          lastOperation: NotesOperation.load,
         )),
         isNull,
       );
