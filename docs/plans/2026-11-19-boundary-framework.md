@@ -1,6 +1,8 @@
-# Boundary framework: where the backend may be touched (plan, rev 4)
+# Boundary framework: where the backend may be touched (plan, rev 5)
 
 Goals: `docs/ui-framework-goals.md` (numbers below refer to it). Tested first by `2026-11-19-boundary-spike.md`; anything the spike shows to be wrong changes here before phase 1.
+
+Rev 5 (spike findings, see the write-up in `2026-11-19-boundary-spike.md`): `ConnectFor` for per-item selection; `Connect`'s `resolve` re-runs each build and resubscribes when the cubit changes, so id-dependent connections no longer need keys; actions interfaces hold only plain cubit calls, and actions that need UI are callbacks the adapter passes (no forwarding wrapper classes); catalog fakes use `NoOpActions` and a `sample()` per `ViewData`; a rebuild observer hook in `cubit_ui_flow` replaces test probes in production `assemble` functions; `ScopeProvider.of` works in `initState`; a lint against `BuildContext` fields in non-widget classes; lint rules must be listed under `diagnostics:`, so the framework ships a probe check. Measured change cost after the fixes: show a field 3 files, add a button with a cubit action 3 files, restyle a widget 1 file, no pass-through arguments.
 
 Rev 4 (review fixes): cubits are created from scope factories, never `GetIt` in widgets; lists use one `Connect` per item so one change rebuilds one item; per-instance state rule made explicit; composition-root exemption narrowed to functions; view bans widened (types by declaring path, casts, `BuildContext` extensions); `Connect` selectors must be static; adapters expose a pure `assemble` shared with the catalog; catalog gains light/dark and font family.
 
@@ -24,15 +26,15 @@ glue:  Connect(select, builder: (data, actions) -> view)   framework widget, wri
 
 `Connect` resolves the cubit, runs `select`, rebuilds its builder only when the selected `ViewData` changes (value equality, `@freezed`), and passes the cubit as `XActions`. `select` must be a static or top-level function (as `cubitField` already requires), since the listenable is cached by selector identity. `XActions` method names must not collide with `BlocBase`'s API (`close`, `emit`, `onChange`, `onError`, `addError`, `state`, `stream`, `isClosed`); a lint checks it.
 
-**Assembly is written once.** Each adapter exposes a static pure `assemble(ViewData, XActions, children) -> Widget`. Its `Connect` builder calls it with real data; the catalog calls the same function with fakes, so the catalog cannot drift from the app (goal 4).
+**Assembly is written once.** Each adapter exposes a static pure `assemble(ViewData, XActions, callbacks, children) -> Widget`. Its `Connect` builder calls it with real data; the catalog calls the same function with fakes, so the catalog cannot drift from the app (goal 4). Fakes: actions are `class _NoopX extends NoOpActions implements XActions {}` (no members, so a new action never touches them); data comes from a `sample()` factory next to each `ViewData`, so a new field changes one place.
 
-**Lists rebuild per item.** A list adapter selects only the ids; the list view takes an `itemBuilder(id)`, and the adapter passes `(id) => NoteTileAdapter(id)`, each with its own `Connect` selecting one item. Changing one note rebuilds one tile. `Connect2` does the same over two cubits (`select: (S1, S2) -> ViewData`). An adapter is a small widget class whose build is a `Connect`. When an action needs UI (confirm dialog, navigation, toast), the adapter wraps the cubit in a UI-side `XActions` implementation; cubits never open dialogs.
+**Lists rebuild per item.** A list adapter selects only the ids; the list view takes an `itemBuilder(id)`, and the adapter passes `(id) => NoteTileAdapter(id)`, each with its own `Connect` selecting one item. Changing one note rebuilds one tile. `Connect2` does the same over two cubits (`select: (S1, S2) -> ViewData`). `ConnectFor` selects with an argument (`select: (S, A) -> ViewData`, `arg: id`), for per-item connections with a static selector. When `resolve` is given it re-runs on each build and resubscribes if the cubit instance changed, so a connection whose cubit depends on an id (a tab) follows it without a key. An adapter is a small widget class whose build is a `Connect`. `XActions` holds only what a view may call straight on the cubit, returning `void` or `Future<void>`. An action that needs UI (confirm dialog, navigation, toast) is not in the interface: the adapter passes it to the view as a callback (`onDelete: () => confirmAndDelete(context, cubit, id)`), written as a small function. No forwarding wrapper classes; cubits never open dialogs.
 
 **2. Lifetime: on the tree by default, a scope only when lifetime differs from position.**
 
 - Local state whose life matches a piece of UI (a dialog form, a settings section): the adapter provides the cubit with `BlocProvider`, created from a factory on a scope (`ScopeProvider.of<SessionScope>(context).newRenameForm()`), never from `GetIt`. It is disposed with that UI.
 - Per-instance state (one cubit per tab): on the tree if its life matches the instance's widget; in a scope keyed by instance id if it must survive the widget going away (a tab switched out of view).
-- State that must outlive the UI around it (survives a notebook switch, spans a multi-route flow, is shared by distant regions): an `AppScope` owns it. A scope is a plain object with `dispose()`, placed on the tree by a `ScopeProvider` at the node whose life it shares (app root for the session, a `ShellRoute` for a flow, the workspace node for per-notebook state). `Connect` takes an optional `resolve: (context) -> cubit` to read from a scope. `ScopeProvider` is a stateful widget that creates its scope once (from a `create` callback) and disposes it; it must not construct the scope inside a builder closure, or every navigation would recreate it.
+- State that must outlive the UI around it (survives a notebook switch, spans a multi-route flow, is shared by distant regions): an `AppScope` owns it. A scope is a plain object with `dispose()`, placed on the tree by a `ScopeProvider` at the node whose life it shares (app root for the session, a `ShellRoute` for a flow, the workspace node for per-notebook state). `Connect` takes an optional `resolve: (context) -> cubit` to read from a scope. `ScopeProvider` is a stateful widget that creates its scope once (from a `create` callback) and disposes it; it must not construct the scope inside a builder closure, or every navigation would recreate it. `ScopeProvider.of` uses a non-subscribing lookup, so it works in `initState` and in `BlocProvider.create`. Replacing a scope (a workspace switch) is done by keying its `ScopeProvider`.
 
 **3. Containers take finished children, not their children's arguments.**
 
@@ -45,7 +47,7 @@ Arguments come in three kinds, told apart by type: data (values, `ViewData`), ca
 
 **Enforcement and payoff.** Lints keep the backend out of views (goal 8); the catalog shows everything (goals 1-4).
 
-**Performance (goal 11).** `Connect` rebuilds only on a changed `ViewData`; adapters stay small, because an adapter rebuild rebuilds what it assembled. High-frequency data (typing, pointer, streaming) travels through controllers or narrow listenables handed down by the adapter, never through `ViewData`. Checked with `BuildCounter` tests.
+**Performance (goal 11).** `Connect` rebuilds only on a changed `ViewData`; adapters stay small, because an adapter rebuild rebuilds what it assembled. High-frequency data (typing, pointer, streaming) travels through controllers or narrow listenables handed down by the adapter, never through `ViewData`. Checked with `BuildCounter` tests through a rebuild observer hook in `cubit_ui_flow` (`Connect` reports its label on each builder run when an observer is installed; a no-op otherwise), so production `assemble` functions carry no test probes.
 
 **Ambient context** (allowed in views): `Theme`, `MediaQuery`, `Directionality`, `Localizations` and l10n accessors, `DefaultTextStyle`, `FocusScope`, `Shortcuts` (views dispatch `Intent`s; adapters provide the `Action`s that do backend work). Data and services are never ambient.
 
@@ -60,17 +62,20 @@ Arguments come in three kinds, told apart by type: data (values, `ViewData`), ca
 
 ## Packages
 
-1. **`cubit_ui_flow`** (changed): `Connect`, `Connect2`, `AdapterWidget`, `AppScope`, `ScopeProvider`; the `resolve` hook on `CubitAdapter`/`MultiCubitAdapter` (default stays `context.read<C>()`).
+1. **`cubit_ui_flow`** (changed): `Connect`, `Connect2`, `ConnectFor`, `AdapterWidget`, `StatefulAdapterWidget`, `AppScope`, `ScopeProvider` (non-subscribing `of`); re-resolve on build; the rebuild observer hook; the `resolve` hook on `CubitAdapter`/`MultiCubitAdapter` (default stays `context.read<C>()`).
 2. **`systematic_lints`** (changed; supertype matching by name; rules apply to `Widget` subclasses and their `State`s only, so cubits, services and scopes are untouched):
    - `backend_access_only_in_adapters`: the view "may not" column. `GetIt` banned in all widgets. Opted-in apps disable `avoid_bloc_imports_in_widgets_dir`; `avoid_getit_in_adapters_dir` is subsumed. Old rules stay for apps not opted in.
    - `adapter_naming`: adapter classes end in `Adapter`, and no other `Widget` subclass does (non-widget classes such as a palette adapter are untouched).
    - `actions_avoid_bloc_names`: `*Actions` interfaces declare no member named like `BlocBase` API.
+   - `no_build_context_fields`: no field of type `BuildContext` outside `State` subclasses.
+   - Rules are off unless listed under `plugins: systematic_lints: diagnostics:` in `analysis_options.yaml`, and a missing entry is silent. The README says so, `tool/smoke.sh` checks the listed rules, and the ratchet script fails when its probe rule reports nothing on a probe file.
    - `require_static_selector` and `cubit_field_selector_must_be_equatable` extended to `Connect`/`Connect2`.
    Not enforced: `*View` naming (primitives and small widgets are views without the suffix; deliberate).
    Each with analyzer tests per banned form. Apps add new diagnostic names to `analysis_options.yaml` `diagnostics:` and their ratchet script's pattern.
-3. **`systematic_catalog`** (new; dev tooling): entries (name, explicit kind widget or screen, map of state name to builder; entries usually call an adapter's `assemble` with fakes); widgets on top, screens below, every state visible in light and dark side by side; side panel for colour, font family, font scale and spacing scale through the theme; an adapter from Widgetbook's generated `directories` where the kind comes from an explicit marker in the story (until `AppScreen` lands and the type decides).
+3. **`systematic_catalog`** (new; dev tooling): `NoOpActions`; entries (name, explicit kind widget or screen, map of state name to builder; entries usually call an adapter's `assemble` with fakes); widgets on top, screens below, every state visible in light and dark side by side; side panel for colour, font family, font scale and spacing scale through the theme; an adapter from Widgetbook's generated `directories` where the kind comes from an explicit marker in the story (until `AppScreen` lands and the type decides).
 4. **`systematic_ui/testing`**: `BuildCounter`.
-5. **Docs:** `docs/boundaries.md` (the pattern in plain words, roles, the three argument kinds, ambient list, performance rule, adoption order).
+5. **Docs:** `docs/boundaries.md` (the pattern in plain words, roles, the three argument kinds, actions vs UI callbacks, `sample()` and `NoOpActions` for fakes, ambient list, performance rule, scope reads, adoption order), with the spike app as the worked example.
+6. **`examples/spike_app`** stays in the repo as the reference example and is kept analyzing and green.
 
 ## Adoption in an app (Episutra first)
 
@@ -83,7 +88,7 @@ Episutra-specific findings in `2026-11-19-screens-and-catalog.md` (renames, `_Ta
 
 ## Phases
 
-0. Spike; revise this plan from its write-up.
+0. Spike (done; findings folded into rev 5).
 1. Framework v1: packages 1-5; tests green; pushed with a sha.
 2. Episutra adoption steps 1-4, each a separate branch and review.
 3. Catalog absorbs `flutter_widgetsystem` (`StatesGrid`, palette editor); Episutra drops it, its last path dependency, and `sibling-versions.lock`.
