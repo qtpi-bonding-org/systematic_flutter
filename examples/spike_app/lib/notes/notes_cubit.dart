@@ -15,11 +15,8 @@ class Note {
   final String title;
   final String tag;
 
-  Note copyWith({String? title, String? tag}) => Note(
-        id: id,
-        title: title ?? this.title,
-        tag: tag ?? this.tag,
-      );
+  Note copyWith({String? title, String? tag}) =>
+      Note(id: id, title: title ?? this.title, tag: tag ?? this.tag);
 
   @override
   bool operator ==(Object other) =>
@@ -32,20 +29,10 @@ class Note {
   int get hashCode => Object.hash(id, title, tag);
 }
 
-/// What the last successful operation did. Compared by identity: every
-/// factory call is a new event, so the same operation twice still shows
-/// its message twice.
-enum NotesEventKind { loaded, renamed, deleted }
-
-class NotesEvent {
-  NotesEvent._(this.kind);
-
-  factory NotesEvent.loaded() => NotesEvent._(NotesEventKind.loaded);
-  factory NotesEvent.renamed() => NotesEvent._(NotesEventKind.renamed);
-  factory NotesEvent.deleted() => NotesEvent._(NotesEventKind.deleted);
-
-  final NotesEventKind kind;
-}
+/// The operation that produced the current state. Read by the message
+/// mapper to choose the toast. A rename or delete always builds a new notes
+/// list, so repeating the same operation still changes the state.
+enum NotesOperation { load, rename, delete }
 
 @immutable
 class NotesState with UiFlowStateMixin implements IUiFlowState {
@@ -54,7 +41,7 @@ class NotesState with UiFlowStateMixin implements IUiFlowState {
     this.notes = const [],
     this.selectedId,
     this.error,
-    this.event,
+    this.lastOperation,
   });
 
   @override
@@ -63,7 +50,7 @@ class NotesState with UiFlowStateMixin implements IUiFlowState {
   final String? selectedId;
   @override
   final Object? error;
-  final NotesEvent? event;
+  final NotesOperation? lastOperation;
 
   NotesState copyWith({
     UiFlowStatus? status,
@@ -72,15 +59,14 @@ class NotesState with UiFlowStateMixin implements IUiFlowState {
     bool clearSelection = false,
     Object? error,
     bool clearError = false,
-    NotesEvent? event,
-  }) =>
-      NotesState(
-        status: status ?? this.status,
-        notes: notes ?? this.notes,
-        selectedId: clearSelection ? null : (selectedId ?? this.selectedId),
-        error: clearError ? null : (error ?? this.error),
-        event: event ?? this.event,
-      );
+    NotesOperation? lastOperation,
+  }) => NotesState(
+    status: status ?? this.status,
+    notes: notes ?? this.notes,
+    selectedId: clearSelection ? null : (selectedId ?? this.selectedId),
+    error: clearError ? null : (error ?? this.error),
+    lastOperation: lastOperation ?? this.lastOperation,
+  );
 
   @override
   NotesState withLoading() =>
@@ -97,16 +83,16 @@ class NotesState with UiFlowStateMixin implements IUiFlowState {
       listEquals(other.notes, notes) &&
       other.selectedId == selectedId &&
       other.error == error &&
-      identical(other.event, event);
+      other.lastOperation == lastOperation;
 
   @override
   int get hashCode => Object.hash(
-        status,
-        Object.hashAll(notes),
-        selectedId,
-        error,
-        identityHashCode(event),
-      );
+    status,
+    Object.hashAll(notes),
+    selectedId,
+    error,
+    lastOperation,
+  );
 }
 
 /// What the note list shows. Sealed, so a view must handle every variant.
@@ -117,11 +103,11 @@ sealed class NoteListData {
   List<String> get ids => const [];
 
   static Map<String, NoteListData> samples() => {
-        'loading': const NoteListLoading(),
-        'error': NoteListFailed(message: L10nKeys.notesUnavailable),
-        'empty': NoteListLoaded(const []),
-        'full': NoteListLoaded(const ['a', 'b', 'c']),
-      };
+    'loading': const NoteListLoading(),
+    'error': NoteListFailed(message: L10nKeys.notesUnavailable),
+    'empty': NoteListLoaded(const []),
+    'full': NoteListLoaded(const ['a', 'b', 'c']),
+  };
 }
 
 final class NoteListLoading extends NoteListData {
@@ -176,26 +162,25 @@ class NoteTileData {
   final bool selected;
 
   static Map<String, NoteTileData> samples() => const {
-        'default': NoteTileData(
-          id: 'a',
-          title: 'Alpha',
-          tag: 'tag1',
-          selected: false,
-        ),
-        'selected': NoteTileData(
-          id: 'a',
-          title: 'Alpha',
-          tag: 'tag1',
-          selected: true,
-        ),
-        'long title': NoteTileData(
-          id: 'a',
-          title:
-              'A very long note title that wraps onto more than one line',
-          tag: 'tag1',
-          selected: false,
-        ),
-      };
+    'default': NoteTileData(
+      id: 'a',
+      title: 'Alpha',
+      tag: 'tag1',
+      selected: false,
+    ),
+    'selected': NoteTileData(
+      id: 'a',
+      title: 'Alpha',
+      tag: 'tag1',
+      selected: true,
+    ),
+    'long title': NoteTileData(
+      id: 'a',
+      title: 'A very long note title that wraps onto more than one line',
+      tag: 'tag1',
+      selected: false,
+    ),
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -241,13 +226,9 @@ NoteTileData? selectNote(NotesState s, String id) {
 }
 
 List<Note> seedNotes(String workspaceId, String tabId) => [
-      for (var i = 1; i <= 3; i++)
-        Note(
-          id: '$tabId-$i',
-          title: '$workspaceId $tabId note $i',
-          tag: 'tag$i',
-        ),
-    ];
+  for (var i = 1; i <= 3; i++)
+    Note(id: '$tabId-$i', title: '$workspaceId $tabId note $i', tag: 'tag$i'),
+];
 
 String _nextTag(String tag) {
   final n = int.tryParse(tag.replaceFirst('tag', '')) ?? 0;
@@ -267,7 +248,7 @@ class NotesCubit extends TryOperationCubit<NotesState>
     with ErrorPrivserverMixin<NotesState>
     implements NotesActions {
   NotesCubit(this._source, this._workspaceId, this._tabId)
-      : super(const NotesState());
+    : super(const NotesState());
 
   final NotesSource _source;
   final String _workspaceId;
@@ -278,14 +259,14 @@ class NotesCubit extends TryOperationCubit<NotesState>
   /// Loads the tab. Shows the loading state first, then the notes or the
   /// failure.
   Future<void> load() => tryOperation(() async {
-        final notes = await _source.load(_workspaceId, _tabId);
-        return state.copyWith(
-          status: UiFlowStatus.success,
-          notes: notes,
-          clearError: true,
-          event: NotesEvent.loaded(),
-        );
-      }, emitLoading: true);
+    final notes = await _source.load(_workspaceId, _tabId);
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      notes: notes,
+      clearError: true,
+      lastOperation: NotesOperation.load,
+    );
+  }, emitLoading: true);
 
   @override
   Future<void> reload() => load();
@@ -297,18 +278,18 @@ class NotesCubit extends TryOperationCubit<NotesState>
   }
 
   Future<void> delete(String id) => tryOperation(() {
-        if (!_has(id)) return state;
-        return state.copyWith(
-          status: UiFlowStatus.success,
-          notes: [
-            for (final n in state.notes)
-              if (n.id != id) n,
-          ],
-          selectedId: state.selectedId == id ? null : state.selectedId,
-          clearError: true,
-          event: NotesEvent.deleted(),
-        );
-      });
+    if (!_has(id)) return state;
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      notes: [
+        for (final n in state.notes)
+          if (n.id != id) n,
+      ],
+      selectedId: state.selectedId == id ? null : state.selectedId,
+      clearError: true,
+      lastOperation: NotesOperation.delete,
+    );
+  });
 
   Future<void> deleteSelected() async {
     final id = state.selectedId;
@@ -318,26 +299,27 @@ class NotesCubit extends TryOperationCubit<NotesState>
 
   @override
   Future<void> rename(String id, String title) => tryOperation(() {
-        if (!_has(id)) return state;
-        return state.copyWith(
-          status: UiFlowStatus.success,
-          notes: [
-            for (final n in state.notes)
-              n.id == id ? n.copyWith(title: title) : n,
-          ],
-          clearError: true,
-          event: NotesEvent.renamed(),
-        );
-      });
+    if (!_has(id)) return state;
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      notes: [
+        for (final n in state.notes) n.id == id ? n.copyWith(title: title) : n,
+      ],
+      clearError: true,
+      lastOperation: NotesOperation.rename,
+    );
+  });
 
   @override
   void cycleTag(String id) {
     if (!_has(id)) return;
-    emit(state.copyWith(
-      notes: [
-        for (final n in state.notes)
-          n.id == id ? n.copyWith(tag: _nextTag(n.tag)) : n,
-      ],
-    ));
+    emit(
+      state.copyWith(
+        notes: [
+          for (final n in state.notes)
+            n.id == id ? n.copyWith(tag: _nextTag(n.tag)) : n,
+        ],
+      ),
+    );
   }
 }

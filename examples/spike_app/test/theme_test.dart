@@ -46,6 +46,21 @@ void main() {
     await unmountApp(t);
   });
 
+  testWidgets('the app has a dark theme and follows the system mode',
+      (t) async {
+    await pumpApp(t);
+    final app = t.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.themeMode, ThemeMode.system);
+    expect(app.theme!.brightness, Brightness.light);
+    expect(app.darkTheme!.brightness, Brightness.dark);
+    expect(app.darkTheme!.colorScheme.primary,
+        kPalette.symmetricPalette.getColor('color1'));
+    expect(app.darkTheme!.colorScheme.onSurface,
+        kPalette.symmetricPalette.getColor('neutral1'));
+    expect(app.darkTheme!.extension<SystematicSizes>(), isNotNull);
+    await unmountApp(t);
+  });
+
   test('no handwritten L10nKeys or DataText in lib', () {
     assertNoHandwrittenKeys('lib');
   });

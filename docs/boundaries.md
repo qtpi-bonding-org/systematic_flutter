@@ -280,6 +280,8 @@ Other rules: design tokens (`no_hardcoded_colors`, `..._font_size`, `..._font_fa
 
 ## 10. Adopting in an existing app
 
+**Principle:** structure problems are fixed in the app; `data_paths` stays at its default. When an app's layout conflicts with the lints, reorganise the app; never tune or exempt the linter for it.
+
 Order, from `docs/plans/2026-11-19-boundary-framework.md` (the plan has the Episutra specifics; also `2026-11-19-screens-and-catalog.md`):
 
 1. **Pins.** Point every `systematic_flutter` dependency, including the lints plugin entries in both `analysis_options.yaml` files, at one https URL and one ref. Independent of the rest.
@@ -288,6 +290,9 @@ Order, from `docs/plans/2026-11-19-boundary-framework.md` (the plan has the Epis
    - onboarding (a `ShellRoute` flow scope replaces `state.extra`; test that state carries across steps),
    - settings (including any window that re-provides cubits),
    - the shell last: scopes for notebook-level state (write notebook-switch tests first), per-tab state, keybindings via `Intent`/`Action` instead of GetIt lookups, then piece by piece, with `BuildCounter`/`ConnectObserver` checks on typing, graph panning and chat streaming.
+   - **Before enabling the rule in Episutra:** move `packages/episutra_core/lib/data/models/` (26 files) and the view-facing domain exceptions to `lib/domain/`. Mechanical import rewrite (about 126 importing files). Then the default `data_paths` need no tuning.
+   - **`UiFlowListener` services.** Episutra's `UiFlowListener` wrapper calls GetIt for `ILoadingService`, `IProgressService`, `IExceptionKeyMapper`, `LabelResolver` and `IFeedbackService`. Bundle them into one services object built in the composition root and provided through the session scope; the wrapper (an adapter-level widget) reads it with `ScopeProvider.of`. Behaviour is unchanged (feature mapper, then global exception mapper, then generic error) and call sites are unchanged. Tests provide a fake bundle.
+   - **Existing `CubitAdapter`/`MultiCubitAdapter`** keep working unchanged (there is no scope hook for them). When their screen migrates, rewrite them as `AdapterWidget` + `Connect`.
 4. **Catalog.** Add `samples()` to each ViewData as you migrate; add entries; swap in the shared catalog.
 
 Per piece: write the ViewData with `samples()`, `select` with a unit test, the actions interface, the view, the adapter with `assemble`, the catalog entry. Move the old widget's backend reads into the adapter and delete them from the view.
@@ -298,7 +303,7 @@ Per piece: write the ViewData with `samples()`, `select` with a unit test, the a
 - **Long `Connect` type arguments.** `select` is a tear-off, so they cannot be inferred. Write them out.
 - **Rules silent when unlisted.** The most expensive trap. Run the probe check after any config change.
 - **`flutter analyze` hides plugin findings.** Use `dart analyze`.
-- **Data paths.** `backend_access_only_in_adapters` bans views from holding types under `data_paths`. The spike moved its `NotesSource` interface out of `lib/data/` into `lib/notes/` for this. Decide per app which folders count as backend.
+- **Data paths.** `backend_access_only_in_adapters` bans views from holding types declared under `data_paths` (default `/lib/data/`, `/lib/infrastructure/`), matched by substring of the file path. Convention: value types that views may use (models, domain exceptions, value interfaces) live in `lib/domain/`, never under `lib/data/`; `lib/data/` holds only backend code (dao, db, tables, sync, repositories, services, codecs, mappers). With that layout the default paths need no tuning. The spike moved its `NotesSource` interface into `lib/notes/` for this. The match is by substring, so a dependency package's own `lib/data/` files match the default too.
 - **Toast setup is three pieces.** A message mapper needs `BaseStateMessageMapper`, `ClassifyingExceptionKeyMapper` and a `MessageKey`; `UiFlowStateListener` needs a `UiFlowService` with feedback and loading services (the spike uses a `NoLoading` stub). The listener class is `UiFlowStateListener`; older text calls it `UiFlowListener`, and the lint bans both names in views.
 - **Error capture.** `ErrorInbox` creates its queue in the zone where `configure` runs; tests and the app need a `startErrorCapture` wrapper. Testing storage is a separate library (`flutter_error_privserver/testing.dart`).
 - **Two l10n generators.** `flutter gen-l10n` and the build_runner `l10n_generator`; keep `build.yaml` and `l10n.yaml` aligned.

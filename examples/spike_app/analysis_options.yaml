@@ -13,8 +13,6 @@ plugins:
       actions_avoid_bloc_names: true
       actions_return_void: true
       adapter_naming: true
-      avoid_bloc_imports_in_widgets_dir: true
-      avoid_getit_in_adapters_dir: true
       backend_access_only_in_adapters: true
       cubit_field_selector_must_be_equatable: true
       exceptions_extend_failure_base: true

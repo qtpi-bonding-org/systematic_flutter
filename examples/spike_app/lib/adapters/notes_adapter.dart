@@ -19,36 +19,40 @@ class NotesAdapter extends AdapterWidget {
       select: selectNoteIds,
       resolve: (c) => ScopeProvider.of<WorkspaceScope>(c).notesFor(tabId),
       debugLabel: 'note-list:$tabId',
-      builder: (ctx, data, cubit) => UiFlowStateListener<NotesCubit, NotesState>(
-        bloc: cubit,
-        mapper: NotesMessageMapper.create(),
-        uiService: ScopeProvider.of<SessionScope>(ctx).ui,
-        showLoadingOverlay: false,
-        showSuccessMessages: true,
-        listenWhen: _listenWhen,
-        child: assemble(
-          tabId,
-          data,
-          (id) => NoteTileAdapter(
-            key: ValueKey('$tabId/$id'),
-            tabId: tabId,
-            id: id,
+      builder: (ctx, data, cubit) =>
+          UiFlowStateListener<NotesCubit, NotesState>(
+            bloc: cubit,
+            mapper: NotesMessageMapper.create(),
+            uiService: ScopeProvider.of<SessionScope>(ctx).ui,
+            showLoadingOverlay: false,
+            showSuccessMessages: true,
+            listenWhen: _listenWhen,
+            child: assemble(
+              tabId,
+              data,
+              (id) => NoteTileAdapter(
+                key: ValueKey('$tabId/$id'),
+                tabId: tabId,
+                id: id,
+              ),
+              onDeleteSelected: () {
+                final id = cubit.state.selectedId;
+                if (id != null) confirmAndDelete(ctx, cubit, id);
+              },
+              onRetry: cubit.reload,
+            ),
           ),
-          onDeleteSelected: () {
-            final id = cubit.state.selectedId;
-            if (id != null) confirmAndDelete(ctx, cubit, id);
-          },
-          onRetry: cubit.reload,
-        ),
-      ),
     );
   }
 
-  /// A toast fires on a new event (identity), a status change or a new error.
+  /// A toast fires on a status change, a new error, a new operation, or a new
+  /// notes list. A rename or delete always builds a new list, so repeating the
+  /// same operation still toasts.
   static bool _listenWhen(NotesState previous, NotesState current) =>
-      !identical(previous.event, current.event) ||
       previous.status != current.status ||
-      previous.error != current.error;
+      previous.error != current.error ||
+      previous.lastOperation != current.lastOperation ||
+      !identical(previous.notes, current.notes);
 
   static Widget assemble(
     String tabId,
