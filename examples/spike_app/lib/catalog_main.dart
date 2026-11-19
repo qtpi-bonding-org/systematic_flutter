@@ -13,6 +13,7 @@ import 'flow/flow_cubit.dart';
 import 'notes/notes_cubit.dart';
 import 'rename/rename_form_cubit.dart';
 import 'search/search_cubit.dart';
+import 'tabs/tabs_cubit.dart';
 import 'views/confirm_dialog_view.dart';
 import 'views/home_view.dart';
 import 'views/tag_chip.dart';
@@ -29,11 +30,43 @@ class _NoopRename extends NoOpActions implements RenameFormActions {}
 
 class _NoopFlow extends NoOpActions implements FlowActions {}
 
+class _NoopTabs extends NoOpActions implements TabsActions {}
+
 final _notes = _NoopNotes();
 final _search = _NoopSearch();
 final _workspace = _NoopWorkspace();
 final _rename = _NoopRename();
 final _flow = _NoopFlow();
+final _tabs = _NoopTabs();
+
+/// Owns a catalog TextEditingController, so each one is disposed with its
+/// entry. The builder receives the controller.
+class _WithController extends StatefulWidget {
+  const _WithController({
+    required this.text,
+    required this.builder,
+  });
+
+  final String text;
+  final Widget Function(TextEditingController) builder;
+
+  @override
+  State<_WithController> createState() => _WithControllerState();
+}
+
+class _WithControllerState extends State<_WithController> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.text);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(_controller);
+}
 
 /// Label above a widget entry. Also gives each entry a visible exact name.
 Widget _labelled(String name, Widget child) => Column(
@@ -73,15 +106,17 @@ Widget _notesList(String tabId, List<String> ids) => NotesAdapter.assemble(
 Widget _home({required bool online, required bool hasQuery}) => HomeView(
       header: WorkspaceSwitchAdapter.assemble('A', _workspace),
       tabs: TabsAdapter.assemble(
-        TabsAdapter.tabs,
-        'tab1',
-        (_) {},
+        TabStripData(tabs: kTabs, active: 'tab1'),
+        _tabs,
         _notesList('tab1', const ['tab1-1', 'tab1-2']),
       ),
-      search: SearchAdapter.assemble(
-        SearchPanelData(hasQuery: hasQuery, online: online),
-        _search,
-        TextEditingController(text: hasQuery ? 'alpha' : ''),
+      search: _WithController(
+        text: hasQuery ? 'alpha' : '',
+        builder: (c) => SearchAdapter.assemble(
+          SearchPanelData(hasQuery: hasQuery, online: online),
+          _search,
+          c,
+        ),
       ),
       status: StatusAdapter.assemble(3),
       onStartFlow: () {},
@@ -154,18 +189,16 @@ List<CatalogEntry> catalogEntries() => [
           'tab1': (_) => _labelled(
                 'TabStripView',
                 TabsAdapter.assemble(
-                  TabsAdapter.tabs,
-                  'tab1',
-                  (_) {},
+                  TabStripData(tabs: kTabs, active: 'tab1'),
+                  _tabs,
                   const Text('Body'),
                 ),
               ),
           'tab2': (_) => _labelled(
                 'TabStripView',
                 TabsAdapter.assemble(
-                  TabsAdapter.tabs,
-                  'tab2',
-                  (_) {},
+                  TabStripData(tabs: kTabs, active: 'tab2'),
+                  _tabs,
                   const Text('Body'),
                 ),
               ),
@@ -177,18 +210,24 @@ List<CatalogEntry> catalogEntries() => [
         states: {
           'empty-online': (_) => _labelled(
                 'SearchPanelView',
-                SearchAdapter.assemble(
-                  const SearchPanelData(hasQuery: false, online: true),
-                  _search,
-                  TextEditingController(),
+                _WithController(
+                  text: '',
+                  builder: (c) => SearchAdapter.assemble(
+                    const SearchPanelData(hasQuery: false, online: true),
+                    _search,
+                    c,
+                  ),
                 ),
               ),
           'typing-offline': (_) => _labelled(
                 'SearchPanelView',
-                SearchAdapter.assemble(
-                  const SearchPanelData(hasQuery: true, online: false),
-                  _search,
-                  TextEditingController(text: 'abc'),
+                _WithController(
+                  text: 'abc',
+                  builder: (c) => SearchAdapter.assemble(
+                    const SearchPanelData(hasQuery: true, online: false),
+                    _search,
+                    c,
+                  ),
                 ),
               ),
         },
@@ -244,22 +283,28 @@ List<CatalogEntry> catalogEntries() => [
         states: {
           'valid': (_) => _labelled(
                 'RenameDialogView',
-                RenameDialogAdapter.assemble(
-                  const RenameFormData(valid: true),
-                  _rename,
-                  TextEditingController(text: 'Alpha'),
-                  onSave: () {},
-                  onCancel: () {},
+                _WithController(
+                  text: 'Alpha',
+                  builder: (c) => RenameDialogAdapter.assemble(
+                    const RenameFormData(valid: true),
+                    _rename,
+                    c,
+                    onSave: () {},
+                    onCancel: () {},
+                  ),
                 ),
               ),
           'invalid': (_) => _labelled(
                 'RenameDialogView',
-                RenameDialogAdapter.assemble(
-                  const RenameFormData(valid: false),
-                  _rename,
-                  TextEditingController(),
-                  onSave: () {},
-                  onCancel: () {},
+                _WithController(
+                  text: '',
+                  builder: (c) => RenameDialogAdapter.assemble(
+                    const RenameFormData(valid: false),
+                    _rename,
+                    c,
+                    onSave: () {},
+                    onCancel: () {},
+                  ),
                 ),
               ),
         },

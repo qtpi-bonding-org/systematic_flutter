@@ -5,6 +5,7 @@ import 'notes/notes_cubit.dart';
 import 'rename/rename_form_cubit.dart';
 import 'search/search_cubit.dart';
 import 'status/status_cubit.dart';
+import 'tabs/tabs_cubit.dart';
 import 'workspace/workspace_cubit.dart';
 
 /// Lives for the whole app run.
@@ -19,24 +20,20 @@ class SessionScope extends AppScope {
   late final StatusCubit status;
   late final WorkspaceCubit workspace;
 
-  /// Every rename form issued, in order. Test visibility only.
-  ///
-  /// Forms are not owned by this scope: the rename dialog's BlocProvider
-  /// closes each one when the dialog closes.
-  final List<RenameFormCubit> issuedRenameForms = [];
-
-  RenameFormCubit newRenameForm(String initial) {
-    final form = RenameFormCubit(initial);
-    issuedRenameForms.add(form);
-    return form;
-  }
+  /// A new rename form. Not owned by this scope: the rename dialog's
+  /// BlocProvider closes it when the dialog closes.
+  RenameFormCubit newRenameForm(String initial) => RenameFormCubit(initial);
 }
 
-/// Lives while one workspace is selected. Notes cubits are per tab.
+/// Lives while one workspace is selected. Notes cubits and the active tab
+/// are per workspace.
 class WorkspaceScope extends AppScope {
-  WorkspaceScope(this.id);
+  WorkspaceScope(this.id) {
+    tabs = own(TabsCubit());
+  }
 
   final String id;
+  late final TabsCubit tabs;
   final Map<String, NotesCubit> _notes = <String, NotesCubit>{};
 
   NotesCubit notesFor(String tabId) => _notes.putIfAbsent(

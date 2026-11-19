@@ -1,9 +1,12 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spike_app/flow/flow_cubit.dart';
+import 'package:spike_app/rename/rename_form_cubit.dart';
+import 'package:spike_app/views/rename_dialog_view.dart';
 import 'package:spike_app/scopes.dart';
 import 'package:spike_app/views/confirm_view.dart';
 import 'package:spike_app/views/start_view.dart';
@@ -107,12 +110,10 @@ void main() {
   testWidgets('rename dialog cubit is closed when the dialog closes',
       (t) async {
     await pumpApp(t);
-    final s = session(t);
-    expect(s.issuedRenameForms, isEmpty);
     await t.tap(key('rename-tab1-1'));
     await t.pumpAndSettle();
-    expect(s.issuedRenameForms, hasLength(1));
-    final form = s.issuedRenameForms.single;
+    // The dialog is mounted: its form cubit is on the tree above the view.
+    final form = t.element(find.byType(RenameDialogView)).read<RenameFormCubit>();
     expect(form.isClosed, isFalse);
 
     await t.enterText(key('rename-field'), 'Fresh title');
@@ -125,12 +126,49 @@ void main() {
 
     await t.tap(key('rename-tab1-2'));
     await t.pumpAndSettle();
-    final second = s.issuedRenameForms.last;
+    final second =
+        t.element(find.byType(RenameDialogView)).read<RenameFormCubit>();
     expect(identical(second, form), isFalse);
     await t.tap(key('rename-cancel'));
     await t.pumpAndSettle();
     expect(second.isClosed, isTrue);
     expect(find.text('A tab1 note 2'), findsOneWidget);
+    await unmountApp(t);
+  });
+
+  testWidgets('search field follows a query changed elsewhere', (t) async {
+    await pumpApp(t);
+    session(t).search.setQuery('from elsewhere');
+    await settle(t);
+    expect(find.widgetWithText(TextField, 'from elsewhere'), findsOneWidget);
+    // Typing still works and does not fight the controller.
+    await t.enterText(key('search-field'), 'typed');
+    await settle(t);
+    expect(session(t).search.state.query, 'typed');
+    expect(find.widgetWithText(TextField, 'typed'), findsOneWidget);
+    session(t).search.setQuery('');
+    await settle(t);
+    expect(find.widgetWithText(TextField, 'typed'), findsNothing);
+    await unmountApp(t);
+  });
+
+  testWidgets('each note tile is keyed by tab and id', (t) async {
+    await pumpApp(t);
+    expect(find.byKey(const ValueKey('tab1/tab1-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tab1/tab1-3')), findsOneWidget);
+    await t.tap(key('tab-tab2'));
+    await settle(t);
+    expect(find.byKey(const ValueKey('tab2/tab2-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tab1/tab1-1')), findsNothing);
+    await unmountApp(t);
+  });
+
+  testWidgets('the active tab lives in the workspace scope', (t) async {
+    await pumpApp(t);
+    expect(workspace(t).tabs.state, 'tab1');
+    await t.tap(key('tab-tab2'));
+    await settle(t);
+    expect(workspace(t).tabs.state, 'tab2');
     await unmountApp(t);
   });
 

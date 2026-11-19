@@ -1,3 +1,4 @@
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 
 import '../notes/notes_cubit.dart';
@@ -5,6 +6,7 @@ import '../views/confirm_dialog_view.dart';
 
 /// Asks the user to confirm, then deletes note [id] through [cubit].
 /// Does nothing if the note is gone or the user cancels.
+@adapterHelper
 Future<void> confirmAndDelete(
   BuildContext context,
   NotesCubit cubit,

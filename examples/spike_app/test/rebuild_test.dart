@@ -1,17 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spike_app/probe.dart';
-import 'package:systematic_ui/testing.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import 'helpers.dart';
 
-int n(String id) => BuildCounter.count(id);
+late CountingObserver n;
 
 void main() {
   setUp(() {
-    BuildCounter.reset();
-    probe = (id, child) => BuildCounter(id: id, child: child);
+    n = CountingObserver();
+    ConnectObserver.instance = n;
   });
-  tearDown(() => probe = noProbe);
+  tearDown(() => ConnectObserver.instance = null);
 
   testWidgets('every probed widget builds once at start', (t) async {
     await pumpApp(t);

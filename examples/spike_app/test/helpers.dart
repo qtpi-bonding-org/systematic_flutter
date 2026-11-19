@@ -34,3 +34,16 @@ NotesCubit notes(WidgetTester t, String tabId) =>
     workspace(t).notesFor(tabId);
 
 Finder key(String k) => find.byKey(ValueKey(k));
+
+/// Counts Connect builder runs per `debugLabel`.
+class CountingObserver extends ConnectObserver {
+  final Map<String, int> counts = {};
+
+  @override
+  void onBuild(String? debugLabel) {
+    if (debugLabel == null) return;
+    counts[debugLabel] = (counts[debugLabel] ?? 0) + 1;
+  }
+
+  int call(String label) => counts[label] ?? 0;
+}

@@ -2,7 +2,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 
 import '../notes/notes_cubit.dart';
-import '../probe.dart';
 import '../scopes.dart';
 import '../views/note_tile.dart';
 import '../views/tag_chip.dart';
@@ -21,6 +20,7 @@ class NoteTileAdapter extends AdapterWidget {
       arg: id,
       select: selectNote,
       resolve: (c) => ScopeProvider.of<WorkspaceScope>(c).notesFor(tabId),
+      debugLabel: 'tile:$id',
       builder: (ctx, data, cubit) {
         if (data == null) return const SizedBox.shrink();
         return assemble(
@@ -45,20 +45,17 @@ class NoteTileAdapter extends AdapterWidget {
     required VoidCallback onRename,
     required VoidCallback onDelete,
   }) {
-    return probe(
-      'tile:${data.id}',
-      NoteTile(
-        id: data.id,
-        title: data.title,
-        selected: data.selected,
-        trailing: TagChip(
-          label: data.tag,
-          onTap: () => actions.cycleTag(data.id),
-        ),
-        onSelect: () => actions.select(data.id),
-        onDelete: onDelete,
-        onRename: onRename,
+    return NoteTile(
+      id: data.id,
+      title: data.title,
+      selected: data.selected,
+      trailing: TagChip(
+        label: data.tag,
+        onTap: () => actions.cycleTag(data.id),
       ),
+      onSelect: () => actions.select(data.id),
+      onDelete: onDelete,
+      onRename: onRename,
     );
   }
 }

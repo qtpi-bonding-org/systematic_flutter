@@ -50,11 +50,14 @@ class _RenameDialogAdapterState extends State<RenameDialogAdapter> {
 
   @override
   Widget build(BuildContext context) {
-    // Looked up here, not inside create: a provider's create callback cannot
-    // register an InheritedWidget dependency.
-    final session = ScopeProvider.of<SessionScope>(context);
+    // A dialog route is built under the Navigator, so it only sees scopes
+    // provided ABOVE the Navigator (here SessionScope, above MaterialApp).
+    // A scope provided inside a route (WorkspaceScope) is not visible, so
+    // such values must be passed in as arguments by the adapter that opens
+    // the dialog.
     return BlocProvider<RenameFormCubit>(
-      create: (_) => session.newRenameForm(widget.initial),
+      create: (c) =>
+          ScopeProvider.of<SessionScope>(c).newRenameForm(widget.initial),
       child: Connect<RenameFormCubit, RenameFormState, RenameFormData>(
         select: selectRenameForm,
         builder: (ctx, data, cubit) => RenameDialogAdapter.assemble(

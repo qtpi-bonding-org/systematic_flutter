@@ -3,6 +3,7 @@ import 'package:spike_app/notes/notes_cubit.dart';
 import 'package:spike_app/rename/rename_form_cubit.dart';
 import 'package:spike_app/search/search_cubit.dart';
 import 'package:spike_app/status/status_cubit.dart';
+import 'package:spike_app/tabs/tabs_cubit.dart';
 
 const a = Note(id: 'a', title: 'Alpha', tag: 'tag1');
 const b = Note(id: 'b', title: 'Beta', tag: 'tag2');
@@ -59,5 +60,17 @@ void main() {
     expect(selectRenameForm(const RenameFormState(text: 'x')).valid, isTrue);
     expect(selectRenameForm(const RenameFormState(text: 'x')),
         selectRenameForm(const RenameFormState(text: 'xyz')));
+  });
+
+  test('TabsCubit selects a tab; selectTabStrip lists both tabs', () async {
+    final c = TabsCubit();
+    expect(c.state, 'tab1');
+    c.select('tab2');
+    expect(c.state, 'tab2');
+    final d = selectTabStrip('tab2');
+    expect(d.active, 'tab2');
+    expect(d.tabs.map((x) => x.id), ['tab1', 'tab2']);
+    expect(selectTabStrip('tab1'), isNot(d));
+    await c.close();
   });
 }

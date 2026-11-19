@@ -2,7 +2,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 
 import '../notes/notes_cubit.dart';
-import '../probe.dart';
 import '../scopes.dart';
 import '../views/note_list_view.dart';
 import 'note_tile_adapter.dart';
@@ -18,10 +17,15 @@ class NotesAdapter extends AdapterWidget {
     return Connect<NotesCubit, NotesState, NoteListData>(
       select: selectNoteIds,
       resolve: (c) => ScopeProvider.of<WorkspaceScope>(c).notesFor(tabId),
+      debugLabel: 'note-list:$tabId',
       builder: (ctx, data, cubit) => assemble(
         tabId,
         data,
-        (id) => NoteTileAdapter(key: ValueKey(id), tabId: tabId, id: id),
+        (id) => NoteTileAdapter(
+          key: ValueKey('$tabId/$id'),
+          tabId: tabId,
+          id: id,
+        ),
         onDeleteSelected: () {
           final id = cubit.state.selectedId;
           if (id != null) confirmAndDelete(ctx, cubit, id);
@@ -45,10 +49,7 @@ class NotesAdapter extends AdapterWidget {
           },
         ),
       },
-      child: probe(
-        'note-list:$tabId',
-        NoteListView(ids: data.ids, itemBuilder: itemBuilder),
-      ),
+      child: NoteListView(ids: data.ids, itemBuilder: itemBuilder),
     );
   }
 }

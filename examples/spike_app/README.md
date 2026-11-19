@@ -1,17 +1,8 @@
 # spike_app
 
-A new Flutter project.
+A small notes app that serves as a reference example of the cubit > adapter > view pattern, built on the systematic_flutter packages (cubit_ui_flow for scopes and Connect, systematic_catalog for the component catalog).
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `lib/*/` cubits hold state and expose actions; `lib/adapters/` connects cubits to views; `lib/views/` is presentation only.
+- Tests: `flutter test` (rebuild counts, selectors, state flows).
+- Analyze: `dart analyze` (the systematic_lints plugin runs there, not in `flutter analyze`).
+- Catalog: `flutter run -t lib/catalog_main.dart -d macos` shows every view in each state with no scopes or cubits.
