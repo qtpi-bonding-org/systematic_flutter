@@ -35,6 +35,9 @@ class Connect {
 class Connect2 {
   Connect2({Object? select});
 }
+class ConnectFor {
+  ConnectFor({Object? select});
+}
 """;
 
   Future<void> test_flags_list_literal_in_connect() async {
@@ -50,6 +53,17 @@ class Connect2 {
   Future<void> test_allows_scalar_in_connect() async {
     await assertNoDiagnostics(
       '$_connect\nfinal a = Connect(select: () => 1);\n',
+    );
+  }
+
+  Future<void> test_flags_list_literal_in_connect_for() async {
+    const src = '$_connect\nfinal a = ConnectFor(select: () => [1, 2]);\n';
+    await assertDiagnostics(src, [lint(src.indexOf('[1, 2]'), 6)]);
+  }
+
+  Future<void> test_allows_scalar_in_connect_for() async {
+    await assertNoDiagnostics(
+      '$_connect\nfinal a = ConnectFor(select: () => 1);\n',
     );
   }
 }

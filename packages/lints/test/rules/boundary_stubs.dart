@@ -47,6 +47,7 @@ class UiFlowListener extends Widget { UiFlowListener(); }
 class UiFlowStateListener extends Widget { UiFlowStateListener(); }
 class Connect extends Widget { Connect({Object? select}); }
 class Connect2 extends Widget { Connect2({Object? select}); }
+class ConnectFor extends Widget { ConnectFor({Object? select}); }
 abstract class AdapterWidget extends StatelessWidget {
   const AdapterWidget();
 }

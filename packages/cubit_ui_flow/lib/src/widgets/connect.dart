@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +14,9 @@ import 'adapter_scope.dart';
 ///
 /// The Cubit comes from [resolve], or from `context.read<C>()` if [resolve]
 /// is null. It is resolved once, on the first build.
+///
+/// The cubit is resolved once per element; a Connect whose cubit depends on
+/// an id must be keyed by that id (key: ValueKey(id)).
 class Connect<C extends StateStreamable<S>, S, D> extends StatefulWidget {
   const Connect({
     required this.select,
@@ -53,6 +58,9 @@ class _ConnectState<C extends StateStreamable<S>, S, D>
 /// Two-Cubit variant of [Connect]. [select] receives both states and must be
 /// a static or top-level function. The builder runs again only when the
 /// combined value changes by `==`.
+///
+/// The cubit is resolved once per element; a Connect whose cubit depends on
+/// an id must be keyed by that id (key: ValueKey(id)).
 class Connect2<C1 extends StateStreamable<S1>, S1, C2 extends StateStreamable<S2>,
     S2, D> extends StatefulWidget {
   const Connect2({
@@ -107,5 +115,81 @@ class _Connect2State<C1 extends StateStreamable<S1>, S1,
       valueListenable: combined,
       builder: (context, data, _) => widget.builder(context, data, cubit1, cubit2),
     );
+  }
+}
+
+/// Argument-keyed variant of [Connect]: selects a value from one Cubit's state
+/// using [arg], so one widget can watch a single entry of a keyed state (for
+/// example one item of a `Map`) and rebuild only when that entry changes.
+///
+/// [select] must be a static or top-level function (not a closure), because
+/// the selector is what identifies the projection. [select] runs with the
+/// current [arg]; the builder runs again only when the selected value changes
+/// by `!=`. A change of [arg] or of [select] recomputes the value at once.
+///
+/// The cubit is resolved once per element, from [resolve] or from
+/// `context.read<C>()`, on the first build. A ConnectFor whose cubit depends
+/// on an id must be keyed by that id (key: ValueKey(id)).
+class ConnectFor<C extends StateStreamable<S>, S, A, D> extends StatefulWidget {
+  const ConnectFor({
+    required this.arg,
+    required this.select,
+    required this.builder,
+    this.resolve,
+    super.key,
+  });
+
+  final A arg;
+  final D Function(S state, A arg) select;
+  final Widget Function(BuildContext context, D data, C cubit) builder;
+  final C Function(BuildContext context)? resolve;
+
+  @override
+  State<ConnectFor<C, S, A, D>> createState() =>
+      _ConnectForState<C, S, A, D>();
+}
+
+class _ConnectForState<C extends StateStreamable<S>, S, A, D>
+    extends State<ConnectFor<C, S, A, D>> {
+  C? _cubit;
+  StreamSubscription<S>? _subscription;
+  late D _data;
+
+  @override
+  void didUpdateWidget(ConnectFor<C, S, A, D> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final cubit = _cubit;
+    if (cubit != null &&
+        (widget.arg != oldWidget.arg || widget.select != oldWidget.select)) {
+      _data = widget.select(cubit.state, widget.arg);
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _subscription = null;
+    super.dispose();
+  }
+
+  void _onState(S state) {
+    final next = widget.select(state, widget.arg);
+    if (next != _data) {
+      setState(() => _data = next);
+    }
+  }
+
+  C _attach(BuildContext context) {
+    final cubit = widget.resolve?.call(context) ?? context.read<C>();
+    _cubit = cubit;
+    _data = widget.select(cubit.state, widget.arg);
+    _subscription = cubit.stream.listen(_onState);
+    return cubit;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = _cubit ?? _attach(context);
+    return widget.builder(context, _data, cubit);
   }
 }

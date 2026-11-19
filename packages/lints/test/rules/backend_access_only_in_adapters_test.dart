@@ -217,6 +217,22 @@ class WState extends State<W> {
     'extension Ext on BuildContext { Foo f() => this.read<Foo>(); }',
     ['this.read<Foo>()'],
   );
+  Future<void> test_context_extension_implicit_read_flagged() => flagged(
+    'extension Ext on BuildContext { Foo f() => read<Foo>(); }',
+    ['read<Foo>()'],
+  );
+  Future<void> test_context_extension_implicit_watch_flagged() => flagged(
+    'extension Ext on BuildContext { Foo f() => watch<Foo>(); }',
+    ['watch<Foo>()'],
+  );
+  Future<void> test_context_extension_implicit_select_flagged() => flagged(
+    'extension Ext on BuildContext { int f() => select<Foo, int>((x) => 1); }',
+    ['select<Foo, int>((x) => 1)'],
+  );
+  Future<void> test_non_context_extension_implicit_read_clean() => clean(
+    'class Box { T read<T>() => throw 0; }\n'
+    'extension Ext on Box { Foo f() => read<Foo>(); }',
+  );
   Future<void> test_top_level_widget_function_flagged() => flagged(
     '''
 Widget build2(BuildContext context) {
