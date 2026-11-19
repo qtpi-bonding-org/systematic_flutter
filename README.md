@@ -26,6 +26,8 @@ cubit_ui_flow:
     path: packages/cubit_ui_flow
 ```
 
+How to build UI with these packages (adapters, views, scopes, catalog, lints): [`docs/boundaries.md`](docs/boundaries.md).
+
 ## Layering (dependencies point down only)
 
 1. `l10n`: no widgets, no Flutter.

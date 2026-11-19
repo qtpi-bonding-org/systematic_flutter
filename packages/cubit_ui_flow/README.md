@@ -2,6 +2,8 @@
 
 Cubit state to UI feedback orchestration for Flutter. A contracts-based architecture that automatically handles loading overlays, error toasts, and success messages.
 
+How `Connect`, adapters and scopes fit together: [`docs/boundaries.md`](../../docs/boundaries.md).
+
 ## Features
 
 - 🔄 Automatic loading overlay management

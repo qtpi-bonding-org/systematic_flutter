@@ -2,6 +2,8 @@
 
 Dev tooling: one page showing every state of every widget and screen at once, light and dark side by side, with live theme tokens.
 
+How to write `samples()` and entries: [`docs/boundaries.md`](../../docs/boundaries.md) section 7.
+
 ```dart
 CatalogPage(
   entries: [
