@@ -62,4 +62,17 @@ abstract class FooActions {
 
   Future<void> test_concrete_actions_class_clean() =>
       assertNoDiagnostics('class FooActions { void close() {} }');
+
+  Future<void> test_mixin_member_flagged() =>
+      flagged('mixin FooActions { void close(); }', 'close');
+  Future<void> test_mixin_getter_flagged() =>
+      flagged('mixin FooActions { int get state; }', 'state');
+  Future<void> test_mixin_class_member_flagged() =>
+      flagged('mixin class FooActions { void emit() {} }', 'emit');
+  Future<void> test_non_abstract_interface_class_flagged() =>
+      flagged('interface class FooActions { void close() {} }', 'close');
+  Future<void> test_mixin_ordinary_members_clean() =>
+      assertNoDiagnostics('mixin FooActions { void save(); }');
+  Future<void> test_non_actions_mixin_clean() =>
+      assertNoDiagnostics('mixin FooService { void close(); }');
 }

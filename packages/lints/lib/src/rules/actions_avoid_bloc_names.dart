@@ -21,7 +21,8 @@ class ActionsAvoidBlocNames extends AnalysisRule {
         name: 'actions_avoid_bloc_names',
         description:
             'Flags close/emit/onChange/onError/addError/state/stream/isClosed '
-            'members on abstract or interface *Actions classes.',
+            'members on abstract, interface, mixin class or mixin *Actions '
+            'types.',
       );
 
   @override
@@ -33,7 +34,9 @@ class ActionsAvoidBlocNames extends AnalysisRule {
     RuleContext context,
   ) {
     if (!LintConfig.applies(context, name)) return;
-    registry.addClassDeclaration(this, _Visitor(this));
+    registry
+      ..addClassDeclaration(this, _Visitor(this))
+      ..addMixinDeclaration(this, _Visitor(this));
   }
 }
 
@@ -55,10 +58,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (!node.namePart.typeName.lexeme.endsWith('Actions')) return;
-    if (node.abstractKeyword == null && node.interfaceKeyword == null) return;
+    if (node.abstractKeyword == null &&
+        node.interfaceKeyword == null &&
+        node.mixinKeyword == null) {
+      return;
+    }
     final body = node.body;
-    if (body is! BlockClassBody) return;
-    for (final member in body.members) {
+    if (body is BlockClassBody) _checkMembers(body.members);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    if (!node.name.lexeme.endsWith('Actions')) return;
+    _checkMembers(node.body.members);
+  }
+
+  void _checkMembers(Iterable<ClassMember> members) {
+    for (final member in members) {
       if (member is MethodDeclaration) {
         _check(member.name);
       } else if (member is FieldDeclaration) {

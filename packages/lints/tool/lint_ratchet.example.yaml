@@ -4,3 +4,6 @@ package_dirs: [packages/example]
 baseline: tool/lint-baseline.txt
 # A deliberately tiny probe finding proving the analyzer loaded the plugin.
 probe_rule: no_hardcoded_font_size
+# Repo-root-relative file that deliberately violates probe_rule. It must sit under one
+# package_dirs entry; the probe is run there and must report probe_rule, or the check fails.
+probe_file: packages/example/lib/_lint_probe.dart
