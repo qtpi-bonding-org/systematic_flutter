@@ -96,22 +96,44 @@ void main() {
     expect(find.text('A tab1 note 1'), findsNothing);
     expect(find.text('A tab1 note 2'), findsOneWidget);
 
-    await t.tap(key('tab-tab2'));
-    await settle(t);
-    final reopened = notes(t, 'tab2');
-    expect(identical(reopened, tab2), isFalse);
-    expect(reopened.isClosed, isFalse);
-    expect(find.text('A tab2 note 1'), findsOneWidget);
+    expect(key('tab-tab2'), findsNothing);
+    expect(key('close-tab-tab2'), findsNothing);
+    expect(find.text('A tab1 note 2'), findsOneWidget);
     await unmountApp(t);
   });
 
-  testWidgets('closing the active tab moves to another tab', (t) async {
+  testWidgets('closing the active tab moves to the neighbour', (t) async {
     await pumpApp(t);
     final tab1 = notes(t, 'tab1');
     await t.tap(key('close-tab-tab1'));
     await settle(t);
     expect(tab1.isClosed, isTrue);
+    expect(key('tab-tab1'), findsNothing);
     expect(find.text('A tab2 note 1'), findsOneWidget);
+    await unmountApp(t);
+  });
+
+  testWidgets('the last open tab has no close button', (t) async {
+    await pumpApp(t);
+    expect(key('close-tab-tab1'), findsOneWidget);
+    await t.tap(key('close-tab-tab2'));
+    await settle(t);
+    expect(key('tab-tab1'), findsOneWidget);
+    expect(key('close-tab-tab1'), findsNothing);
+    await unmountApp(t);
+  });
+
+  testWidgets('a new tab appears, is active and has its own cubit', (t) async {
+    await pumpApp(t);
+    final tab1 = notes(t, 'tab1');
+    await t.tap(key('new-tab'));
+    await settle(t);
+    expect(key('tab-tab3'), findsOneWidget);
+    expect(find.text('A tab3 note 1'), findsOneWidget);
+    final tab3 = notes(t, 'tab3');
+    expect(identical(tab3, tab1), isFalse);
+    expect(identical(tab3, notes(t, 'tab2')), isFalse);
+    expect(tab1.isClosed, isFalse);
     await unmountApp(t);
   });
 
@@ -204,10 +226,10 @@ void main() {
 
   testWidgets('the active tab lives in the workspace scope', (t) async {
     await pumpApp(t);
-    expect(workspace(t).tabs.state, 'tab1');
+    expect(workspace(t).tabs.state.active, 'tab1');
     await t.tap(key('tab-tab2'));
     await settle(t);
-    expect(workspace(t).tabs.state, 'tab2');
+    expect(workspace(t).tabs.state.active, 'tab2');
     await unmountApp(t);
   });
 

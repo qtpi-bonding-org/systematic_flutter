@@ -115,9 +115,9 @@ void main() {
     for (final state in ['list loading', 'list error', 'empty', 'default']) {
       expect(find.text('HomeView / $state'), findsOneWidget, reason: state);
     }
-    // 'Body' is left only in the TabStripView widget entry (2 states x 2
-    // panes), no longer in the HomeView screen.
-    expect(find.text('Body'), findsNWidgets(4));
+    // 'Body' is left only in the TabStripView widget entry (3 samples x 2
+    // themes), no longer in the HomeView screen.
+    expect(find.text('Body'), findsNWidgets(6));
   });
 
   test('only HomeScreenAssembly builds HomeView, so route and catalog share it',
@@ -219,13 +219,7 @@ void main() {
     }
     FlutterError.onError = original;
     expect(find.text('Loading notes'), findsNWidgets(4));
-    // Text can wrap, so no overflow is expected from the tiles. Known: the
-    // tab strip's body overflows in the fixed-height HomeView screen frames
-    // (tab_strip_view.dart, owned by the tabs feature, fix pending there).
-    final unexpected = [
-      for (final d in errors)
-        if (!d.toString().contains('tab_strip_view.dart')) d,
-    ];
-    expect(unexpected, isEmpty);
+    // Any overflow, including the tab strip's, fails the test.
+    expect(errors, isEmpty);
   });
 }

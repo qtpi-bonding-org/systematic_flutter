@@ -12,10 +12,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Notes';
 
   @override
-  String get tabOne => 'Tab 1';
+  String tabNumber(int number) {
+    return 'Tab $number';
+  }
 
   @override
-  String get tabTwo => 'Tab 2';
+  String get tabNew => 'New tab';
 
   @override
   String get noteRename => 'Rename';

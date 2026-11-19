@@ -1,8 +1,9 @@
 {
   "@@locale": "en",
   "appTitle": "Notes",
-  "tabOne": "Tab 1",
-  "tabTwo": "Tab 2",
+  "tabNumber": "Tab {number}",
+  "@tabNumber": {"placeholders": {"number": {"type": "int"}}},
+  "tabNew": "New tab",
   "noteRename": "Rename",
   "noteDelete": "Delete",
   "noteRenameTitle": "Rename note",

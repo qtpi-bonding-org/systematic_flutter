@@ -11,7 +11,7 @@ class TabsAdapter extends AdapterWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Connect<TabsCubit, String, TabStripData>(
+    return Connect<TabsCubit, TabsState, TabStripData>(
       select: selectTabStrip,
       resolve: (c) => ScopeProvider.of<WorkspaceScope>(c).tabs,
       debugLabel: 'tabs',
@@ -24,8 +24,10 @@ class TabsAdapter extends AdapterWidget {
     return TabStripView(
       tabs: data.tabs,
       active: data.active,
+      canClose: data.canClose,
       onSelect: actions.select,
       onClose: actions.closeTab,
+      onNew: actions.newTab,
       body: body,
     );
   }

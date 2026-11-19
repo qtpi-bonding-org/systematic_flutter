@@ -100,17 +100,17 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get appTitle;
 
-  /// No description provided for @tabOne.
+  /// No description provided for @tabNumber.
   ///
   /// In en, this message translates to:
-  /// **'Tab 1'**
-  String get tabOne;
+  /// **'Tab {number}'**
+  String tabNumber(int number);
 
-  /// No description provided for @tabTwo.
+  /// No description provided for @tabNew.
   ///
   /// In en, this message translates to:
-  /// **'Tab 2'**
-  String get tabTwo;
+  /// **'New tab'**
+  String get tabNew;
 
   /// No description provided for @noteRename.
   ///

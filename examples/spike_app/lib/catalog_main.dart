@@ -81,6 +81,8 @@ Widget _labelled(String name, Widget child) => Column(
   children: [Text(name), child],
 );
 
+const _tabStripFrameHeight = 240.0;
+
 /// Label above a screen entry; the screen fills the frame below the label.
 Widget _labelledScreen(String name, Widget child) => Column(
   crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +113,7 @@ Widget _home(HomeScreenData data) => HomeScreenAssembly.assemble(
     _workspace,
   ),
   tabs: TabsAdapter.assemble(
-    TabStripData(tabs: kTabs, active: 'tab1'),
+    TabStripData.samples()['two tabs']!,
     _tabs,
     _notesList('tab1', data.list),
   ),
@@ -149,9 +151,14 @@ List<CatalogEntry> catalogEntries() => [
     name: 'TabStripView',
     kind: CatalogKind.widget,
     samples: TabStripData.samples(),
+    // The strip takes the height its parent gives it, as it does on the
+    // home screen, so the entry gets a fixed frame.
     build: (data) => _labelled(
       'TabStripView',
-      TabsAdapter.assemble(data, _tabs, const Text('Body')),
+      SizedBox(
+        height: _tabStripFrameHeight,
+        child: TabsAdapter.assemble(data, _tabs, const Text('Body')),
+      ),
     ),
   ),
   CatalogEntry.fromSamples<SearchPanelData>(

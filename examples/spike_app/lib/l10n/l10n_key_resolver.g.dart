@@ -50,8 +50,8 @@ class L10nKeyResolver implements LabelResolver {
       'status.offline' => _l10n.statusOffline,
       'status.online' => _l10n.statusOnline,
       'status.tick' => _l10n.statusTick(args['count'] as int),
-      'tab.one' => _l10n.tabOne,
-      'tab.two' => _l10n.tabTwo,
+      'tab.new' => _l10n.tabNew,
+      'tab.number' => _l10n.tabNumber(args['number'] as int),
       _ => _unknown(key),
     };
   }
@@ -93,8 +93,8 @@ class L10nKeyResolver implements LabelResolver {
     'status.offline',
     'status.online',
     'status.tick',
-    'tab.one',
-    'tab.two',
+    'tab.new',
+    'tab.number',
   };
 
   static bool hasKey(String key) => knownKeys.contains(key);
@@ -128,8 +128,8 @@ class L10nKeyResolver implements LabelResolver {
     'statusOffline': 'status.offline',
     'statusOnline': 'status.online',
     'statusTick': 'status.tick',
-    'tabOne': 'tab.one',
-    'tabTwo': 'tab.two',
+    'tabNew': 'tab.new',
+    'tabNumber': 'tab.number',
   };
 
   /// Dot-notation key to ARB camelCase key.
@@ -161,8 +161,8 @@ class L10nKeyResolver implements LabelResolver {
     'status.offline': 'statusOffline',
     'status.online': 'statusOnline',
     'status.tick': 'statusTick',
-    'tab.one': 'tabOne',
-    'tab.two': 'tabTwo',
+    'tab.new': 'tabNew',
+    'tab.number': 'tabNumber',
   };
 }
 
@@ -198,6 +198,6 @@ abstract final class L10nKeys {
   static const statusOffline = L10nKey.generated('status.offline');
   static const statusOnline = L10nKey.generated('status.online');
   static L10nKey statusTick({required int count}) => L10nKey.generated('status.tick', {'count': count});
-  static const tabOne = L10nKey.generated('tab.one');
-  static const tabTwo = L10nKey.generated('tab.two');
+  static const tabNew = L10nKey.generated('tab.new');
+  static L10nKey tabNumber({required int number}) => L10nKey.generated('tab.number', {'number': number});
 }

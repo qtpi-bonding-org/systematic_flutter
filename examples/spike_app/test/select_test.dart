@@ -62,15 +62,57 @@ void main() {
         selectRenameForm(const RenameFormState(text: 'xyz')));
   });
 
-  test('TabsCubit selects a tab; selectTabStrip lists both tabs', () async {
+  test('TabsCubit selects a tab; selectTabStrip lists open tabs', () async {
     final c = TabsCubit(onClose: (_) {});
-    expect(c.state, 'tab1');
+    expect(c.state.open, ['tab1', 'tab2']);
+    expect(c.state.active, 'tab1');
     c.select('tab2');
-    expect(c.state, 'tab2');
-    final d = selectTabStrip('tab2');
+    final d = selectTabStrip(c.state);
     expect(d.active, 'tab2');
     expect(d.tabs.map((x) => x.id), ['tab1', 'tab2']);
-    expect(selectTabStrip('tab1'), isNot(d));
-    await c.close();
+    expect(d.canClose, isTrue);
+    expect(selectTabStrip(TabsCubit(onClose: (_) {}).state), isNot(d));
   });
+
+  test('closeTab removes the tab, moves to a neighbour, releases it', () {
+    final closed = <String>[];
+    final c = TabsCubit(onClose: closed.add);
+    c.closeTab('tab1');
+    expect(c.state.open, ['tab2']);
+    expect(c.state.active, 'tab2');
+    expect(closed, ['tab1']);
+    c.closeTab('tab2'); // the last tab cannot be closed
+    expect(c.state.open, ['tab2']);
+    expect(closed, ['tab1']);
+    expect(selectTabStrip(c.state).canClose, isFalse);
+  });
+
+  test('closing an inactive tab keeps the active one', () {
+    final c = TabsCubit(onClose: (_) {});
+    c.newTab();
+    c.select('tab2');
+    c.closeTab('tab3');
+    expect(c.state.open, ['tab1', 'tab2']);
+    expect(c.state.active, 'tab2');
+  });
+
+  test('newTab opens a fresh id and activates it; ids are never reused', () {
+    final c = TabsCubit(onClose: (_) {});
+    c.newTab();
+    expect(c.state.open, ['tab1', 'tab2', 'tab3']);
+    expect(c.state.active, 'tab3');
+    c.closeTab('tab3');
+    c.newTab();
+    expect(c.state.open.last, 'tab4');
+  });
+
+  test('every TabStripData sample is self-consistent', () {
+    final s = TabStripData.samples();
+    expect(s.keys, containsAll(['one tab', 'two tabs', 'second active']));
+    for (final d in s.values) {
+      expect(d.tabs.map((t) => t.id), contains(d.active));
+      expect(d.canClose, d.tabs.length > 1);
+    }
+  });
+
 }
