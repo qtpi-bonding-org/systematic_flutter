@@ -180,15 +180,20 @@ LISTED = ('plugins:\n  systematic_lints:\n    path: ../x\n    diagnostics:\n'
           '      no_hardcoded_font_size: true\n')
 UNLISTED = ('plugins:\n  systematic_lints:\n    path: ../x\n    diagnostics:\n'
             '      no_error_to_text: true\n')
+DISABLED = ('plugins:\n  systematic_lints:\n    path: ../x\n    diagnostics:\n'
+            '      no_hardcoded_font_size: false\n')
 r = smoke(LISTED, FINDING + '\n')
 assert r.returncode == 0, r.stderr + r.stdout
 r = smoke(LISTED, FINDING_313 + '\n')
 assert r.returncode == 0, r.stderr + r.stdout
-# A rule missing from diagnostics is silent; smoke must say so and fail.
+# Rules are on by default: an unlisted rule, or no options file, still passes.
 r = smoke(UNLISTED, FINDING + '\n')
-assert r.returncode != 0 and 'diagnostics' in r.stderr, r.stderr + r.stdout
+assert r.returncode == 0, r.stderr + r.stdout
 r = smoke(None, FINDING + '\n')
-assert r.returncode != 0 and 'diagnostics' in r.stderr, r.stderr + r.stdout
+assert r.returncode == 0, r.stderr + r.stdout
+# A probe rule turned off explicitly: smoke must say so and fail.
+r = smoke(DISABLED, FINDING + '\n')
+assert r.returncode != 0 and 'turned off' in r.stderr, r.stderr + r.stdout
 # Listed but the probe reports nothing: fail.
 r = smoke(LISTED, 'No issues found.\n')
 assert r.returncode != 0, r.stderr + r.stdout

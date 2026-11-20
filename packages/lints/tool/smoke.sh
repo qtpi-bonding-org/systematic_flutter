@@ -7,11 +7,10 @@ rule="${2:-no_hardcoded_font_size}"
 probe="${3:-$app/lib/_systematic_lints_smoke.dart}"
 attempts="${PROBE_ATTEMPTS:-3}"; sleep_s="${PROBE_SLEEP:-5}"
 
-# Plugin rules are silent unless listed under diagnostics, so check that first.
+# Rules run unless turned off, so fail only if the probe rule is explicitly disabled.
 options="$app/analysis_options.yaml"
-if [[ ! -f "$options" ]] || ! grep -qE '^[[:space:]]+diagnostics:' "$options" \
-   || ! grep -qE "^[[:space:]]+${rule}:[[:space:]]*true[[:space:]]*(#.*)?$" "$options"; then
-  echo "rule $rule is silent unless it is listed under plugins: systematic_lints: diagnostics: in $options (add '$rule: true' there)" >&2
+if [[ -f "$options" ]] && grep -qE "^[[:space:]]+${rule}:[[:space:]]*false[[:space:]]*(#.*)?$" "$options"; then
+  echo "rule $rule is turned off in $options; pick another probe rule or remove '$rule: false'" >&2
   exit 1
 fi
 

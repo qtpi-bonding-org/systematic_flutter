@@ -36,31 +36,31 @@ class SystematicLintsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
     registry
-      ..registerLintRule(NoHardcodedColors())
-      ..registerLintRule(NoHardcodedFontSize())
-      ..registerLintRule(NoHardcodedFontFamily())
-      ..registerLintRule(NoRawSizedboxSpacing())
-      ..registerLintRule(NoRawAppSizes())
-      ..registerLintRule(NoBannedConstructors())
-      ..registerLintRule(NoHardcodedPadding())
-      ..registerLintRule(NoInlineWidgetCompositionInPages())
-      ..registerLintRule(NoHardcodedStrings())
-      ..registerLintRule(AvoidBlocImportsInWidgetsDir())
-      ..registerLintRule(AvoidGetItInAdaptersDir())
-      ..registerLintRule(RequireCubitFieldOverRawBlocApis())
-      ..registerLintRule(RequireStaticSelector())
-      ..registerLintRule(CubitFieldSelectorMustBeEquatable())
-      ..registerLintRule(NoDuplicateCubitFieldKeys())
-      ..registerLintRule(BackendAccessOnlyInAdapters())
-      ..registerLintRule(AdapterNaming())
-      ..registerLintRule(ActionsAvoidBlocNames())
-      ..registerLintRule(ActionsReturnVoid())
-      ..registerLintRule(NoBuildContextFields());
+      ..registerWarningRule(NoHardcodedColors())
+      ..registerWarningRule(NoHardcodedFontSize())
+      ..registerWarningRule(NoHardcodedFontFamily())
+      ..registerWarningRule(NoRawSizedboxSpacing())
+      ..registerWarningRule(NoRawAppSizes())
+      ..registerWarningRule(NoBannedConstructors())
+      ..registerWarningRule(NoHardcodedPadding())
+      ..registerWarningRule(NoInlineWidgetCompositionInPages())
+      ..registerWarningRule(NoHardcodedStrings())
+      ..registerWarningRule(AvoidBlocImportsInWidgetsDir())
+      ..registerWarningRule(AvoidGetItInAdaptersDir())
+      ..registerWarningRule(RequireCubitFieldOverRawBlocApis())
+      ..registerWarningRule(RequireStaticSelector())
+      ..registerWarningRule(CubitFieldSelectorMustBeEquatable())
+      ..registerWarningRule(NoDuplicateCubitFieldKeys())
+      ..registerWarningRule(BackendAccessOnlyInAdapters())
+      ..registerWarningRule(AdapterNaming())
+      ..registerWarningRule(ActionsAvoidBlocNames())
+      ..registerWarningRule(ActionsReturnVoid())
+      ..registerWarningRule(NoBuildContextFields());
     registry
-      ..registerLintRule(ExceptionsExtendFailureBase())
-      ..registerLintRule(ThrowOnlyFailureTypes())
-      ..registerLintRule(NoBareCatchConversion())
-      ..registerLintRule(NoErrorToText());
-    registry.registerLintRule(NoStringErrorInState());
+      ..registerWarningRule(ExceptionsExtendFailureBase())
+      ..registerWarningRule(ThrowOnlyFailureTypes())
+      ..registerWarningRule(NoBareCatchConversion())
+      ..registerWarningRule(NoErrorToText());
+    registry.registerWarningRule(NoStringErrorInState());
   }
 }

@@ -272,8 +272,8 @@ Boundary rules:
 
 Other rules: design tokens (`no_hardcoded_colors`, `..._font_size`, `..._font_family`, `..._padding`, `no_raw_sizedbox_spacing`, `no_raw_app_sizes`), labels (`no_hardcoded_strings`), failure discipline (`exceptions_extend_failure_base`, `throw_only_failure_types`, `no_bare_catch_conversion`, `no_string_error_in_state`, `no_error_to_text`), and the older structure rules. Apps that opt in disable `avoid_bloc_imports_in_widgets_dir`; `avoid_getit_in_adapters_dir` is covered by the boundary rule. Types are matched by name, and rules apply to widgets and their `State`s only, so cubits and scopes are untouched, and a plain class is checked only for holding a cubit or scope (see the table). `*View` naming is deliberately not enforced.
 
-**Probe check.** Because a missing entry is silent, two scripts prove the plugin works:
-- `packages/lints/tool/smoke.sh <app> [rule]` fails if the rule is not listed under `diagnostics:` or the probe reports nothing.
+**Probe check.** Rules are on unless turned off (`rule: false`), but a plugin that fails to load reports nothing, so two scripts prove it works:
+- `packages/lints/tool/smoke.sh <app> [rule]` fails if the rule is turned off under `diagnostics:` or the probe reports nothing.
 - `tool/check_lints.sh` (the ratchet) analyzes `probe_file`, a file that deliberately violates `probe_rule`, and fails if it is not reported. Keep the probe file excluded from the app's normal analysis (`analyzer: exclude:`). The first analyze after setup can be empty while the plugin builds; the scripts retry.
 
 **Ratchet.** `tool/lint_ratchet.yaml` names `package_dirs`, `baseline`, `probe_rule` and `probe_file` ([example](../examples/spike_app/tool/lint_ratchet.yaml); `probe_file` needs the `./tool/...` form when `package_dirs` is `[.]`, since matching is by prefix). The script runs `dart analyze`, then fails on any finding not in the baseline file. Findings already in the baseline are allowed, so existing code migrates a piece at a time. After really fixing findings, refresh: save the analyze output to a file and run `python3 tool/lint_baseline.py --baseline tool/lint_baseline.txt --update <file>`, and say so in the commit. Never add findings to the baseline to get past a new violation; fix the violation.
@@ -285,7 +285,7 @@ Other rules: design tokens (`no_hardcoded_colors`, `..._font_size`, `..._font_fa
 Order, from `docs/plans/2026-11-19-boundary-framework.md` (the plan has the Episutra specifics; also `2026-11-19-screens-and-catalog.md`):
 
 1. **Pins.** Point every `systematic_flutter` dependency, including the lints plugin entries in both `analysis_options.yaml` files, at one https URL and one ref. Independent of the rest.
-2. **Bump, enable rules, baseline.** List the new rules under `diagnostics:`, run the probe check, baseline what exists. The ratchet then blocks growth only.
+2. **Bump, baseline.** All rules are on after the bump (turn off the replaced ones, e.g. `avoid_bloc_imports_in_widgets_dir: false`), run the probe check, baseline what exists. The ratchet then blocks growth only.
 3. **Migrate in this order:**
    - onboarding (a `ShellRoute` flow scope replaces `state.extra`; test that state carries across steps),
    - settings (including any window that re-provides cubits),
@@ -301,7 +301,7 @@ Per piece: write the ViewData with `samples()`, `select` with a unit test, the a
 
 - **Glue per feature.** A feature costs a cubit, state, ViewData (hand-written `==` in the spike; use `@freezed`), an actions interface, an adapter (25-75 lines), a view and a catalog entry. The value classes are the biggest cost.
 - **Long `Connect` type arguments.** `select` is a tear-off, so they cannot be inferred. Write them out.
-- **Rules silent when unlisted.** The most expensive trap. Run the probe check after any config change.
+- **Plugin silent when not loaded.** Rules are on by default, but a plugin that fails to load reports nothing. Run the probe check after any config change.
 - **`flutter analyze` hides plugin findings.** Use `dart analyze`.
 - **Data paths.** `backend_access_only_in_adapters` bans views from holding types declared under `data_paths` (default `/lib/data/`, `/lib/infrastructure/`), matched by substring of the file path. Convention: value types that views may use (models, domain exceptions, value interfaces) live in `lib/domain/`, never under `lib/data/`; `lib/data/` holds only backend code (dao, db, tables, sync, repositories, services, codecs, mappers). With that layout the default paths need no tuning. The spike moved its `NotesSource` interface into `lib/notes/` for this. The match is by substring, so a dependency package's own `lib/data/` files match the default too.
 - **Toast setup is three pieces.** A message mapper needs `BaseStateMessageMapper`, `ClassifyingExceptionKeyMapper` and a `MessageKey`; `UiFlowStateListener` needs a `UiFlowService` with feedback and loading services (the spike uses a `NoLoading` stub). The listener class is `UiFlowStateListener`; older text calls it `UiFlowListener`, and the lint bans both names in views.

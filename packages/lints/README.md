@@ -2,9 +2,9 @@
 
 An analyzer plugin. Findings show in `dart analyze` and in the editor. (`flutter analyze` did not show them in our trial; use `dart analyze` in CI.)
 
-## Rules are off until listed
+## Rules are on by default
 
-**A rule that is not listed under `diagnostics:` is silent, and a missing entry reports nothing.** Add every rule you want to the app's `analysis_options.yaml`:
+Every rule is registered as a warning rule, so **it runs unless the app turns it off** with `rule_name: false` under `diagnostics:`. A forgotten entry therefore means the rule runs, not that it is silently skipped. Severity stays `info`. The plugin itself still has to be listed under `plugins:`; the probe check proves it loaded. Listing rules as `true` is optional but documents intent:
 
 ```yaml
 plugins:
