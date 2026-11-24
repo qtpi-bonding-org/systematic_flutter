@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../interfaces/color_palette.dart';
 import '../implementations/app_color_palette.dart';
 import 'contrast_matrix_widget.dart';

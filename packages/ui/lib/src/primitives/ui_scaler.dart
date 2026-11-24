@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'screen_metrics.dart';
 
 /// Singleton utility for responsive UI scaling.

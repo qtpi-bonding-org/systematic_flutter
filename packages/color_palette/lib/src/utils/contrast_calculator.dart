@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../interfaces/color_palette.dart';
 
 /// Utilities for calculating color contrast ratios and accessibility compliance.

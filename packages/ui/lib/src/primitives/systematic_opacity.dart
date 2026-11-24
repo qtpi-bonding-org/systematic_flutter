@@ -1,6 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How strongly a color shows in each state, as a [ThemeExtension]. Named by
 /// meaning, not by number: a widget says `disabled` and the theme decides how

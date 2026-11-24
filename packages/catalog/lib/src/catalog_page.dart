@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'catalog_entry.dart';
 import 'catalog_tokens.dart';

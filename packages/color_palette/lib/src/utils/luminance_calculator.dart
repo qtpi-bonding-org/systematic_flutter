@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Utilities for calculating luminance-based color transformations.
 class LuminanceCalculator {

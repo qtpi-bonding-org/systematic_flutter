@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../interfaces/color_palette.dart';
 
 /// Represents a theme that can be exported and shared.

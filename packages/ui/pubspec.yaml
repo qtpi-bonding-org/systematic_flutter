@@ -4,7 +4,7 @@ version: 0.1.0
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
-  flutter: '>=3.0.0'
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
@@ -17,6 +17,7 @@ dependencies:
   flutter_color_palette:
     path: ../color_palette
 
+  material_ui: ^1.11.1
 dev_dependencies:
   build_runner: ^2.5.0
   freezed: ^4.0.1

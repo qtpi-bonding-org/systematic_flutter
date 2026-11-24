@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Source of the screen width that [UiScaler] derives its factor from.
 /// Lets the Storybook drive a simulated device width without touching

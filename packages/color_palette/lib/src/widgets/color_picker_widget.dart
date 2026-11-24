@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A simple color picker widget for editing individual colors.
 class ColorPickerWidget extends StatefulWidget {

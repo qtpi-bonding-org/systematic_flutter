@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'luminance_calculator.dart';
 
 /// Convenient extensions on Color for common operations.
