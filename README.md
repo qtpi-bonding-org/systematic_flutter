@@ -1,12 +1,12 @@
 # systematic_flutter
 
-The shared Flutter foundation for the apps (Episutra, Quanitya, Pocketcoder, Achaean, archescope): one repo, one ref, several independent packages.
+The shared Flutter foundation for the apps (Episutra, Quanitya, Pocketcoder, Achaean, archescope): one repo, several independent packages, pinned by commit except the two versioned ones (see Versions).
 
 ## Packages
 
 | Folder | Pub name | What it is |
 |---|---|---|
-| `packages/l10n` | `l10n_key_resolver` | build_runner generator: ARB keys to a resolver and typed key constants |
+| `packages/l10n` | `l10n_key_resolver` | runtime types for typed localized labels (`Label`, `L10nKey`, `DataText`); the generator is `l10n_generator` |
 | `packages/systematic_failure` | `systematic_failure` | pure-Dart failure classification and stable error descriptions; depends on `l10n` |
 | `packages/cubit_ui_flow` | `cubit_ui_flow` | cubit state to UI feedback: `MessageKey`, listener, exception mapping |
 | `packages/ui` | `systematic_ui` | design tokens (`AppSizes`, `VSpace`, `HSpace`, `AppPadding`, `UiScaler`), `ThemeService`, layout widgets |
@@ -25,6 +25,32 @@ cubit_ui_flow:
     ref: <sha>
     path: packages/cubit_ui_flow
 ```
+
+## Versions
+
+Only `l10n_key_resolver` (`packages/l10n`) and `systematic_failure` have versions and tags. Every other package is pinned by commit, as above.
+
+Ask for the two by version range, never by `ref` or `path`, in apps, in libraries that use them (such as anonaccount_sdk) and in this repo's own packages. The example app (`examples/spike_app`) is the exception: it uses every package by folder. Then a library and an app can move to different commits of the rest of this repo without a clash:
+
+```yaml
+systematic_failure:
+  git:
+    url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+    path: packages/systematic_failure
+    tag_pattern: "systematic_failure-v{{version}}"
+  version: ^0.1.1
+l10n_key_resolver:
+  git:
+    url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+    path: packages/l10n
+    tag_pattern: "l10n_key_resolver-v{{version}}"
+  version: ^0.2.0
+```
+
+- Needs Dart 3.9 or newer in the package that declares it.
+- Any change to either package: bump its version in its pubspec and tag that commit `<pub name>-v<version>`. While at 0.x, a breaking change bumps the minor version.
+- Inside this repo, each package's `pubspec_overrides.yaml` points the two back at their folders, so local edits are seen. These files are ignored when a package is used from git.
+- `error_privserver` uses `cubit_ui_flow` by folder: pin both at the same commit, or override `cubit_ui_flow` in the app.
 
 How to build UI with these packages (adapters, views, scopes, catalog, lints): [`docs/boundaries.md`](docs/boundaries.md).
 

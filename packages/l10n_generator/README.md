@@ -12,7 +12,11 @@ Dot keys come from the ARB key (`errorAuthFailed` becomes `error.auth.failed`). 
 ```yaml
 dependencies:
   l10n_key_resolver:
-    git: {url: <systematic_flutter>, path: packages/l10n}
+    git:
+      url: <systematic_flutter>
+      path: packages/l10n
+      tag_pattern: "l10n_key_resolver-v{{version}}"
+    version: ^0.2.0
 dev_dependencies:
   l10n_generator:
     git: {url: <systematic_flutter>, path: packages/l10n_generator}

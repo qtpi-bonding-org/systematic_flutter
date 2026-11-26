@@ -1,0 +1,7 @@
+# Local work: use this repo's folders, not the tagged versions.
+# Ignored when this package is used from git.
+dependency_overrides:
+  l10n_key_resolver:
+    path: ../l10n
+  systematic_failure:
+    path: ../systematic_failure

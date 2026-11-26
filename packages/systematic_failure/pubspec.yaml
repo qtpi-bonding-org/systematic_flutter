@@ -1,13 +1,17 @@
 name: systematic_failure
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.9.0 <4.0.0'
 
 dependencies:
   l10n_key_resolver:
-    path: ../l10n
+    git:
+      url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+      path: packages/l10n
+      tag_pattern: "l10n_key_resolver-v{{version}}"
+    version: ^0.2.0
 
 dev_dependencies:
   test: ^1.24.0

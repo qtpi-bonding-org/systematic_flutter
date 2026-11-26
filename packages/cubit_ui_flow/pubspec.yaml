@@ -16,7 +16,7 @@ topics:
   - error-handling
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.9.0 <4.0.0'
   flutter: '>=3.10.0'
 
 dependencies:
@@ -25,9 +25,17 @@ dependencies:
   flutter_bloc: ^8.1.0
   meta: ^1.9.0
   l10n_key_resolver:
-    path: ../l10n
+    git:
+      url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+      path: packages/l10n
+      tag_pattern: "l10n_key_resolver-v{{version}}"
+    version: ^0.2.0
   systematic_failure:
-    path: ../systematic_failure
+    git:
+      url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+      path: packages/systematic_failure
+      tag_pattern: "systematic_failure-v{{version}}"
+    version: ^0.1.1
 
 dev_dependencies:
   flutter_test:

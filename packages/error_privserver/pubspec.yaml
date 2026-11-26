@@ -5,7 +5,7 @@ homepage: https://github.com/qtpi-bonding-org/systematic_flutter
 publish_to: none
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.9.0 <4.0.0'
   flutter: ">=3.0.0"
 
 dependencies:
@@ -14,7 +14,11 @@ dependencies:
   cubit_ui_flow:
     path: ../cubit_ui_flow
   systematic_failure:
-    path: ../systematic_failure
+    git:
+      url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+      path: packages/systematic_failure
+      tag_pattern: "systematic_failure-v{{version}}"
+    version: ^0.1.1
   flutter_bloc: ^8.1.0
   uuid: ^4.0.0
   crypto: ^3.0.0

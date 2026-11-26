@@ -3,7 +3,7 @@ description: Shared design system bones for the Systematic Flutter apps.
 version: 0.1.0
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.9.0 <4.0.0'
   flutter: ">=3.47.0"
 
 dependencies:
@@ -13,7 +13,11 @@ dependencies:
     sdk: flutter
   freezed_annotation: ^3.1.0
   l10n_key_resolver:
-    path: ../l10n
+    git:
+      url: https://github.com/qtpi-bonding-org/systematic_flutter.git
+      path: packages/l10n
+      tag_pattern: "l10n_key_resolver-v{{version}}"
+    version: ^0.2.0
   flutter_color_palette:
     path: ../color_palette
 
